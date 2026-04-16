@@ -1,6 +1,7 @@
 export enum AppRoutes {
   // Rutas específicas:
   LOGIN = 'login',
+  FORGOT_PASSWORD = 'forgot-password',
   ADMIN = 'admin',
   SELLER = 'seller',
   COLLECTOR = 'collector',
