@@ -25,7 +25,7 @@ export interface PendingApproval {
   waitingHours: number;
   status: CreditStatus;
   riskLevel: RiskLevel;
-  createdAt: string; // ISO string — usar DateService para parsear
+  createdAt: string;
 }
 
 export interface DelinquencyStats {

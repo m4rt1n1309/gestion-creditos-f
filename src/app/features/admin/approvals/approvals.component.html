@@ -1,100 +1,175 @@
-<p-toast position="top-right" />
+<p-toast />
 <p-confirmDialog />
 
 <div class="p-6">
-
-  <!-- Header — fiel al mockup pág. 32 -->
-  <div class="flex items-center gap-3 mb-5">
-    <h1 class="text-xl font-semibold text-gray-800">Aprobación de Operaciones</h1>
-    @if (approvals.length > 0) {
-    <span class="text-xs bg-amber-100 text-amber-800 font-medium px-2.5 py-1 rounded-full">
-      {{ approvals.length }} operaciones pendientes
-    </span>
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">
+        Aprobación de Operaciones
+      </h1>
+      <p class="text-sm text-gray-500">
+        Revisa y valida las solicitudes entrantes.
+      </p>
+    </div>
+    @if (approvals.length > 0 && !loading) {
+      <p-badge [value]="approvals.length" severity="warning" size="large" />
     }
   </div>
 
-  <!-- Tabla PrimeNG -->
-  <p-table [value]="approvals" [loading]="loading" [paginator]="true" [rows]="10" [rowHover]="true"
-    [showCurrentPageReport]="true" currentPageReportTemplate="{first} - {last} de {totalRecords}"
-    styleClass="p-datatable-sm p-datatable-gridlines" responsiveLayout="scroll" dataKey="id">
-
-    <ng-template pTemplate="header">
-      <tr>
-        <th>Fecha</th>
-        <th>Cliente</th>
-        <th>Tipo</th>
-        <th pSortableColumn="amount">
-          Monto <p-sortIcon field="amount" />
-        </th>
-        <th>Cuotas</th>
-        <th>Creó</th>
-        <th pSortableColumn="waitingHours">
-          En espera <p-sortIcon field="waitingHours" />
-        </th>
-        <th>Acciones</th>
-      </tr>
-    </ng-template>
-
-    <ng-template pTemplate="body" let-row>
-      <!-- Fila roja para las que llevan más de 48h (fiel al mockup) -->
-      <tr [class.bg-red-50]="row.waitingHours >= 48">
-        <td class="text-sm text-gray-500">
-          {{ dateService.display(row.createdAt, 'dd/MM') }}
-        </td>
-        <td class="font-medium text-gray-800">{{ row.clientName }}</td>
-        <td>
-          <p-tag [value]="row.type" [severity]="row.type === 'VENTA' ? 'info' : 'warning'" />
-        </td>
-        <td class="font-semibold text-gray-800">
-          {{ row.amount | currency:'$':'symbol':'1.0-0' }}
-        </td>
-        <td class="text-center text-gray-600">{{ row.installments }}</td>
-        <td class="text-sm text-gray-500">{{ row.createdBy }}</td>
-        <td>
-          @if (row.waitingHours >= 48) {
-          <span class="text-red-600 font-semibold text-sm">
-            ⚠ {{ row.waitingHours }}h!!!
-          </span>
-          } @else {
-          <span class="text-gray-500 text-sm">{{ row.waitingHours }} horas</span>
-          }
-        </td>
-        <td>
-          <div class="flex gap-2">
-            <p-button label="Aprobar" icon="pi pi-check" severity="success" size="small" [outlined]="true"
-              [loading]="processingId === row.id + '_approve'" (onClick)="onApprove(row)"
-              pTooltip="Aprobar operación" />
-
-            <p-button label="Rechazar" icon="pi pi-times" severity="danger" size="small" [outlined]="true"
-              [loading]="processingId === row.id + '_reject'" (onClick)="onReject(row)"
-              pTooltip="Rechazar con motivo" />
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-
-    <!-- Skeleton mientras carga — mejor UX que un spinner genérico -->
-    <ng-template pTemplate="loadingbody">
-      @for (i of [1,2,3,4,5]; track i) {
-      <tr>
-        @for (j of [1,2,3,4,5,6,7,8]; track j) {
-        <td><p-skeleton height="1.5rem" /></td>
-        }
-      </tr>
-      }
-    </ng-template>
-
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="8">
-          <div class="flex flex-col items-center py-12 text-gray-400">
-            <i class="pi pi-check-circle text-4xl mb-3 text-green-400"></i>
-            <p class="text-sm font-medium">No hay operaciones pendientes</p>
-            <p class="text-xs mt-1">Todas las operaciones fueron procesadas</p>
-          </div>
-        </td>
-      </tr>
-    </ng-template>
-
-  </p-table>
+  <p-card styleClass="shadow-sm border-none">
+    @if (loading) {
+      <!-- TODO -> reemplazar por el .length del array -->
+      <p-table
+        [value]="[1, 2, 3, 4, 5]"
+        styleClass="p-datatable-gridlines p-datatable-sm"
+        responsiveLayout="scroll"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Operación</th>
+            <th class="text-right">Monto</th>
+            <th>Vendedor</th>
+            <th class="text-center">Estado</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body">
+          <tr>
+            <td><p-skeleton width="80%" /></td>
+            <td><p-skeleton width="90%" /></td>
+            <td><p-skeleton width="60%" /></td>
+            <td class="text-right flex justify-end">
+              <p-skeleton width="50%" />
+            </td>
+            <td><p-skeleton width="70%" /></td>
+            <td class="text-center flex justify-center">
+              <p-skeleton
+                width="6rem"
+                height="1.5rem"
+                styleClass="rounded-full"
+              />
+            </td>
+            <td>
+              <div class="flex justify-center gap-2">
+                <p-skeleton shape="circle" size="2rem" />
+                <p-skeleton shape="circle" size="2rem" />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    } @else {
+      <p-table
+        [value]="approvals"
+        [paginator]="true"
+        [rows]="10"
+        styleClass="p-datatable-gridlines p-datatable-sm"
+        responsiveLayout="scroll"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Operación</th>
+            <th class="text-right">Monto</th>
+            <th>Vendedor</th>
+            <th class="text-center">Estado</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-app>
+          <tr>
+            <td>{{ app.createdAt | date: "short" }}</td>
+            <td class="font-medium">{{ app.clientName }}</td>
+            <td>{{ app.type }}</td>
+            <td class="text-right font-bold text-blue-600">
+              {{ app.amount | currency }}
+            </td>
+            <td class="text-sm text-gray-500">{{ app.createdBy }}</td>
+            <td class="text-center">
+              <p-tag value="PENDIENTE" severity="warning" [rounded]="true" />
+            </td>
+            <td class="text-center">
+              <div class="flex justify-center gap-2">
+                <p-button
+                  icon="pi pi-check"
+                  severity="success"
+                  [rounded]="true"
+                  [text]="true"
+                  (onClick)="onApprove(app)"
+                  pTooltip="Aprobar"
+                />
+                <p-button
+                  icon="pi pi-times"
+                  severity="danger"
+                  [rounded]="true"
+                  [text]="true"
+                  (onClick)="onReject(app)"
+                  pTooltip="Rechazar"
+                />
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
 </div>
+
+<p-dialog
+  [(visible)]="showRejectDialog"
+  [header]="'Rechazar Operación'"
+  [modal]="true"
+  [style]="{ width: '450px' }"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div class="flex flex-col gap-4 py-2">
+    <p class="text-sm text-gray-600">
+      Por favor, indica la razón del rechazo para
+      <b>{{ rejectingRow?.clientName }}</b
+      >.
+    </p>
+    <div class="flex flex-col gap-2">
+      <label class="text-xs font-bold uppercase text-gray-400">Motivo</label>
+      <p-dropdown
+        [options]="REJECT_REASONS"
+        [(ngModel)]="rejectReason"
+        placeholder="Selecciona un motivo"
+        styleClass="w-full"
+        appendTo="body"
+      />
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-xs font-bold uppercase text-gray-400"
+        >Observaciones</label
+      >
+      <textarea
+        pTextarea
+        [(ngModel)]="rejectDetail"
+        rows="3"
+        class="w-full"
+        placeholder="Detalles adicionales..."
+      ></textarea>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      [text]="true"
+      severity="secondary"
+      (onClick)="showRejectDialog = false"
+    />
+    <p-button
+      label="Confirmar Rechazo"
+      icon="pi pi-trash"
+      severity="danger"
+      (onClick)="confirmReject()"
+      [loading]="processingReject"
+      [disabled]="!rejectReason"
+    />
+  </ng-template>
+</p-dialog>

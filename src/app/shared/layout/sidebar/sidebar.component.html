@@ -1,70 +1,106 @@
-<aside class="flex flex-col h-dvh w-64 bg-slate-900 text-slate-100 shrink-0 select-none">
-
-  <!-- Logo -->
-  <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-700/60">
-    <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center shrink-0">
-      <i class="pi pi-credit-card text-white" style="font-size:.875rem"></i>
+<aside
+  class="flex flex-col h-dvh w-64 bg-slate-900 text-slate-300 shrink-0 shadow-xl z-20 select-none"
+>
+  <div class="h-16 flex items-center gap-3 px-6 shrink-0 mt-2">
+    <div
+      class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-900/20"
+    >
+      <i class="pi pi-credit-card text-white text-sm"></i>
     </div>
-    <span class="font-semibold text-sm tracking-tight">SisCreditos</span>
+    <span class="font-bold text-xl text-white tracking-tight">SisCreditos</span>
   </div>
 
-  <!-- Usuario activo -->
   @if (currentUser) {
-  <div class="px-4 py-3 border-b border-slate-700/60">
-    <div class="flex items-center gap-2 min-w-0">
-      <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center
-                    text-xs font-semibold shrink-0">
-        {{ currentUser.avatar }}
-      </div>
-      <div class="min-w-0">
-        <p class="text-sm font-medium truncate">{{ currentUser.name }}</p>
-        @for (role of currentUser.roles; track role) {
-        <span class="inline-block text-xs bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded mr-1">
-          {{ role }}
-        </span>
-        }
+    <div class="px-6 py-4 flex items-center gap-3">
+      <p-avatar
+        [label]="currentUser.avatar"
+        shape="circle"
+        size="large"
+        styleClass="bg-blue-600 text-white font-bold shadow-sm"
+      />
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-bold text-white truncate">
+          {{ currentUser.name }}
+        </p>
+        <div class="flex gap-1 mt-0.5 overflow-hidden">
+          @for (role of currentUser.roles; track role) {
+            <span
+              class="text-[10px] uppercase font-bold text-blue-400 tracking-wider"
+            >
+              {{ role }}
+            </span>
+          }
+        </div>
       </div>
     </div>
-  </div>
   }
 
-  <!-- Navegación -->
-  <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-0.5" aria-label="Navegación principal">
-    @for (item of visibleItems; track item.route) {
-    <a [routerLink]="item.route" routerLinkActive="bg-blue-600 text-white" [routerLinkActiveOptions]="{ exact: false }"
-      class="group flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400
-                hover:bg-slate-700 hover:text-white transition-colors duration-150"
-      [attr.data-testid]="'nav-' + item.label.toLowerCase().replace(' ', '-').replace('.', '')">
+  <nav
+    class="flex-1 overflow-y-auto px-4 pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    aria-label="Navegación principal"
+  >
+    <ul class="flex flex-col gap-1">
+      @for (item of visibleItems; track item.label) {
+        @if (item.isGroupLabel) {
+          <li class="pt-5 pb-2 px-2">
+            <span
+              class="text-xs font-bold text-slate-500 uppercase tracking-widest"
+              >{{ item.label }}</span
+            >
+          </li>
+        } @else {
+          <li>
+            <a
+              pRipple
+              [routerLink]="item.route"
+              routerLinkActive="bg-blue-600/20 text-blue-400 font-bold"
+              [routerLinkActiveOptions]="{ exact: false }"
+              class="group flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors cursor-pointer"
+            >
+              <div class="flex items-center gap-3">
+                <i
+                  [class]="item.icon"
+                  class="text-lg opacity-70 group-hover:opacity-100 transition-opacity w-5 text-center"
+                ></i>
+                <span class="text-sm">{{ item.label }}</span>
+              </div>
 
-      <i [class]="item.icon" style="font-size:.9rem; width:1rem; text-align:center"></i>
-      <span class="text-sm flex-1">{{ item.label }}</span>
-
-      @if (item.badge) {
-      <span class="text-xs bg-red-500 text-white w-5 h-5 rounded-full
-                       flex items-center justify-center font-medium shrink-0">
-        {{ item.badge }}
-      </span>
+              @if (item.badge) {
+                <p-badge
+                  [value]="item.badge"
+                  severity="danger"
+                  styleClass="text-[10px] min-w-[1.25rem] h-5"
+                />
+              }
+            </a>
+          </li>
+        }
       }
-    </a>
-
-    @if (item.dividerAfter) {
-    <hr class="border-slate-700/60 my-2">
-    }
-    }
+    </ul>
   </nav>
 
-  <!-- Footer -->
-  <div class="px-3 py-3 border-t border-slate-700/60 space-y-0.5">
-    <a routerLink="/profile" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400
-              hover:bg-slate-700 hover:text-white transition-colors">
-      <i class="pi pi-user" style="font-size:.9rem"></i>
-      <span class="text-sm">Mi Perfil</span>
-    </a>
-    <button (click)="logout()" class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-red-400
-                   hover:bg-slate-700 hover:text-red-300 transition-colors" data-testid="logout-btn">
-      <i class="pi pi-sign-out" style="font-size:.9rem"></i>
-      <span class="text-sm">Salir</span>
-    </button>
+  <div class="px-4 pb-5 pt-2">
+    <ul class="flex flex-col gap-1">
+      <li>
+        <a
+          pRipple
+          routerLink="/profile"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+        >
+          <i class="pi pi-cog text-lg opacity-70"></i>
+          <span class="text-sm font-medium">Mi Perfil</span>
+        </a>
+      </li>
+      <li>
+        <button
+          pRipple
+          (click)="logout()"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-400 transition-colors cursor-pointer"
+        >
+          <i class="pi pi-sign-out text-lg opacity-70"></i>
+          <span class="text-sm font-medium">Cerrar Sesión</span>
+        </button>
+      </li>
+    </ul>
   </div>
-
 </aside>

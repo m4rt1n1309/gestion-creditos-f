@@ -1,1 +1,58 @@
-<p>header works!</p>
+<header
+  class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0"
+>
+  <div class="flex items-center gap-8">
+    <div class="flex items-center text-sm">
+      <span class="text-gray-400 mr-2">/</span>
+      <span class="text-gray-500 font-medium">Dashboard</span>
+    </div>
+
+    <div class="hidden md:block">
+      <p-iconField iconPosition="left">
+        <p-inputIcon styleClass="pi pi-search text-gray-400 z-10" />
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar..."
+          class="pl-10 w-72 bg-gray-50 border border-gray-100 rounded-xl text-sm py-2 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-sm"
+        />
+      </p-iconField>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-5">
+    <span class="text-sm font-medium text-gray-500 hidden lg:block">
+      {{ today }}
+    </span>
+
+    <button
+      class="relative p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-800"
+    >
+      <i class="pi pi-bell text-lg"></i>
+      <span
+        class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"
+      ></span>
+    </button>
+
+    @if (auth.currentUser$ | async; as user) {
+      <div
+        class="flex items-center gap-3 pl-5 border-l border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+      >
+        <div class="text-right hidden sm:block">
+          <p class="text-sm font-bold text-gray-800 leading-none">
+            {{ user.name }}
+          </p>
+          <p class="text-xs text-gray-500 mt-1 capitalize">
+            {{ user.roles }}
+          </p>
+        </div>
+
+        <div
+          class="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-sm border border-blue-200 shadow-sm"
+        >
+          {{ user.name.charAt(0) }}
+        </div>
+      </div>
+    }
+  </div>
+</header>

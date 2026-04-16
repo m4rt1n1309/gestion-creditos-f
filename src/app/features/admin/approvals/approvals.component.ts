@@ -1,29 +1,35 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 // PrimeNG — en Standalone cada componente importa solo lo que usa
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
+import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { SkeletonModule } from 'primeng/skeleton';
 import { TooltipModule } from 'primeng/tooltip';
-import { MessageService, ConfirmationService } from 'primeng/api';
 
+import { BadgeModule } from 'primeng/badge';
+import { CardModule } from 'primeng/card';
+import { DropdownModule } from 'primeng/dropdown';
+import { DateService } from '../../../core/services/date.service';
 import {
   MockDataService,
   PendingApproval,
 } from '../../../mocks/mock-data.service';
-import { DateService } from '../../../core/services/date.service';
 
 @Component({
   selector: 'approvals',
   standalone: true,
   imports: [
     CurrencyPipe,
+    FormsModule,
     TableModule,
     TagModule,
     ButtonModule,
@@ -31,15 +37,33 @@ import { DateService } from '../../../core/services/date.service';
     ConfirmDialogModule,
     SkeletonModule,
     TooltipModule,
+    DialogModule,
+    CardModule,
+    BadgeModule,
+    DropdownModule,
+    DatePipe
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './approvals.component.html',
   styleUrl: './approvals.component.scss',
 })
 export class ApprovalsComponent implements OnInit, OnDestroy {
+  readonly REJECT_REASONS = [
+    'Cliente con mora activa',
+    'Monto excede capacidad de pago',
+    'Documentación insuficiente',
+    'Decisión comercial',
+    'Otro',
+  ];
+
   approvals: PendingApproval[] = [];
   loading = true;
   processingId: string | null = null;
+  showRejectDialog = false;
+  rejectingRow: PendingApproval | null = null;
+  rejectReason = '';
+  rejectDetail = '';
+  processingReject = false;
 
   private destroy$ = new Subject<void>();
 
@@ -125,49 +149,48 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Maneja el rechazo de una solicitud. Muestra un confirm dialog y, si se acepta, llama al servicio para rechazar. Mientras se procesa, bloquea los botones para evitar acciones duplicadas.
+   *  Maneja el rechazo de una solicitud. Abre un diálogo para seleccionar el motivo de rechazo y, al confirmar, llama al servicio para rechazar. Mientras se procesa, bloquea los botones para evitar acciones duplicadas.
    * @param row
    * @returns
    */
   onReject(row: PendingApproval): void {
     if (this.processingId) return;
+    this.rejectingRow = row;
+    this.rejectReason = '';
+    this.rejectDetail = '';
+    this.showRejectDialog = true;
+  }
 
-    // TODO Semana 2: abrir un Dialog con el selector de motivo (mockup pág. 33)
-    // Por ahora: confirm dialog simple
-    this.confirm.confirm({
-      message: `¿Rechazar la operación de <strong>${row.clientName}</strong>?`,
-      header: 'Confirmar rechazo',
-      icon: 'pi pi-times-circle',
-      acceptLabel: 'Sí, rechazar',
-      rejectLabel: 'Cancelar',
-      acceptButtonStyleClass: 'p-button-danger',
-      accept: () => {
-        this.processingId = `${row.id}_reject`;
+  confirmReject(): void {
+    if (!this.rejectReason || !this.rejectingRow) return;
+    this.processingReject = true;
 
-        this.data
-          .rejectCredit(row.id, 'Decisión comercial')
-          .pipe(takeUntil(this.destroy$))
-          .subscribe({
-            next: () => {
-              this.approvals = this.approvals.filter((a) => a.id !== row.id);
-              this.processingId = null;
-              this.msg.add({
-                severity: 'info',
-                summary: 'Rechazado',
-                detail: row.clientName,
-                life: 3000,
-              });
-            },
-            error: () => {
-              this.processingId = null;
-              this.msg.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'No se pudo rechazar.',
-              });
-            },
+    this.data
+      .rejectCredit(this.rejectingRow.id, this.rejectReason)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.approvals = this.approvals.filter(
+            (approval) => approval.id !== this.rejectingRow!.id,
+          );
+          this.processingReject = false;
+          this.showRejectDialog = false;
+          this.msg.add({
+            severity: 'info',
+            summary: 'Rechazado',
+            detail: `${this.rejectingRow!.clientName} — ${this.rejectReason}`,
+            life: 4000,
           });
-      },
-    });
+          this.rejectingRow = null;
+        },
+        error: () => {
+          this.processingReject = false;
+          this.msg.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo rechazar.',
+          });
+        },
+      });
   }
 }
