@@ -1,0 +1,102 @@
+<div class="flex flex-col h-full bg-gray-50/50">
+  <div
+    class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-4 shrink-0 shadow-sm"
+  >
+    <h1 class="text-xl font-bold text-gray-900 shrink-0">
+      Nueva Operación de Crédito
+    </h1>
+
+    <div class="flex-1">
+      <p-steps
+        [model]="steps"
+        [(activeIndex)]="activeIndex"
+        [readonly]="true"
+        styleClass="[&_.p-steps-list]:justify-center"
+      />
+    </div>
+
+    <p-button
+      icon="pi pi-times"
+      [text]="true"
+      [rounded]="true"
+      severity="secondary"
+      routerLink="../"
+      pTooltip="Cancelar operación"
+    />
+  </div>
+
+  <div class="flex-1 overflow-y-auto p-6 md:p-8">
+    <div class="max-w-5xl mx-auto space-y-6">
+      <div
+        class="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-sm min-h-[450px] flex flex-col"
+      >
+        <div class="flex-1">
+          @switch (activeIndex) {
+            @case (0) {
+              <app-step-client class="animate-fadein block" />
+            }
+            @case (1) {
+              <app-step-products class="animate-fadein block" />
+            }
+            @case (2) {
+              <app-step-conditions class="animate-fadein block" />
+            }
+            @case (3) {
+              <app-step-confirm class="animate-fadein block" />
+            }
+          }
+        </div>
+
+        <div
+          class="flex justify-between items-center mt-8 pt-6 border-t border-gray-100"
+        >
+          <div class="text-sm text-gray-500 font-medium">
+            Paso {{ activeIndex + 1 }} de 4 · {{ steps?.[activeIndex]?.label }}
+          </div>
+
+          <div class="flex items-center gap-3">
+            @if (activeIndex === 0) {
+              <p-button
+                label="Cancelar"
+                [text]="true"
+                severity="secondary"
+                routerLink="../"
+                styleClass="font-bold bg-gray-50 px-5 h-11 hover:bg-gray-100 transition-colors"
+              />
+            } @else {
+              <p-button
+                label="Anterior"
+                icon="pi pi-arrow-left"
+                [text]="true"
+                severity="secondary"
+                (onClick)="prevStep()"
+                styleClass="font-bold bg-gray-50 px-5 h-11 hover:bg-gray-100 transition-colors"
+              />
+            }
+
+            @if (activeIndex < 3) {
+              <p-button
+                label="Siguiente"
+                icon="pi pi-arrow-right"
+                iconPos="right"
+                severity="primary"
+                styleClass="rounded-xl px-6 h-11 shadow-sm"
+                [disabled]="!canNext"
+                (onClick)="nextStep()"
+              />
+            } @else {
+              <p-button
+                label="Enviar para Aprobación"
+                icon="pi pi-check"
+                severity="success"
+                styleClass="rounded-xl px-6 h-11 shadow-md bg-green-500 border-green-500 hover:bg-green-600"
+                [disabled]="!isConfirmed"
+                (onClick)="finish()"
+              />
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

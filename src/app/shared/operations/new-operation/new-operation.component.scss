@@ -1,0 +1,27 @@
+::ng-deep {
+  .field-dark-border {
+    .p-dropdown {
+      border: 1px solid #111827 !important;
+    }
+
+    .p-inputnumber-input {
+      border: 1px solid #111827 !important;
+    }
+
+    .p-calendar {
+      border: 1px solid #111827 !important;
+      border-radius: 0.75rem;
+      overflow: hidden;
+
+      .p-inputtext {
+        border: none !important;
+        border-radius: 0 !important;
+      }
+
+      .p-button {
+        border: none !important;
+        border-radius: 0 !important;
+      }
+    }
+  }
+}

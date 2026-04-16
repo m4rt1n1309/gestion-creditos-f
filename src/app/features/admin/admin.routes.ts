@@ -9,6 +9,13 @@ export const ADMIN_ROUTES: Routes = [
       ),
   },
   {
+    path: 'operations/new',
+    loadComponent: () =>
+      import('../../shared/operations/new-operation/new-operation.component').then(
+        (c) => c.NewOperationComponent,
+      ),
+  },
+  {
     path: 'operations',
     loadComponent: () =>
       import('../../shared/operations/operations.component').then(
