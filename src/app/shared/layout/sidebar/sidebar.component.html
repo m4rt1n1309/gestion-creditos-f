@@ -1,1 +1,70 @@
-<p>sidebar works!</p>
+<aside class="flex flex-col h-dvh w-64 bg-slate-900 text-slate-100 shrink-0 select-none">
+
+  <!-- Logo -->
+  <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-700/60">
+    <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center shrink-0">
+      <i class="pi pi-credit-card text-white" style="font-size:.875rem"></i>
+    </div>
+    <span class="font-semibold text-sm tracking-tight">SisCreditos</span>
+  </div>
+
+  <!-- Usuario activo -->
+  @if (currentUser) {
+  <div class="px-4 py-3 border-b border-slate-700/60">
+    <div class="flex items-center gap-2 min-w-0">
+      <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center
+                    text-xs font-semibold shrink-0">
+        {{ currentUser.avatar }}
+      </div>
+      <div class="min-w-0">
+        <p class="text-sm font-medium truncate">{{ currentUser.name }}</p>
+        @for (role of currentUser.roles; track role) {
+        <span class="inline-block text-xs bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded mr-1">
+          {{ role }}
+        </span>
+        }
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Navegación -->
+  <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-0.5" aria-label="Navegación principal">
+    @for (item of visibleItems; track item.route) {
+    <a [routerLink]="item.route" routerLinkActive="bg-blue-600 text-white" [routerLinkActiveOptions]="{ exact: false }"
+      class="group flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400
+                hover:bg-slate-700 hover:text-white transition-colors duration-150"
+      [attr.data-testid]="'nav-' + item.label.toLowerCase().replace(' ', '-').replace('.', '')">
+
+      <i [class]="item.icon" style="font-size:.9rem; width:1rem; text-align:center"></i>
+      <span class="text-sm flex-1">{{ item.label }}</span>
+
+      @if (item.badge) {
+      <span class="text-xs bg-red-500 text-white w-5 h-5 rounded-full
+                       flex items-center justify-center font-medium shrink-0">
+        {{ item.badge }}
+      </span>
+      }
+    </a>
+
+    @if (item.dividerAfter) {
+    <hr class="border-slate-700/60 my-2">
+    }
+    }
+  </nav>
+
+  <!-- Footer -->
+  <div class="px-3 py-3 border-t border-slate-700/60 space-y-0.5">
+    <a routerLink="/profile" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400
+              hover:bg-slate-700 hover:text-white transition-colors">
+      <i class="pi pi-user" style="font-size:.9rem"></i>
+      <span class="text-sm">Mi Perfil</span>
+    </a>
+    <button (click)="logout()" class="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-red-400
+                   hover:bg-slate-700 hover:text-red-300 transition-colors" data-testid="logout-btn">
+      <i class="pi pi-sign-out" style="font-size:.9rem"></i>
+      <span class="text-sm">Salir</span>
+    </button>
+  </div>
+
+</aside>

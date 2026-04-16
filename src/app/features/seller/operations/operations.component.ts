@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-operations',
+  selector: 'operations',
   standalone: true,
   imports: [],
   templateUrl: './operations.component.html',

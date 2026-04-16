@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-delinquency',
+  selector: 'delinquency',
   standalone: true,
   imports: [],
   templateUrl: './delinquency.component.html',
