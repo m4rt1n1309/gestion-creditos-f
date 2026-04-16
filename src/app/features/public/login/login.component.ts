@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -22,6 +22,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { MockAuthService } from '../../../core/auth/mock-auth.service';
 import { AppRoutes } from '../../../shared/models/enums/routes.enum';
 import { UserRole, UserRoleEnum } from './../../../core/models/types/user-role';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -43,17 +44,20 @@ import { UserRole, UserRoleEnum } from './../../../core/models/types/user-role';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   form: FormGroup;
   loading = false;
   submitted = false;
   errorMessage = '';
   rememberMe = false;
 
+  // Solo visible con useMocks=true — oculto en producción
+  readonly showQuickAccess = environment.useMocks;
+
   quickAccess = [
-    { label: 'Admin', email: 'admin@siscreditos.com' },
-    { label: 'Vendedor', email: 'vendedor@siscreditos.com' },
-    { label: 'Cobrador', email: 'cobrador@siscreditos.com' },
+    { label: 'Admin',    dni: '12345678' },
+    { label: 'Vendedor', dni: '87654321' },
+    { label: 'Cobrador', dni: '11223344' },
   ];
 
   private destroy$ = new Subject<void>();
@@ -64,22 +68,23 @@ export class LoginComponent {
     private router: Router,
   ) {
     this.form = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      dni: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(7),
+          Validators.maxLength(9),
+          Validators.pattern(/^\d+$/),
+        ],
+      ],
       password: ['', [Validators.required, Validators.minLength(6)]],
     });
   }
 
-  /**
-   * Getter para acceder fácilmente a los controles del formulario en la plantilla. Permite validar y mostrar errores de forma más limpia.
-   */
   get formControls() {
     return this.form.controls;
   }
 
-  /**
-   * Maneja el envío del formulario de login. Valida el formulario, muestra un spinner de carga, y llama al servicio de autenticación. Si el login es exitoso, redirige al usuario según su rol. Si falla, muestra un mensaje de error.
-   * @returns
-   */
   onSubmit(): void {
     this.submitted = true;
     this.errorMessage = '';
@@ -99,32 +104,28 @@ export class LoginComponent {
       });
   }
 
-  /**
-   * Función de acceso rápido para probar con diferentes roles. Rellena el formulario con el email proporcionado y una contraseña mock, luego envía el formulario.
-   * @param email
-   */
   goToForgotPassword(): void {
     this.router.navigate([AppRoutes.FORGOT_PASSWORD]);
   }
 
-  quickLogin(email: string): void {
-    this.form.patchValue({ email, password: 'mock123' });
+  quickLogin(dni: string): void {
+    this.form.patchValue({ dni, password: 'mock123' });
     this.onSubmit();
   }
 
-  /**
-   * Redirige al usuario según su rol. Si tiene múltiples roles, se prioriza ADMIN > SELLER > COLLECTOR.
-   * @param roles
-   * @returns
-   */
   private redirectByRole(roles: UserRole[]): void {
     this.loading = false;
+
+    // TODO (prompt-05): si user.is_temp_password === true → redirigir a /change-password
     if (roles.includes(UserRoleEnum.ADMIN))
       return void this.router.navigate([AppRoutes.ADMIN_DASHBOARD]);
     if (roles.includes(UserRoleEnum.SELLER))
       return void this.router.navigate([AppRoutes.SELLER_OPERATIONS]);
     if (roles.includes(UserRoleEnum.COLLECTOR))
       return void this.router.navigate([AppRoutes.COLLECTOR_ROUTE]);
+    if (roles.includes(UserRoleEnum.SELLER_COLLECTOR))
+      return void this.router.navigate([AppRoutes.SELLER_OPERATIONS]);
+
     this.router.navigate([AppRoutes.LOGIN]);
   }
 

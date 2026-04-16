@@ -91,40 +91,40 @@
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
           <div class="flex flex-col gap-1.5">
             <label class="text-sm font-semibold text-gray-700"
-              >Email o Usuario</label
+              >DNI</label
             >
             <p-iconField iconPosition="left">
               <p-inputIcon styleClass="pi pi-user text-gray-400 z-10" />
               <input
                 pInputText
-                type="email"
-                formControlName="email"
-                placeholder="juan@mail.com"
-                data-testid="input-email"
+                
+                formControlName="dni"
+                placeholder="Ej: 12345678"
+                data-testid="input-dni"
                 class="w-full pl-10"
                 [class.ng-invalid]="
-                  (submitted && formControls['email'].errors) || errorMessage
+                  (submitted && formControls['dni'].errors) || errorMessage
                 "
                 [class.ng-dirty]="
-                  (submitted && formControls['email'].errors) || errorMessage
+                  (submitted && formControls['dni'].errors) || errorMessage
                 "
               />
             </p-iconField>
 
-            @if (submitted && formControls["email"].hasError("required")) {
+            @if (submitted && formControls["dni"].hasError("required")) {
               <small
                 class="text-red-500 text-xs flex items-center gap-1 mt-0.5"
               >
-                <i class="pi pi-exclamation-circle text-xs"></i> El email es
+                <i class="pi pi-exclamation-circle text-xs"></i> El DNI es
                 obligatorio
               </small>
             }
-            @if (submitted && formControls["email"].hasError("email")) {
+            @if (submitted && (formControls["dni"].hasError("minlength") || formControls["dni"].hasError("maxlength") || formControls["dni"].hasError("pattern"))) {
               <small
                 class="text-red-500 text-xs flex items-center gap-1 mt-0.5"
               >
-                <i class="pi pi-exclamation-circle text-xs"></i> Ingresá un
-                email válido
+                <i class="pi pi-exclamation-circle text-xs"></i> DNI inválido
+                (7-9 dígitos)
               </small>
             }
             @if (errorMessage) {
@@ -209,6 +209,7 @@
         </form>
       </div>
 
+      @if (showQuickAccess) {
       <div
         class="mt-6 bg-amber-50/80 border border-amber-200/60 rounded-2xl p-4"
       >
@@ -225,12 +226,13 @@
               severity="warning"
               [outlined]="true"
               size="small"
-              (onClick)="quickLogin(acc.email)"
+              (onClick)="quickLogin(acc.dni)"
               styleClass="w-full justify-center text-xs py-1.5 bg-white"
             />
           }
         </div>
       </div>
+      } <!-- end @if showQuickAccess -->
 
       <p class="text-xs text-gray-400 mt-8 text-center">
         © 2026 Sistema de Créditos · Todos los derechos reservados
