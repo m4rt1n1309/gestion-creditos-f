@@ -33,6 +33,13 @@ export const routes: Routes = [
         (r) => r.COLLECTOR_ROUTES,
       ),
   },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/public/forgot-password/forgot-password.component').then(
+        (c) => c.ForgotPasswordComponent,
+      ),
+  },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' },
 ];
