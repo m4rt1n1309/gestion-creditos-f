@@ -1,6 +1,7 @@
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CardModule } from 'primeng/card';
+import { ChartModule } from 'primeng/chart';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -10,20 +11,35 @@ import { DateService } from '../../../core/services/date.service';
 import { MockDataService } from '../../../mocks/mock-data.service';
 import { KpiCard } from '../models/interface/kpi-card';
 import { RecentOperation } from '../models/interface/recent-operation';
+import { MONTH_LIST } from '../utils/month-list';
+import { STATUS_CLIENT } from '../utils/status-client';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CurrencyPipe, DecimalPipe, TableModule, TagModule, SkeletonModule, CardModule],
+  imports: [
+    CurrencyPipe,
+    TableModule,
+    TagModule,
+    SkeletonModule,
+    CardModule,
+    ChartModule,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit, OnDestroy {
   userName = '';
   today = '';
   loadingKpis = true;
   loadingOps = true;
   kpis: KpiCard[] = [];
   recentOps: RecentOperation[] = [];
+
+  lineData: any;
+  lineOptions: any;
+  pieData: any;
+  pieOptions: any;
 
   private destroy$ = new Subject<void>();
 
@@ -38,6 +54,7 @@ export class DashboardComponent {
     this.today = this.dateService.display(new Date(), "EEEE d 'de' MMMM, yyyy");
     this.loadKpis();
     this.loadRecentOps();
+    this.initCharts();
   }
 
   ngOnDestroy(): void {
@@ -46,7 +63,106 @@ export class DashboardComponent {
   }
 
   /**
-   * Simula carga de KPIs con datos estáticos y un retraso para mostrar el skeleton. En un caso real, aquí se haría una llamada a un servicio para obtener los datos del backend.
+   * Inicializa los datos y opciones para los gráficos de líneas y pastel. Los datos son simulados para mostrar tendencias de cobranza y distribución de estados de crédito. Las opciones configuran la apariencia, colores y comportamiento de las leyendas y tooltips.
+   */
+  private initCharts(): void {
+    const textColor = '#6b7280';
+    const gridColor = '#f3f4f6';
+
+    this.lineData = {
+      labels: MONTH_LIST,
+      datasets: [
+        {
+          label: 'Cobranza ($)',
+          data: [
+            32000, 41000, 37500, 48920, 52000, 45000, 61000, 57000, 63000,
+            71000, 68000, 75000,
+          ],
+          fill: true,
+          tension: 0.4,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37,99,235,0.10)',
+          pointBackgroundColor: '#2563eb',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: '#2563eb',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        },
+      ],
+    };
+
+    this.lineOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: 0 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx: any) => ` $${ctx.parsed.y.toLocaleString('es-AR')}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color: textColor, font: { size: 11 } },
+          grid: { color: gridColor },
+          border: { display: false },
+        },
+        y: {
+          ticks: {
+            color: textColor,
+            font: { size: 11 },
+            callback: (v: number) => `$${(v / 1000).toFixed(0)}k`,
+          },
+          grid: { color: gridColor },
+          border: { display: false },
+        },
+      },
+    };
+
+    this.pieData = {
+      labels: STATUS_CLIENT,
+      datasets: [
+        {
+          data: [58, 22, 12, 8],
+          backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444'],
+          hoverBackgroundColor: ['#16a34a', '#2563eb', '#d97706', '#dc2626'],
+          borderWidth: 2,
+          borderColor: '#ffffff',
+        },
+      ],
+    };
+
+    this.pieOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      layout: { padding: 0 },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: textColor,
+            font: { size: 12 },
+            padding: 14,
+            usePointStyle: true,
+            pointStyle: 'rect',
+            pointStyleWidth: 12,
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx: any) => ` ${ctx.label}: ${ctx.parsed}%`,
+          },
+        },
+      },
+    };
+  }
+
+  /**
+   *  Carga los datos de los KPI cards y las operaciones recientes con un retraso simulado para mostrar los skeletons de carga. Los KPI cards muestran métricas clave como cartera activa, créditos activos, en mora y cobrado hoy, mientras que las operaciones recientes muestran transacciones recientes con detalles como fecha, cliente, tipo, monto, cuotas y estado.
    */
   private loadKpis(): void {
     setTimeout(() => {
@@ -88,6 +204,9 @@ export class DashboardComponent {
     }, 600);
   }
 
+  /**
+   *  Carga las operaciones recientes con un retraso simulado para mostrar el skeleton de carga. Las operaciones incluyen detalles como fecha, cliente, tipo de operación (venta o préstamo), monto, número de cuotas y estado (al día, en mora, vencido). Esta función simula la obtención de datos recientes para mostrar en la tabla del dashboard.
+   */
   private loadRecentOps(): void {
     setTimeout(() => {
       this.recentOps = [

@@ -1,4 +1,5 @@
 <div class="p-6 space-y-6">
+  <!-- Banner de Bienvenida -->
   <div
     class="bg-gradient-to-r from-blue-700 to-indigo-600 rounded-2xl p-6 text-white shadow-lg flex items-center justify-between"
   >
@@ -8,35 +9,126 @@
         <i class="pi pi-calendar mr-1"></i> {{ today }} · Todo marcha bien hoy.
       </p>
     </div>
-    <i class="pi pi-chart-bar text-white/20 text-6xl hidden lg:block"></i>
+    <i class="pi pi-th-large text-white/20 text-6xl hidden lg:block"></i>
   </div>
 
+  <!-- KPI Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     @if (loadingKpis) {
       @for (i of [1, 2, 3, 4]; track i) {
-        <p-card>
-          <p-skeleton width="50%" styleClass="mb-2" />
-          <p-skeleton width="80%" height="2rem" />
+        <p-card styleClass="shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <p-skeleton width="55%" height="1rem" />
+            <p-skeleton shape="circle" size="2.5rem" />
+          </div>
+          <p-skeleton width="70%" height="2rem" styleClass="mb-2" />
+          <p-skeleton width="80%" height="0.75rem" />
         </p-card>
       }
     } @else {
       @for (kpi of kpis; track kpi.label) {
-        <p-card
-          styleClass="border-none shadow-sm hover:shadow-md transition-shadow"
-        >
-          <div class="flex items-center justify-between">
+        <p-card styleClass="shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-3">
             <span class="text-sm font-medium text-gray-500">{{
               kpi.label
             }}</span>
-            <i [class]="kpi.icon + ' text-blue-500 opacity-50'"></i>
+            <span
+              [class]="
+                kpi.iconBg +
+                ' w-10 h-10 rounded-full flex items-center justify-center'
+              "
+            >
+              <i [class]="kpi.icon"></i>
+            </span>
           </div>
-          <p class="text-2xl font-bold text-gray-800 mt-2">{{ kpi.value }}</p>
+          <p class="text-2xl font-bold text-gray-800 mb-1">{{ kpi.value }}</p>
+          <p
+            [class]="
+              'text-xs font-medium ' +
+              (kpi.trendUp ? 'text-green-600' : 'text-red-500')
+            "
+          >
+            <i
+              [class]="
+                'pi mr-1 ' + (kpi.trendUp ? 'pi-arrow-up' : 'pi-arrow-down')
+              "
+            ></i>
+            {{ kpi.trend }}
+          </p>
         </p-card>
       }
     }
   </div>
 
-  <p-card header="Operaciones Recientes" styleClass="shadow-sm">
+  <!-- Gráficos -->
+  <div class="grid grid-cols-12 gap-4">
+    <!-- Cobranza Mensual (line) — 9/12 -->
+    <div class="col-span-12 lg:col-span-9" style="min-height: 480px">
+      <p-card styleClass="shadow-sm chart-card">
+        <ng-template pTemplate="header">
+          <div class="flex items-center justify-between px-4 pt-4">
+            <span class="text-base font-semibold text-gray-800"
+              >Cobranza por Mes</span
+            >
+            <span class="text-xs text-gray-400">Últimos 12 meses</span>
+          </div>
+        </ng-template>
+        <div class="flex-1" style="min-height: 0">
+          @if (lineData) {
+            <p-chart
+              type="line"
+              [data]="lineData"
+              [options]="lineOptions"
+              width="100%"
+              height="100%"
+            />
+          } @else {
+            <p-skeleton height="100%" />
+          }
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Distribución por Estado (doughnut) — 3/12 -->
+    <div class="col-span-12 lg:col-span-3" style="min-height: 480px">
+      <p-card styleClass="shadow-sm chart-card">
+        <ng-template pTemplate="header">
+          <div class="flex items-center justify-between px-4 pt-4">
+            <span class="text-base font-semibold text-gray-800"
+              >Distribución por Estado</span
+            >
+          </div>
+        </ng-template>
+        <div class="flex-1" style="min-height: 0">
+          @if (pieData) {
+            <p-chart
+              type="doughnut"
+              [data]="pieData"
+              [options]="pieOptions"
+              width="100%"
+              height="100%"
+            />
+          } @else {
+            <p-skeleton height="100%" />
+          }
+        </div>
+      </p-card>
+    </div>
+  </div>
+
+  <!-- Tabla Últimas Operaciones -->
+  <p-card styleClass="shadow-sm">
+    <ng-template pTemplate="header">
+      <div class="flex items-center justify-between px-4 pt-4">
+        <span class="text-base font-semibold text-gray-800"
+          >Últimas operaciones</span
+        >
+        <a class="text-sm text-blue-600 hover:underline cursor-pointer"
+          >Ver todas</a
+        >
+      </div>
+    </ng-template>
+
     <p-table
       [value]="recentOps"
       [loading]="loadingOps"
@@ -49,13 +141,15 @@
           <th>Fecha</th>
           <th>Cliente</th>
           <th>Tipo</th>
+          <th>Cuotas</th>
           <th class="text-right">Monto</th>
           <th>Estado</th>
         </tr>
       </ng-template>
+
       <ng-template pTemplate="body" let-op>
         <tr class="hover:bg-gray-50/50 transition-colors">
-          <td class="text-sm">{{ op.date }}</td>
+          <td class="text-sm text-gray-500">{{ op.date }}</td>
           <td class="font-semibold text-gray-700">{{ op.client }}</td>
           <td>
             <p-tag
@@ -64,7 +158,8 @@
               [rounded]="true"
             />
           </td>
-          <td class="text-right font-bold">
+          <td class="text-sm text-gray-500">{{ op.installments }}</td>
+          <td class="text-right font-bold text-gray-800">
             {{ op.amount | currency: "$" : "symbol" : "1.0-0" }}
           </td>
           <td>
@@ -75,9 +170,21 @@
                   ? 'success'
                   : op.status === 'En mora'
                     ? 'danger'
-                    : 'secondary'
+                    : op.status === 'Vencido'
+                      ? 'warning'
+                      : op.status === 'Activo'
+                        ? 'info'
+                        : 'secondary'
               "
             />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center text-gray-400 py-6">
+            Sin operaciones recientes.
           </td>
         </tr>
       </ng-template>
