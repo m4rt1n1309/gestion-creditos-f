@@ -4,9 +4,9 @@ export const SELLER_ROUTES: Routes = [
   {
     path: 'operations',
     loadComponent: () =>
-      import('./operations/operations.component').then(
+      import('../../shared/operations/operations.component').then(
         (c) => c.OperationsComponent,
       ),
   },
-  { path: '', redirectTo: 'operations', pathMatch: 'full' },
+  { path: '', redirectTo: '/operations', pathMatch: 'full' },
 ];
