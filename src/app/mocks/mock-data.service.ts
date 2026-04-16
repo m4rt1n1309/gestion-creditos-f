@@ -75,19 +75,19 @@ export class MockDataService {
   }
 
   // ── Mora ──────────────────────────────────────────────────────────────────
-  getMoraStats(): Observable<DelinquencyStats> {
+  getDelinquencyStats(): Observable<DelinquencyStats> {
     return of({ ...MOCK_DELINQUENCY_STATS }).pipe(delay(this.LATENCY));
   }
 
-  getMoraClients(): Observable<DelinquencyClient[]> {
+  getDelinquencyClients(): Observable<DelinquencyClient[]> {
     return of([...MOCK_DELINQUENCY_CLIENTS]).pipe(delay(this.LATENCY));
   }
 
-  applyMora(clientId: string): Observable<{ ok: boolean }> {
+  applyDelinquency(clientId: string): Observable<{ ok: boolean }> {
     return of({ ok: true }).pipe(delay(400));
   }
 
-  condonesMora(clientId: string): Observable<{ ok: boolean }> {
+  condoneDelinquency(clientId: string): Observable<{ ok: boolean }> {
     return of({ ok: true }).pipe(delay(400));
   }
 }
