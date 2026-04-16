@@ -1,1 +1,97 @@
-<p class="p-6 text-gray-500">Operaciones — en construcción</p>
+<div class="p-6 space-y-6 bg-gray-50 min-h-screen">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <h1 class="text-2xl font-bold text-gray-800">Operaciones</h1>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <p-button
+        label="Nueva Operación"
+        icon="pi pi-plus"
+        severity="primary"
+        styleClass="h-11 px-5 rounded-xl shadow-sm"
+      />
+
+      <p-dropdown
+        [options]="statusOptions"
+        [(ngModel)]="selectedStatus"
+        placeholder="Estado"
+        styleClass="w-full md:w-44 h-11 rounded-xl border-gray-200 flex items-center"
+      />
+
+      <p-iconField iconPosition="left">
+        <p-inputIcon styleClass="pi pi-search text-gray-400 z-10" />
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar..."
+          [(ngModel)]="searchTerm"
+          class="w-full md:w-64 h-11 pl-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all"
+        />
+      </p-iconField>
+    </div>
+  </div>
+
+  <div
+    class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+  >
+    <p-table
+      [value]="operations"
+      styleClass="p-datatable-sm"
+      [responsiveLayout]="'scroll'"
+    >
+      <ng-template pTemplate="header">
+        <tr
+          class="bg-gray-50/50 text-gray-400 text-xs uppercase tracking-wider"
+        >
+          <th class="p-4 font-semibold text-left">Fecha</th>
+          <th class="p-4 font-semibold text-left">Cliente</th>
+          <th class="p-4 font-semibold text-left">Tipo</th>
+          <th class="p-4 font-semibold text-left">Monto</th>
+          <th class="p-4 font-semibold text-left">Cuotas</th>
+          <th class="p-4 font-semibold text-center">Estado</th>
+          <th class="p-4 font-semibold text-center">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-op>
+        <tr
+          class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors"
+        >
+          <td class="p-4 text-sm text-gray-500">{{ op.date }}</td>
+          <td class="p-4 font-bold text-gray-800">{{ op.client }}</td>
+          <td class="p-4">
+            <span
+              class="text-xs font-bold {{
+                op.type === 'VENTA' ? 'text-blue-500' : 'text-purple-500'
+              }}"
+            >
+              {{ op.type }}
+            </span>
+          </td>
+          <td class="p-4 font-bold text-gray-900">
+            ${{ op.amount | number: "1.0-0" }}
+          </td>
+          <td class="p-4 text-gray-600">{{ op.installments }}</td>
+          <td class="p-4 text-center">
+            <p-tag
+              [value]="op.status"
+              [severity]="getStatusSeverity(op.status)"
+              [style]="{
+                'border-radius': '999px',
+                padding: '0.25rem 0.75rem',
+                'font-size': '0.65rem',
+              }"
+            />
+          </td>
+          <td class="p-4 text-center">
+            <p-button
+              label="Ver"
+              [text]="true"
+              size="small"
+              styleClass="bg-blue-50 text-blue-600 font-bold px-3 rounded-lg hover:bg-blue-100"
+            />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
