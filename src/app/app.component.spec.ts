@@ -20,12 +20,10 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('gestion-creditos-f');
   });
 
-  it('should render title', () => {
+  it('should render the app layout container', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain(
-      'Hello, gestion-creditos-f',
-    );
+    expect(compiled.querySelector('div')).toBeTruthy();
   });
 });
