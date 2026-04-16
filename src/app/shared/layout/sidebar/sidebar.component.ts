@@ -7,7 +7,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MockAuthService } from '../../../core/auth/mock-auth.service';
 import { AuthUser } from '../../../core/models/interface/auth-user';
-import { NavItem } from '../../models/interface/nav-item';
+import { NavItem, ResolvedNavItem } from '../../models/interface/nav-item';
 import { NAV_CONFIG } from '../../utils/nav-config';
 
 @Component({
@@ -24,7 +24,7 @@ import { NAV_CONFIG } from '../../utils/nav-config';
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   currentUser: AuthUser | null = null;
-  visibleItems: NavItem[] = [];
+  visibleItems: ResolvedNavItem[] = [];
   private destroy$ = new Subject<void>();
 
   constructor(private auth: MockAuthService) {}
@@ -42,17 +42,25 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Filtra los items de navegación según los roles del usuario. Si el item no requiere roles, se muestra a todos.
+   *  Filtra los elementos de navegación según los roles del usuario. Solo se mostrarán los elementos para los cuales el usuario tiene al menos uno de los roles requeridos.
+   *  Además, si la ruta del elemento es una función, se resuelve en una cadena utilizando el rol principal del usuario.
    * @param user
    * @returns
    */
-  filterByRole(user: AuthUser | null): NavItem[] {
+  filterByRole(user: AuthUser | null): ResolvedNavItem[] {
     if (!user) return [];
+
+    const userRole = user.roles[0];
+
     return NAV_CONFIG.filter(
       (item) =>
         item.requiredRoles.length === 0 ||
         item.requiredRoles.some((r) => user.roles.includes(r)),
-    );
+    ).map((item) => ({
+      ...item,
+      route:
+        typeof item.route === 'function' ? item.route(userRole) : item.route,
+    }));
   }
 
   /**

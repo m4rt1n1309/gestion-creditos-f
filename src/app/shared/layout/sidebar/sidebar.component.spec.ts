@@ -1,20 +1,26 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BehaviorSubject } from 'rxjs';
-import { SidebarComponent, NAV_CONFIG } from './sidebar.component';
+import { SidebarComponent } from './sidebar.component';
+import { NAV_CONFIG } from '../../utils/nav-config';
+import { NavItem } from '../../models/interface/nav-item';
 import {
   MockAuthService,
 } from '../../../core/auth/mock-auth.service';
 import { AuthUser } from '../../../core/models/interface/auth-user';
 
 // ── Helper: crea un usuario mock con roles específicos ────────────────────────
-function makeUser(roles: ('ADMIN' | 'SELLER' | 'COLLECTOR')[]): AuthUser {
+function makeUser(roles: ('ADMIN' | 'SELLER' | 'COLLECTOR' | 'SELLER_COLLECTOR')[]): AuthUser {
   return {
     id: 'x',
-    name: 'Test',
+    full_name: 'Test User',
+    name: 'Test User',
+    dni: '12345678',
     email: 'test@x.com',
-    avatar: 'TX',
+    avatar: 'TU',
     roles,
+    is_temp_password: false,
+    force_relogin_at: null,
     token: 'mock',
   };
 }
@@ -54,7 +60,7 @@ describe('SidebarComponent', () => {
     userSubject.next(makeUser(['ADMIN']));
     fixture.detectChanges();
 
-    const adminItems = NAV_CONFIG.filter((i) =>
+    const adminItems = NAV_CONFIG.filter((i: NavItem) =>
       i.requiredRoles.includes('ADMIN'),
     );
     expect(component.visibleItems.length).toBe(adminItems.length);
@@ -102,11 +108,13 @@ describe('SidebarComponent', () => {
   });
 
   // ── Rol COLLECTOR ─────────────────────────────────────────────────────────
-  it('debería mostrar SOLO "Mi Ruta" para COLLECTOR', () => {
+  it('debería mostrar SOLO "Mi Ruta" para COLLECTOR (más grupo label)', () => {
     userSubject.next(makeUser(['COLLECTOR']));
     fixture.detectChanges();
-    expect(component.visibleItems.length).toBe(1);
-    expect(component.visibleItems[0].label).toBe('Mi Ruta');
+    // nav-config tiene 1 grupo label + 1 ruta para COLLECTOR
+    const routeItems = component.visibleItems.filter((i: NavItem) => !i.isGroupLabel);
+    expect(routeItems.length).toBe(1);
+    expect(routeItems[0].label).toBe('Mi Ruta');
   });
 
   // ── Cambio dinámico de rol en la misma sesión ─────────────────────────────

@@ -22,19 +22,19 @@ export const NAV_CONFIG: NavItem[] = [
   {
     label: 'Operaciones',
     icon: 'pi pi-file-edit',
-    route: AppRoutes.SELLER_OPERATIONS,
+    route: (role) => `/${role.toLowerCase()}/operations`,
     requiredRoles: ['ADMIN', 'SELLER'],
   },
   {
     label: 'Clientes',
     icon: 'pi pi-users',
-    route: AppRoutes.SELLER_CLIENTS,
+    route: (role) => `/${role.toLowerCase()}/clients`,
     requiredRoles: ['ADMIN', 'SELLER'],
   },
   {
     label: 'Productos',
     icon: 'pi pi-box',
-    route: AppRoutes.SELLER_PRODUCTS,
+    route: (role) => `/${role.toLowerCase()}/products`,
     requiredRoles: ['ADMIN', 'SELLER'],
   },
 
@@ -49,6 +49,7 @@ export const NAV_CONFIG: NavItem[] = [
     route: AppRoutes.ADMIN_APPROVALS,
     requiredRoles: ['ADMIN'],
     badge: 3,
+    testId: 'nav-aprobaciones',
   },
   {
     label: 'Mora y Canc.',

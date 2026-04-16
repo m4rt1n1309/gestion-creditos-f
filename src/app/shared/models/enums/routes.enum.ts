@@ -15,6 +15,9 @@ export enum AppRoutes {
   ADMIN_CASH_REGISTER = '/admin/cash-register',
   ADMIN_REPORTS = '/admin/reports',
   ADMIN_CONFIG = '/admin/config',
+  ADMIN_OPERATIONS = '/admin/operations',
+  ADMIN_CLIENTS = '/admin/clients',
+  ADMIN_PRODUCTS = '/admin/products',
 
   // SELLER:
   SELLER_OPERATIONS = '/seller/operations',
