@@ -30,6 +30,13 @@ export const ADMIN_ROUTES: Routes = [
       ),
   },
   {
+    path: 'clients/:dni',
+    loadComponent: () =>
+      import('../../shared/clients/client-detail/client-detail.component').then(
+        (c) => c.ClientDetailComponent,
+      ),
+  },
+  {
     path: 'products',
     loadComponent: () =>
       import('../../shared/products/products.component').then(

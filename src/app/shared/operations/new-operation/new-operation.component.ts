@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { StepsModule } from 'primeng/steps';
@@ -35,9 +35,21 @@ export class NewOperationComponent implements OnInit {
   activeIndex = 0;
   steps: MenuItem[] | undefined;
 
-  constructor(private form: OperationFormService) {}
+  constructor(
+    private form: OperationFormService,
+    private route: ActivatedRoute,
+  ) {}
 
   ngOnInit() {
+    const clientDni = this.route.snapshot.queryParamMap.get('clientDni');
+    if (clientDni) {
+      const match = this.form.clients.find((c) => c.dni === clientDni);
+      if (match) {
+        this.form.selectedClient.set(match);
+        this.activeIndex = 1;
+      }
+    }
+
     this.steps = [
       { label: 'Cliente' },
       { label: 'Tipo y Producto' },

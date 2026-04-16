@@ -29,10 +29,11 @@ export class OperationFormService {
     {
       id: 1,
       name: 'Juan Pérez García',
-      dni: '32.145.678',
+      dni: '27.123.456',
       phone: '381-555-1234',
     },
-    { id: 2, name: 'María Gómez', dni: '28.999.111', phone: '381-555-9876' },
+    { id: 2, name: 'María López', dni: '28.654.321', phone: '381-555-9876' },
+    { id: 3, name: 'Carlos Ruiz', dni: '29.321.654', phone: '381-555-0000' },
   ];
 
   // Step 1 — Products

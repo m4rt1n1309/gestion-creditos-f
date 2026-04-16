@@ -2,22 +2,50 @@
   class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0"
 >
   <div class="flex items-center gap-8">
-    <div class="flex items-center text-sm">
-      <span class="text-gray-400 mr-2">/</span>
-      <span class="text-gray-500 font-medium">Dashboard</span>
+    <div class="flex items-center gap-1 text-sm">
+      @for (
+        crumb of headerService.breadcrumbs();
+        track crumb.label;
+        let last = $last
+      ) {
+        @if (!last) {
+          <span
+            class="text-gray-400 hover:text-blue-500 cursor-pointer transition-colors"
+            (click)="crumb.route && navigate(crumb.route)"
+            >/ {{ crumb.label }}</span
+          >
+        } @else {
+          <span class="text-gray-700 font-medium">/ {{ crumb.label }}</span>
+        }
+      }
     </div>
 
-    <div class="hidden md:block">
-      <p-iconField iconPosition="left">
-        <p-inputIcon styleClass="pi pi-search text-gray-400 z-10" />
-        <input
-          pInputText
-          type="text"
-          placeholder="Buscar..."
-          class="pl-10 w-72 bg-gray-50 border border-gray-100 rounded-xl text-sm py-2 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-sm"
-        />
-      </p-iconField>
-    </div>
+    @if (headerService.actions().length > 0) {
+      <div class="flex items-center gap-2">
+        @for (action of headerService.actions(); track action.label) {
+          <p-button
+            [label]="action.label"
+            [icon]="action.icon ?? ''"
+            [severity]="action.severity ?? 'secondary'"
+            [outlined]="action.outlined ?? false"
+            styleClass="h-9 px-4 rounded-xl text-sm"
+            (onClick)="action.action()"
+          />
+        }
+      </div>
+    } @else {
+      <div class="hidden md:block">
+        <p-iconField iconPosition="left">
+          <p-inputIcon styleClass="pi pi-search text-gray-400 z-10" />
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar..."
+            class="pl-10 w-72 bg-gray-50 border border-gray-100 rounded-xl text-sm py-2 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-sm"
+          />
+        </p-iconField>
+      </div>
+    }
   </div>
 
   <div class="flex items-center gap-5">

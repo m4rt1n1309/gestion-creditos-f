@@ -32,6 +32,15 @@
   }
 }
 
+.p-button.p-button-primary,
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not(.p-button-secondary):not(
+    .p-button-success
+  ):not(.p-button-info):not(.p-button-warning):not(.p-button-help):not(.p-button-danger):not(.p-dialog-header-icon) {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
 .p-checkbox .p-checkbox-box {
   border: 2px solid #cbd5e1 !important;
   transition:

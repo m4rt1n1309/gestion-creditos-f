@@ -1,10 +1,303 @@
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { Router } from '@angular/router';
+
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+
+import { Client } from '../models/interface/client';
 
 @Component({
   selector: 'app-clients',
   standalone: true,
-  imports: [],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TableModule,
+    ButtonModule,
+    InputTextModule,
+    DropdownModule,
+    IconFieldModule,
+    InputIconModule,
+    TagModule,
+    DialogModule,
+  ],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss',
 })
-export class ClientsComponent {}
+export class ClientsComponent {
+  clients: Client[] = [
+    {
+      dni: '27.123.456',
+      initials: 'JP',
+      avatarColor: '#3B82F6',
+      name: 'Juan Pérez García',
+      phone: '+54 9 3865 1234562',
+      credits: 2,
+      risk: 'Mora leve',
+    },
+    {
+      dni: '28.654.321',
+      initials: 'ML',
+      avatarColor: '#10B981',
+      name: 'María López',
+      phone: '+54 9 3654 32111',
+      credits: 1,
+      risk: 'Al dia',
+    },
+    {
+      dni: '29.321.654',
+      initials: 'CR',
+      avatarColor: '#EF4444',
+      name: 'Carlos Ruiz',
+      phone: '+54 9 3214 56933',
+      credits: 3,
+      risk: 'Mora alta',
+    },
+  ];
+
+  filterOptions = [
+    { label: 'Todos', value: null },
+    { label: 'Al día', value: 'Al dia' },
+    { label: 'Mora leve', value: 'Mora leve' },
+    { label: 'Mora alta', value: 'Mora alta' },
+  ];
+
+  selectedFilter: any = null;
+  searchTerm: string = '';
+  showCreateModal: boolean = false;
+  showEditModal: boolean = false;
+  showViewModal: boolean = false;
+  showCreditsModal: boolean = false;
+  submitted: boolean = false;
+  selectedClient: Client | null = null;
+
+  form: FormGroup;
+  editForm: FormGroup;
+
+  riskOptions = [
+    { label: 'Al día', value: 'Al dia' },
+    { label: 'Mora leve', value: 'Mora leve' },
+    { label: 'Mora alta', value: 'Mora alta' },
+  ];
+
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+  ) {
+    this.form = this.buildForm();
+    this.editForm = this.buildEditForm(null);
+  }
+
+  /**
+   * Calcula la capacidad de pago estimada del cliente basada en sus ingresos declarados.
+   * Se asume que el cliente puede destinar hasta el 50% de sus ingresos mensuales al pago de créditos.
+   * El valor se formatea como moneda local (ARS) para su presentación en la interfaz.
+   */
+  get abilityToPay(): string {
+    const raw = (this.form.get('ingresos')?.value ?? '').replace(/[^0-9]/g, '');
+    const num = parseInt(raw, 10);
+    if (!num) return '';
+    return `$${Math.round(num * 0.5).toLocaleString('es-AR')} / mes`;
+  }
+
+  /**
+   * Devuelve la lista de clientes filtrada según el término de búsqueda y el filtro de riesgo seleccionado.
+   */
+  get filteredClients(): Client[] {
+    return this.clients.filter((c) => {
+      const matchesSearch =
+        !this.searchTerm ||
+        c.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        c.dni.includes(this.searchTerm);
+      const matchesFilter =
+        !this.selectedFilter || c.risk === this.selectedFilter;
+      return matchesSearch && matchesFilter;
+    });
+  }
+
+  /**
+   *  Determina si un campo del formulario es inválido para mostrar mensajes de error y estilos de validación.
+   * @param field
+   * @returns
+   */
+  isInvalid(field: string): boolean {
+    const control = this.form.get(field);
+    return !!control && control.invalid && (control.touched || this.submitted);
+  }
+
+  /**
+   *  Genera un mensaje de error específico para un campo del formulario basado en las reglas de validación que no se cumplen.
+   * @param field
+   * @returns
+   */
+  getError(field: string): string {
+    const control = this.form.get(field);
+    if (!control || !control.errors) return '';
+    if (control.errors['required']) return 'Campo obligatorio';
+    if (control.errors['email']) return 'Email inválido';
+    if (control.errors['minlength'])
+      return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
+    if (control.errors['pattern']) return 'Formato inválido';
+    return '';
+  }
+
+  /**
+   *  Asigna una severidad a cada nivel de riesgo para su representación visual en la interfaz.
+   * @param risk
+   * @returns
+   */
+  getRiskSeverity(
+    risk: string,
+  ): 'success' | 'warning' | 'danger' | 'secondary' {
+    switch (risk) {
+      case 'Al dia':
+        return 'success';
+      case 'Mora leve':
+        return 'warning';
+      case 'Mora alta':
+        return 'danger';
+      default:
+        return 'secondary';
+    }
+  }
+
+  /**
+   *  Devuelve una etiqueta legible para el nivel de riesgo del cliente, formateando el texto para mejorar su presentación en la interfaz.
+   * @param risk
+   * @returns
+   */
+  getRiskLabel(risk: string): string {
+    return risk === 'Al dia' ? 'Al día' : risk;
+  }
+
+  /**
+   *  Navega a la vista de detalle del cliente seleccionado utilizando su DNI como identificador en la URL.
+   * @param client
+   */
+  openView(client: Client): void {
+    const base = this.router.url.split('/clients')[0];
+    this.router.navigate([base, 'clients', client.dni]);
+  }
+
+  /**
+   *  Abre un modal de edición para el cliente seleccionado, permitiendo modificar su información básica como nombre, teléfono y nivel de riesgo.
+   * @param client
+   */
+  openEdit(client: Client): void {
+    this.selectedClient = client;
+    this.editForm = this.buildEditForm(client);
+    this.showEditModal = true;
+  }
+
+  /**
+   *  Navega a la vista de créditos del cliente seleccionado utilizando su DNI como identificador en la URL.
+   * @param client
+   */
+  openCredits(client: Client): void {
+    const base = this.router.url.split('/clients')[0];
+    this.router.navigate([base, 'clients', client.dni]);
+  }
+
+  /**
+   *  Guarda los cambios realizados en el formulario de edición del cliente seleccionado.
+   * @param client
+   * @returns
+   */
+  saveEdit(): void {
+    if (this.editForm.invalid || !this.selectedClient) return;
+    const { nombre, apellido, phone, risk, estado } = this.editForm.value;
+    const idx = this.clients.findIndex(
+      (c) => c.dni === this.selectedClient!.dni,
+    );
+    if (idx !== -1) {
+      this.clients[idx] = {
+        ...this.clients[idx],
+        name: `${nombre} ${apellido}`,
+        phone,
+        risk,
+        initials: `${nombre[0]}${apellido[0]}`.toUpperCase(),
+      };
+      this.clients = [...this.clients];
+    }
+    this.showEditModal = false;
+    this.selectedClient = null;
+  }
+
+  /**
+   *  Cancela la creación de un nuevo cliente, cerrando el modal de creación y restableciendo el formulario a su estado inicial.
+   */
+  cancelCreate(): void {
+    this.showCreateModal = false;
+    this.submitted = false;
+    this.form = this.buildForm();
+  }
+
+  /**
+   *  Crea un nuevo cliente utilizando los datos ingresados en el formulario de creación.
+   * @returns
+   */
+  createClient(): void {
+    this.submitted = true;
+    if (this.form.invalid) return;
+    // TODO: integrate with API
+    this.showCreateModal = false;
+    this.submitted = false;
+    this.form = this.buildForm();
+  }
+
+  /**
+   *  Construye un formulario de edición prellenado con los datos del cliente seleccionado.
+   * @param client
+   * @returns
+   */
+  private buildEditForm(client: Client | null): FormGroup {
+    const parts = client?.name.split(' ') ?? ['', ''];
+    const nombre = parts[0] ?? '';
+    const apellido = parts.slice(1).join(' ') || '';
+    return this.fb.group({
+      nombre: [nombre, [Validators.required, Validators.minLength(2)]],
+      apellido: [apellido, [Validators.required, Validators.minLength(2)]],
+      phone: [
+        client?.phone ?? '',
+        [Validators.required, Validators.pattern(/^[\d\s\+\-]+$/)],
+      ],
+      risk: [client?.risk ?? 'Al dia', Validators.required],
+      estado: [true],
+    });
+  }
+
+  /**
+   *  Construye un formulario de creación para un nuevo cliente, con campos vacíos y reglas de validación definidas para cada campo.
+   * @returns
+   */
+  private buildForm(): FormGroup {
+    return this.fb.group({
+      nombres: ['', [Validators.required, Validators.minLength(2)]],
+      apellidos: ['', [Validators.required, Validators.minLength(2)]],
+      dni: ['', [Validators.required, Validators.pattern(/^[\d.\-]+$/)]],
+      telefonoPrincipal: [
+        '',
+        [Validators.required, Validators.pattern(/^[\d\s\+\-]+$/)],
+      ],
+      telefonoAlterno: ['', [Validators.pattern(/^[\d\s\+\-]*$/)]],
+      email: ['', [Validators.required, Validators.email]],
+      direccion: ['', [Validators.required]],
+      ingresos: ['', [Validators.required, Validators.pattern(/^[\$\d\.,]+$/)]],
+    });
+  }
+}

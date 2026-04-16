@@ -8,5 +8,26 @@ export const SELLER_ROUTES: Routes = [
         (c) => c.OperationsComponent,
       ),
   },
-  { path: '', redirectTo: '/operations', pathMatch: 'full' },
+  {
+    path: 'clients',
+    loadComponent: () =>
+      import('../../shared/clients/clients.component').then(
+        (c) => c.ClientsComponent,
+      ),
+  },
+  {
+    path: 'clients/:dni',
+    loadComponent: () =>
+      import('../../shared/clients/client-detail/client-detail.component').then(
+        (c) => c.ClientDetailComponent,
+      ),
+  },
+  {
+    path: 'products',
+    loadComponent: () =>
+      import('../../shared/products/products.component').then(
+        (c) => c.ProductsComponent,
+      ),
+  },
+  { path: '', redirectTo: 'operations', pathMatch: 'full' },
 ];
