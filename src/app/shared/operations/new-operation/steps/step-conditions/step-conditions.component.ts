@@ -20,4 +20,11 @@ import { OperationFormService } from '../../operation-form.service';
 })
 export class StepConditionsComponent {
   form = inject(OperationFormService);
+
+  get firstDueDate(): Date | undefined {
+    return this.form.firstDueDate();
+  }
+  set firstDueDate(val: Date | undefined) {
+    this.form.firstDueDate.set(val);
+  }
 }

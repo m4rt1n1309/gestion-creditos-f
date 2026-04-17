@@ -119,12 +119,10 @@
           >Fecha del Primer Pago</label
         >
         <p-calendar
-          [ngModel]="form.firstDueDate()"
-          (ngModelChange)="form.firstDueDate.set($event)"
+          [(ngModel)]="firstDueDate"
           dateFormat="dd/mm/yy"
           [showIcon]="true"
-          styleClass="w-full h-12"
-          inputStyleClass="w-full h-12 rounded-xl border-gray-200"
+          styleClass="op-calendar"
         />
       </div>
     </div>
