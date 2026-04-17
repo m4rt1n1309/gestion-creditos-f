@@ -7,21 +7,25 @@
     .p-inputnumber-input {
       border: 1px solid #111827 !important;
     }
+  }
 
-    .p-calendar {
-      border: 1px solid #111827 !important;
-      border-radius: 0.75rem;
-      overflow: hidden;
+  .op-calendar {
+    border: 1.5px solid #111827;
+    border-radius: 0.75rem;
 
-      .p-inputtext {
-        border: none !important;
-        border-radius: 0 !important;
-      }
+    .p-inputtext {
+      border: none !important;
+      border-radius: 0.75rem 0 0 0.75rem !important;
+      box-shadow: none !important;
+      height: 3rem;
+    }
 
-      .p-button {
-        border: none !important;
-        border-radius: 0 !important;
-      }
+    .p-button {
+      border: none !important;
+      border-radius: 0 0.7rem 0.7rem 0 !important;
+      background: #2563eb;
+      color: #fff;
+      height: 3rem;
     }
   }
 }

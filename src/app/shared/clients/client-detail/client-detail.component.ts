@@ -1,44 +1,42 @@
-import { CommonModule, NgClass } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { HeaderService } from '../../../core/services/header.service';
-
+import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
-import { TagModule } from 'primeng/tag';
-import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
-import { FormsModule } from '@angular/forms';
+import { HeaderService } from '../../../core/services/header.service';
 import { ClientDetail } from '../../models/interface/client';
-import { Credit } from '../../models/interface/credit';
+import { ClientContactarComponent } from './tabs/client-contactar/client-contactar.component';
+import { ClientCreditsComponent } from './tabs/client-credits/client-credits.component';
+import { ClientDocumentsComponent } from './tabs/client-documents/client-documents.component';
+import { ClientHistorialComponent } from './tabs/client-historial/client-historial.component';
+
+type TabId = 'creditos' | 'historial' | 'documentos' | 'contactar';
 
 @Component({
   selector: 'app-client-detail',
   standalone: true,
   imports: [
     CommonModule,
-    NgClass,
-    RouterModule,
     ButtonModule,
-    TagModule,
-    InputTextModule,
-    DropdownModule,
-    FormsModule,
+    ClientCreditsComponent,
+    ClientHistorialComponent,
+    ClientDocumentsComponent,
+    ClientContactarComponent,
   ],
   templateUrl: './client-detail.component.html',
   styleUrl: './client-detail.component.scss',
 })
 export class ClientDetailComponent implements OnInit, OnDestroy {
   client: ClientDetail | null = null;
-  activeTab: 'creditos' | 'historial' | 'documentos' | 'contactar' = 'creditos';
-  searchTerm = '';
-  selectedEstado: string | null = null;
+  private _activeTab: TabId = 'creditos';
+  base = '';
 
-  estadoOptions = [
-    { label: 'Todos los estados', value: null },
-    { label: 'Activo', value: 'ACTIVO' },
-    { label: 'En Mora', value: 'EN MORA' },
-    { label: 'Pagado', value: 'PAGADO' },
-  ];
+  get activeTab(): TabId {
+    return this._activeTab;
+  }
+  set activeTab(tab: TabId) {
+    this._activeTab = tab;
+    this.updateHeaderActions();
+  }
 
   private mockClients: ClientDetail[] = [
     {
@@ -84,6 +82,165 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
           vencimientoMora: '15/03/2026',
         },
       ],
+      historial: [
+        {
+          fecha: '01 Abr 2026',
+          hora: '10:32 a.m.',
+          evento: 'Pago recibido',
+          creditoId: 'CR-2024-0341',
+          monto: 1250,
+          usuario: 'Sistema',
+          estado: 'Aplicado',
+        },
+        {
+          fecha: '15 Mar 2026',
+          hora: '06:15 a.m.',
+          evento: 'Mora aplicada',
+          creditoId: 'CR-2023-0187',
+          monto: 580,
+          usuario: 'Ana Martínez',
+          estado: 'Pendiente',
+        },
+        {
+          fecha: '01 Mar 2026',
+          hora: '11:09 a.m.',
+          evento: 'Pago recibido',
+          creditoId: 'CR-2024-0341',
+          monto: 1250,
+          usuario: 'Sistema',
+          estado: 'Aplicado',
+        },
+        {
+          fecha: '01 Mar 2026',
+          hora: '10:03 a.m.',
+          evento: 'Pago recibido',
+          creditoId: 'CR-2023-0187',
+          monto: 1080,
+          usuario: 'Sistema',
+          estado: 'Aplicado',
+        },
+        {
+          fecha: '01 Feb 2026',
+          hora: '11:50 a.m.',
+          evento: 'Pago recibido',
+          creditoId: 'CR-2024-0341',
+          monto: 1250,
+          usuario: 'Sistema',
+          estado: 'Aplicado',
+        },
+        {
+          fecha: '15 Ene 2026',
+          hora: '08:20 a.m.',
+          evento: 'Notificación enviada',
+          creditoId: 'CR-2023-0187',
+          monto: null,
+          usuario: 'Sistema',
+          estado: 'Enviada',
+        },
+        {
+          fecha: '15 Dic 2025',
+          hora: '01:33 p.m.',
+          evento: 'Crédito creado',
+          creditoId: 'CR-2024-0341',
+          monto: 25000,
+          usuario: 'Carlos Ruiz',
+          estado: 'Activo',
+        },
+      ],
+      documents: [
+        {
+          id: 'doc-1',
+          name: 'Cédula de Ciudadanía',
+          type: 'PDF',
+          sizeKb: 1200,
+          date: '12 Ene 2026',
+          category: 'Identificación',
+          status: 'ok',
+        },
+        {
+          id: 'doc-2',
+          name: 'Foto Documento',
+          type: 'JPG',
+          sizeKb: 850,
+          date: '12 Ene 2026',
+          category: 'Identificación',
+          status: 'ok',
+        },
+        {
+          id: 'doc-3',
+          name: 'Contrato CR-2024-0341',
+          type: 'PDF',
+          sizeKb: 3100,
+          date: '15 Dic 2025',
+          category: 'Documentos de Crédito',
+          status: 'ok',
+          creditoId: 'CR-2024-0341',
+        },
+        {
+          id: 'doc-4',
+          name: 'Contrato CR-2023-0187',
+          type: 'PDF',
+          sizeKb: 2800,
+          date: '01 Jun 2023',
+          category: 'Documentos de Crédito',
+          status: 'ok',
+          creditoId: 'CR-2023-0187',
+        },
+        {
+          id: 'doc-5',
+          name: 'Pagaré CR-2023-0187',
+          type: 'PDF',
+          sizeKb: 0,
+          date: '',
+          category: 'Documentos de Crédito',
+          status: 'pendiente',
+          required: true,
+          creditoId: 'CR-2023-0187',
+        },
+        {
+          id: 'doc-6',
+          name: 'Certificado Laboral',
+          type: 'PDF',
+          sizeKb: 540,
+          date: '10 Ene 2026',
+          category: 'Documentos Laborales',
+          status: 'ok',
+        },
+      ],
+      contactHistory: [
+        {
+          channel: 'WhatsApp',
+          descripcion: 'Pago pendiente recordatorio',
+          fecha: '15 Mar 2026',
+          hora: '09:00 a.m.',
+          usuario: 'Ana Martínez',
+          estado: 'Entregado',
+        },
+        {
+          channel: 'Correo',
+          descripcion: 'Mora aplicada notificación',
+          fecha: '15 Mar 2026',
+          hora: '09:18 a.m.',
+          usuario: 'Sistema',
+          estado: 'Entregado',
+        },
+        {
+          channel: 'Llamada',
+          descripcion: 'Sin respuesta',
+          fecha: '10 Mar 2026',
+          hora: '02:30 p.m.',
+          usuario: 'Carlos Ruiz',
+          estado: 'Sin respuesta',
+        },
+        {
+          channel: 'WhatsApp',
+          descripcion: 'Bienvenida nuevo crédito',
+          fecha: '15 Dic 2025',
+          hora: '03:30 p.m.',
+          usuario: 'Sistema',
+          estado: 'Entregado',
+        },
+      ],
     },
     {
       dni: '28.654.321',
@@ -111,6 +268,19 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
           progreso: 30,
         },
       ],
+      historial: [
+        {
+          fecha: '01 Abr 2026',
+          hora: '09:00 a.m.',
+          evento: 'Pago recibido',
+          creditoId: 'CR-2024-0200',
+          monto: 2000,
+          usuario: 'Sistema',
+          estado: 'Aplicado',
+        },
+      ],
+      documents: [],
+      contactHistory: [],
     },
     {
       dni: '29.321.654',
@@ -141,6 +311,19 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
           vencimientoMora: '05/04/2026',
         },
       ],
+      historial: [
+        {
+          fecha: '05 Abr 2026',
+          hora: '10:00 a.m.',
+          evento: 'Mora aplicada',
+          creditoId: 'CR-2024-0150',
+          monto: 1800,
+          usuario: 'Sistema',
+          estado: 'Pendiente',
+        },
+      ],
+      documents: [],
+      contactHistory: [],
     },
   ];
 
@@ -154,35 +337,19 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     const dni = this.route.snapshot.paramMap.get('dni');
     this.client = this.mockClients.find((c) => c.dni === dni) ?? null;
 
-    const base = this.router.url.split('/clients')[0];
-    this.headerService.set(
-      [
-        { label: 'Clientes', route: `${base}/clients` },
-        { label: this.client?.name ?? 'Cliente' },
-        { label: 'Créditos' },
-      ],
-      [
-        {
-          label: 'Nuevo Crédito',
-          icon: 'pi pi-plus',
-          severity: 'primary',
-          action: () => {
-            this.router.navigate([`${base}/operations/new`], {
-              queryParams: { clientDni: this.client?.dni },
-            });
-          },
-        },
-      ],
-    );
+    this.base = this.router.url.split('/clients')[0];
+    this.headerService.breadcrumbs.set([
+      { label: 'Clientes', route: `${this.base}/clients` },
+      { label: this.client?.name ?? 'Cliente' },
+      { label: 'Créditos' },
+    ]);
+    this.updateHeaderActions();
   }
 
   ngOnDestroy(): void {
     this.headerService.reset();
   }
 
-  /**
-   * Devuelve el número de créditos activos y en mora del cliente.
-   */
   get activeCredits(): number {
     return (
       this.client?.credits.filter(
@@ -191,18 +358,12 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     );
   }
 
-  /**
-   * Calcula la cartera total del cliente sumando el monto original de todos sus créditos, independientemente de su estado. Si el cliente no tiene créditos, devuelve 0.
-   */
   get totalPortfolio(): number {
     return (
       this.client?.credits.reduce((sum, c) => sum + c.montoOriginal, 0) ?? 0
     );
   }
 
-  /**
-   * Calcula el saldo total pendiente de los créditos activos y en mora del cliente, sumando el saldo pendiente de cada crédito que no esté pagado.
-   */
   get totalOutstandingBalance(): number {
     return (
       this.client?.credits
@@ -211,24 +372,57 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     );
   }
 
-  /**
-   * Devuelve la lista de créditos filtrados según los criterios de búsqueda y estado.
-   */
-  get filteredCredits(): Credit[] {
-    return (this.client?.credits ?? []).filter((c) => {
-      const matchesSearch =
-        !this.searchTerm ||
-        c.id.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        c.producto.toLowerCase().includes(this.searchTerm.toLowerCase());
-      const matchesEstado =
-        !this.selectedEstado || c.estado === this.selectedEstado;
-      return matchesSearch && matchesEstado;
-    });
+  private updateHeaderActions(): void {
+    if (this._activeTab === 'documentos') {
+      this.headerService.actions.set([
+        {
+          label: 'Subir Documento',
+          icon: 'pi pi-upload',
+          severity: 'primary',
+          action: () => {
+            /* TODO */
+          },
+        },
+      ]);
+    } else if (this._activeTab === 'contactar') {
+      this.headerService.actions.set([
+        {
+          label: 'Enviar Mensaje',
+          icon: 'pi pi-send',
+          severity: 'primary',
+          action: () => {
+            /* TODO */
+          },
+        },
+      ]);
+    } else if (this._activeTab === 'historial') {
+      this.headerService.actions.set([
+        {
+          label: 'Exportar Excel',
+          icon: 'pi pi-download',
+          severity: 'success',
+          styleClass: '!bg-green-500 !border-green-500 hover:!bg-green-600',
+          action: () => {
+            /* TODO */
+          },
+        },
+      ]);
+    } else {
+      this.headerService.actions.set([
+        {
+          label: 'Nuevo Crédito',
+          icon: 'pi pi-plus',
+          severity: 'primary',
+          action: () => {
+            this.router.navigate([`${this.base}/operations/new`], {
+              queryParams: { clientDni: this.client?.dni },
+            });
+          },
+        },
+      ]);
+    }
   }
 
-  /**
-   * Navega a la vista de edición del cliente seleccionado, pasando su DNI como parámetro en la URL.
-   */
   goBack(): void {
     this.router.navigate(['../'], { relativeTo: this.route });
   }
