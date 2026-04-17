@@ -28,7 +28,9 @@
             [icon]="action.icon ?? ''"
             [severity]="action.severity ?? 'secondary'"
             [outlined]="action.outlined ?? false"
-            styleClass="h-9 px-4 rounded-xl text-sm"
+            [styleClass]="
+              'h-9 px-4 rounded-xl text-sm ' + (action.styleClass ?? '')
+            "
             (onClick)="action.action()"
           />
         }
