@@ -1,14 +1,17 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 // PrimeNG — en Standalone cada componente importa solo lo que usa
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DialogModule } from 'primeng/dialog';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -29,21 +32,25 @@ import {
   standalone: true,
   imports: [
     CurrencyPipe,
+    DatePipe,
+    NgClass,
     FormsModule,
     TableModule,
     TagModule,
     ButtonModule,
     ToastModule,
-    ConfirmDialogModule,
     SkeletonModule,
     TooltipModule,
     DialogModule,
     CardModule,
     BadgeModule,
     DropdownModule,
-    DatePipe
+    IconFieldModule,
+    InputIconModule,
+    InputTextModule,
+    CheckboxModule,
   ],
-  providers: [MessageService, ConfirmationService],
+  providers: [MessageService],
   templateUrl: './approvals.component.html',
   styleUrl: './approvals.component.scss',
 })
@@ -59,18 +66,45 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
   approvals: PendingApproval[] = [];
   loading = true;
   processingId: string | null = null;
+
+  showApproveDialog = false;
+  approvingRow: PendingApproval | null = null;
+  approveCheckDoc = false;
+  approveCheckClient = false;
+  approveNote = '';
+  processingApprove = false;
+
   showRejectDialog = false;
   rejectingRow: PendingApproval | null = null;
   rejectReason = '';
   rejectDetail = '';
   processingReject = false;
 
+  searchTerm = '';
+  filterType: string | null = null;
+
+  readonly TYPE_OPTIONS = [
+    { label: 'Venta', value: 'VENTA' },
+    { label: 'Préstamo', value: 'PRÉSTAMO' },
+  ];
+
+  get filteredApprovals(): PendingApproval[] {
+    return this.approvals.filter((a) => {
+      const term = this.searchTerm.toLowerCase();
+      const matchSearch =
+        !term ||
+        a.clientName.toLowerCase().includes(term) ||
+        a.createdBy.toLowerCase().includes(term);
+      const matchType = !this.filterType || a.type === this.filterType;
+      return matchSearch && matchType;
+    });
+  }
+
   private destroy$ = new Subject<void>();
 
   constructor(
     private data: MockDataService,
     private msg: MessageService,
-    private confirm: ConfirmationService,
     public dateService: DateService,
   ) {}
 
@@ -86,6 +120,13 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
   /**
    * Carga las aprobaciones pendientes desde el servicio.
    * Maneja el estado de carga y errores.
+   */
+  refresh(): void {
+    this.loadApprovals();
+  }
+
+  /**
+   * Carga las aprobaciones pendientes desde el servicio. Establece el estado de carga mientras se realiza la petición y actualiza la lista de aprobaciones al recibir la respuesta. En caso de error, simplemente desactiva el estado de carga.
    */
   private loadApprovals(): void {
     this.loading = true;
@@ -110,42 +151,47 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
    */
   onApprove(row: PendingApproval): void {
     if (this.processingId) return;
+    this.approvingRow = row;
+    this.approveCheckDoc = false;
+    this.approveCheckClient = false;
+    this.approveNote = '';
+    this.showApproveDialog = true;
+  }
 
-    this.confirm.confirm({
-      message: `¿Aprobar la operación de <strong>${row.clientName}</strong> por $${row.amount.toLocaleString()}?`,
-      header: 'Confirmar aprobación',
-      icon: 'pi pi-check-circle',
-      acceptLabel: 'Sí, aprobar',
-      rejectLabel: 'Cancelar',
-      acceptButtonStyleClass: 'p-button-success',
-      accept: () => {
-        this.processingId = `${row.id}_approve`;
+  /**
+   * Confirma la aprobación de una solicitud. Verifica que se hayan marcado las casillas de verificación y luego llama al servicio para aprobar la solicitud. Mientras se procesa, bloquea los botones para evitar acciones duplicadas. Al finalizar, muestra un mensaje de éxito o error según corresponda.
+   * @returns
+   */
+  confirmApprove(): void {
+    if (!this.approvingRow) return;
+    this.processingApprove = true;
+    const row = this.approvingRow;
 
-        this.data
-          .approveCredit(row.id)
-          .pipe(takeUntil(this.destroy$))
-          .subscribe({
-            next: () => {
-              this.approvals = this.approvals.filter((a) => a.id !== row.id);
-              this.processingId = null;
-              this.msg.add({
-                severity: 'success',
-                summary: 'Aprobado',
-                detail: `Crédito de ${row.clientName} aprobado. Se generó el cronograma de cuotas.`,
-                life: 4000,
-              });
-            },
-            error: () => {
-              this.processingId = null;
-              this.msg.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'No se pudo aprobar. Intentá nuevamente.',
-              });
-            },
+    this.data
+      .approveCredit(row.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.approvals = this.approvals.filter((a) => a.id !== row.id);
+          this.processingApprove = false;
+          this.showApproveDialog = false;
+          this.approvingRow = null;
+          this.msg.add({
+            severity: 'success',
+            summary: 'Aprobado',
+            detail: `Crédito de ${row.clientName} aprobado. Se generó el cronograma de cuotas.`,
+            life: 4000,
           });
-      },
-    });
+        },
+        error: () => {
+          this.processingApprove = false;
+          this.msg.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo aprobar. Intentá nuevamente.',
+          });
+        },
+      });
   }
 
   /**
@@ -161,6 +207,10 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
     this.showRejectDialog = true;
   }
 
+  /**
+   * Confirma el rechazo de una solicitud. Verifica que se haya seleccionado un motivo de rechazo y luego llama al servicio para rechazar la solicitud. Mientras se procesa, bloquea los botones para evitar acciones duplicadas. Al finalizar, muestra un mensaje de información o error según corresponda.
+   * @returns
+   */
   confirmReject(): void {
     if (!this.rejectReason || !this.rejectingRow) return;
     this.processingReject = true;
