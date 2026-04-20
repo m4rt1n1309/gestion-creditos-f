@@ -56,3 +56,68 @@
   border-color: #4f46e5 !important;
   background-color: #4f46e5 !important;
 }
+
+
+.p-inputtext {
+  background-color: #f9fafb !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.75rem !important;
+
+  &:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+
+  &[readonly] {
+    background-color: #f3f4f6 !important;
+    color: #6b7280 !important;
+    cursor: default;
+  }
+}
+
+.p-dropdown {
+  background-color: #f9fafb !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.75rem !important;
+
+  .p-dropdown-label.p-inputtext {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  &:focus-within {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+}
+
+
+.cancel-btn {
+  height: 2.75rem;
+  padding: 0 1.25rem;
+  border-radius: 0.75rem;
+  border: 1.5px solid #d1d5db;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  &--danger {
+    border-color: #fca5a5;
+    color: #ef4444;
+
+    &:hover {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+  }
+}
