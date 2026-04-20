@@ -1,72 +1,57 @@
 <p-toast />
 
 <div class="p-6 space-y-6">
-  <div class="flex flex-col">
-    <h1 class="text-2xl font-bold text-gray-800">Control de Morosidad</h1>
-    <p class="text-sm text-gray-500">Gestión de cuotas vencidas y recargos.</p>
-  </div>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     @if (loadingStats) {
       @for (i of [1, 2, 3]; track i) {
-        <p-card styleClass="shadow-sm border-l-4 border-gray-200">
-          <div class="flex justify-between items-start">
-            <div class="w-full">
-              <p-skeleton width="40%" height="1rem" styleClass="mb-3" />
-              <p-skeleton width="70%" height="2.5rem" />
+        <p-card styleClass="shadow-sm">
+          <div class="flex items-center gap-4">
+            <p-skeleton shape="circle" size="3.5rem" />
+            <div class="flex-1">
+              <p-skeleton width="60%" height="2rem" styleClass="mb-2" />
+              <p-skeleton width="40%" height="1rem" />
             </div>
-            <p-skeleton shape="circle" size="3rem" />
           </div>
         </p-card>
       }
     } @else {
-      <p-card styleClass="border-l-4 border-red-500 shadow-sm">
-        <div class="flex justify-between items-start">
-          <div>
-            <span
-              class="text-xs font-bold text-gray-400 uppercase tracking-widest"
-              >En Mora Total</span
-            >
-            <p class="text-3xl font-black text-red-600 mt-1">
-              {{ stats.enMora | currency: "$" : "symbol" : "1.0-0" }}
-            </p>
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="bg-red-100 rounded-full w-14 h-14 flex items-center justify-center flex-shrink-0">
+            <i class="pi pi-exclamation-triangle text-red-500 text-2xl"></i>
           </div>
-          <div class="bg-red-50 p-2 rounded-lg">
-            <i class="pi pi-info-circle text-red-500"></i>
+          <div>
+            <p class="text-4xl font-black text-red-600 leading-none">{{ stats.enMoraCount }}</p>
+            <span class="text-sm text-gray-500 mt-1 block">En Mora</span>
           </div>
         </div>
       </p-card>
 
-      <p-card styleClass="border-l-4 border-amber-500 shadow-sm">
-        <div class="flex justify-between items-start">
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="bg-amber-100 rounded-full w-14 h-14 flex items-center justify-center flex-shrink-0">
+            <i class="pi pi-clock text-amber-500 text-2xl"></i>
+          </div>
           <div>
-            <span
-              class="text-xs font-bold text-gray-400 uppercase tracking-widest"
-              >Sin Aplicar</span
-            >
-            <p class="text-3xl font-black text-amber-600 mt-1">
+            <p class="text-3xl font-black text-amber-600 leading-none">
               {{ stats.sinAplicar | currency: "$" : "symbol" : "1.0-0" }}
             </p>
-          </div>
-          <div class="bg-amber-50 p-2 rounded-lg">
-            <i class="pi pi-clock text-amber-500"></i>
+            <span class="text-sm text-gray-500 mt-1 block">Sin Aplicar</span>
           </div>
         </div>
       </p-card>
 
-      <p-card styleClass="border-l-4 border-green-500 shadow-sm">
-        <div class="flex justify-between items-start">
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center gap-4">
+          <div class="bg-orange-100 rounded-full w-14 h-14 flex items-center justify-center flex-shrink-0">
+            <i class="pi pi-exclamation-circle text-orange-500 text-2xl"></i>
+          </div>
           <div>
-            <span
-              class="text-xs font-bold text-gray-400 uppercase tracking-widest"
-              >Aplicadas</span
-            >
-            <p class="text-3xl font-black text-green-600 mt-1">
+            <p class="text-3xl font-black text-orange-600 leading-none">
               {{ stats.aplicada | currency: "$" : "symbol" : "1.0-0" }}
             </p>
-          </div>
-          <div class="bg-green-50 p-2 rounded-lg">
-            <i class="pi pi-check text-green-500"></i>
+            <span class="text-sm text-gray-500 mt-1 block">Aplicado</span>
           </div>
         </div>
       </p-card>
@@ -74,50 +59,81 @@
   </div>
 
   <p-card styleClass="shadow-sm">
+    <div class="flex flex-wrap gap-3 mb-4 items-center">
+      <p-dropdown
+        [options]="estadoOptions"
+        [(ngModel)]="filterEstado"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Estado"
+        styleClass="w-40 h-10"
+        (onChange)="applyFilters()"
+      />
+      <p-dropdown
+        [options]="diasOptions"
+        [(ngModel)]="filterDias"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Días en Mora"
+        styleClass="w-44 h-10"
+        (onChange)="applyFilters()"
+      />
+      <input
+        pInputText
+        class="flex-1 min-w-48 h-10"
+        placeholder="Buscar cliente..."
+        [(ngModel)]="searchTerm"
+        (input)="applyFilters()"
+      />
+      <p-button label="Buscar" icon="pi pi-search" styleClass="h-10 px-5" (onClick)="applyFilters()" />
+    </div>
+
+    <div class="flex gap-2 mb-4">
+      @for (chip of statusChips; track chip.value) {
+        <button
+          class="px-4 py-1.5 rounded-full text-sm font-medium border transition-colors"
+          [class]="activeStatusFilter === chip.value
+            ? 'bg-gray-800 text-white border-gray-800'
+            : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'"
+          (click)="setStatusFilter(chip.value)"
+        >
+          {{ chip.label }}
+        </button>
+      }
+    </div>
+
     @if (loadingClients) {
-      <p-table [value]="[1, 2, 3, 4, 5, 6]" styleClass="p-datatable-sm">
+      <p-table [value]="[1, 2, 3, 4, 5]" styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
-            <th>Cliente</th>
-            <th>Crédito</th>
-            <th>Vencimiento</th>
-            <th class="text-right">Deuda</th>
-            <th class="text-center">Estado</th>
-            <th class="text-center">Acciones</th>
+            <th>Cliente</th><th>DNI</th><th>Cuota</th><th>Monto</th>
+            <th>Días</th><th>Mora $</th><th>Estado</th><th>Acciones</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body">
           <tr>
             <td><p-skeleton width="80%" /></td>
+            <td><p-skeleton width="70%" /></td>
+            <td><p-skeleton width="40%" /></td>
             <td><p-skeleton width="50%" /></td>
-            <td><p-skeleton width="60%" /></td>
-            <td class="text-right flex justify-end">
-              <p-skeleton width="50%" />
-            </td>
-            <td class="text-center flex justify-center">
-              <p-skeleton
-                width="6rem"
-                height="1.5rem"
-                styleClass="rounded-full"
-              />
-            </td>
+            <td><p-skeleton width="50%" /></td>
+            <td><p-skeleton width="50%" /></td>
+            <td class="flex justify-center"><p-skeleton width="5rem" height="1.5rem" styleClass="rounded-full" /></td>
             <td>
-              <div class="flex justify-center gap-2">
-                <p-skeleton
-                  width="5rem"
-                  height="2rem"
-                  styleClass="rounded-md"
-                />
-                <p-skeleton
-                  width="5rem"
-                  height="2rem"
-                  styleClass="rounded-md"
-                />
+              <div class="flex gap-2">
+                <p-skeleton width="5rem" height="2rem" styleClass="rounded-md" />
+                <p-skeleton width="5rem" height="2rem" styleClass="rounded-md" />
               </div>
             </td>
           </tr>
         </ng-template>
       </p-table>
+    } @else if (filteredClients.length === 0) {
+      <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+        <i class="pi pi-inbox text-5xl mb-3"></i>
+        <p class="text-lg font-medium">No hay clientes en mora</p>
+        <p class="text-sm">Todos están al día. ¡Excelente trabajo del equipo!</p>
+      </div>
     } @else {
       <p-table
         [value]="filteredClients"
@@ -129,59 +145,78 @@
         <ng-template pTemplate="header">
           <tr>
             <th>Cliente</th>
-            <th>Crédito</th>
-            <th>Vencimiento</th>
-            <th class="text-right">Deuda</th>
+            <th>DNI</th>
+            <th class="text-center">Cuota</th>
+            <th class="text-right">Monto</th>
+            <th class="text-center">Días</th>
+            <th class="text-right">Mora $</th>
             <th class="text-center">Estado</th>
             <th class="text-center">Acciones</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-row>
-          <tr>
-            <td class="font-bold">{{ row.clientName }}</td>
-            <td>{{ row.creditId }}</td>
-            <td class="text-sm">{{ row.dueDate }}</td>
-            <td class="text-right font-mono text-red-500 font-bold">
-              {{ row.amount | currency }}
+          <tr [class.bg-red-50]="row.daysOverdue > 30">
+            <td class="font-semibold text-gray-800">{{ row.clientName }}</td>
+            <td class="text-gray-600 text-sm">{{ row.dni }}</td>
+            <td class="text-center text-gray-600">#{{ row.installmentNumber }}</td>
+            <td class="text-right font-mono font-semibold text-gray-800">
+              {{ row.amount | currency: "$" : "symbol" : "1.0-0" }}
+            </td>
+            <td class="text-center">
+              <span
+                class="px-2 py-0.5 rounded-full text-xs font-bold"
+                [class]="row.daysOverdue > 15
+                  ? 'bg-red-100 text-red-700'
+                  : 'bg-green-100 text-green-700'"
+              >
+                {{ row.daysOverdue }} días
+              </span>
+            </td>
+            <td class="text-right font-mono font-bold"
+              [class]="row.daysOverdue > 15 ? 'text-red-600' : 'text-amber-600'"
+            >
+              {{ row.delinquencyAmount | currency: "$" : "symbol" : "1.0-0" }}
             </td>
             <td class="text-center">
               <p-tag
                 [value]="statusLabel(row.status)"
-                [severity]="
-                  row.status === 'EN_MORA'
-                    ? 'danger'
-                    : row.status === 'APLICADA'
-                      ? 'success'
-                      : 'warning'
-                "
+                [severity]="statusSeverity(row.status)"
                 [rounded]="true"
               />
             </td>
             <td class="text-center">
               <div class="flex justify-center gap-2">
                 <p-button
-                  label="Aplicar"
-                  severity="warning"
+                  label="Avisar"
+                  severity="info"
                   size="small"
                   [outlined]="true"
-                  icon="pi pi-bolt"
-                  (onClick)="onApply(row)"
-                  [loading]="processingId === row.id + '_apply'"
+                  icon="pi pi-bell"
+                  (onClick)="onNotify(row)"
+                  [loading]="processingId === row.id + '_notify'"
                 />
                 <p-button
-                  label="Condonar"
-                  severity="secondary"
+                  [label]="row.status === 'EN_MORA' ? 'Condonar' : 'Creditar'"
+                  [severity]="row.status === 'EN_MORA' ? 'secondary' : 'warning'"
                   size="small"
                   [outlined]="true"
-                  icon="pi pi-heart"
-                  (onClick)="onCondone(row)"
-                  [loading]="processingId === row.id + '_condone'"
+                  [icon]="row.status === 'EN_MORA' ? 'pi pi-heart' : 'pi pi-bolt'"
+                  (onClick)="row.status === 'EN_MORA' ? onCondone(row) : onApply(row)"
+                  [loading]="processingId === row.id + '_condone' || processingId === row.id + '_apply'"
                 />
               </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="footer">
+          <tr>
+            <td colspan="8" class="text-sm text-gray-500">
+              Mostrando {{ filteredClients.length }} de {{ stats.enMoraCount }} clientes en mora
             </td>
           </tr>
         </ng-template>
       </p-table>
     }
   </p-card>
+
 </div>

@@ -1,46 +1,74 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import {
   DelinquencyClient,
   DelinquencyStats,
   MockDataService,
 } from '../../../mocks/mock-data.service';
-import { Subject } from 'rxjs/internal/Subject';
-import { takeUntil } from 'rxjs';
-import { CardModule } from 'primeng/card';
 
 @Component({
   selector: 'app-delinquency',
   standalone: true,
   imports: [
     CurrencyPipe,
+    FormsModule,
     TableModule,
     ButtonModule,
     TagModule,
     ToastModule,
     SkeletonModule,
     InputTextModule,
+    DropdownModule,
     CardModule,
-    TableModule,
   ],
   providers: [MessageService],
   templateUrl: './delinquency.component.html',
   styleUrl: './delinquency.component.scss',
 })
-export class DelinquencyComponent {
-  stats: DelinquencyStats = { enMora: 0, sinAplicar: 0, aplicada: 0 };
+export class DelinquencyComponent implements OnInit, OnDestroy {
+  stats: DelinquencyStats = { enMoraCount: 0, sinAplicar: 0, aplicada: 0 };
   clients: DelinquencyClient[] = [];
   filteredClients: DelinquencyClient[] = [];
   loadingStats = true;
   loadingClients = true;
   processingId: string | null = null;
+
+  searchTerm = '';
+  filterEstado: string | null = null;
+  filterDias: string | null = null;
+  activeStatusFilter: string | null = null;
+
+  estadoOptions = [
+    { label: 'Todos', value: null },
+    { label: 'En Mora', value: 'EN_MORA' },
+    { label: 'Sin Aplicar', value: 'SIN_APLICAR' },
+    { label: 'Aplicada', value: 'APLICADA' },
+  ];
+
+  diasOptions = [
+    { label: 'Todos', value: null },
+    { label: '1-15 días', value: '1-15' },
+    { label: '16-30 días', value: '16-30' },
+    { label: 'Más de 30', value: '30+' },
+  ];
+
+  statusChips = [
+    { label: 'En Mora', value: 'EN_MORA' },
+    { label: 'Sin Aplicar', value: 'SIN_APLICAR' },
+    { label: 'Aplicada', value: 'APLICADA' },
+  ];
 
   private destroy$ = new Subject<void>();
 
@@ -60,9 +88,7 @@ export class DelinquencyComponent {
   }
 
   /**
-   * Carga las estadísticas de morosidad desde el servicio y actualiza el estado del componente.
-   * Utiliza el operador takeUntil para cancelar la suscripción cuando el componente se destruya.
-   * Al recibir los datos, actualiza la propiedad stats y cambia loadingStats a false.
+   * Carga las estadísticas de morosidad desde el servicio. Establece el estado de carga mientras se realiza la petición y actualiza las estadísticas al recibir la respuesta. En caso de error, simplemente desactiva el estado de carga.
    */
   private loadStats(): void {
     this.data
@@ -75,9 +101,7 @@ export class DelinquencyComponent {
   }
 
   /**
-   * Carga la lista de clientes en mora desde el servicio y actualiza el estado del componente.
-   * Utiliza el operador takeUntil para cancelar la suscripción cuando el componente se destruya.
-   * Al recibir los datos, actualiza las propiedades clients y filteredClients, y cambia loadingClients a false.
+   * Carga la lista de clientes morosos desde el servicio. Establece el estado de carga mientras se realiza la petición y actualiza la lista de clientes al recibir la respuesta. En caso de error, simplemente desactiva el estado de carga.
    */
   private loadClients(): void {
     this.data
@@ -91,26 +115,68 @@ export class DelinquencyComponent {
   }
 
   /**
-   *  Filtra la lista de clientes en función del término de búsqueda ingresado por el usuario.
-   *  El término de búsqueda se obtiene del evento de entrada y se convierte a minúsculas para una comparación insensible a mayúsculas.
-   *  La lista filteredClients se actualiza con los clientes cuyo nombre o DNI incluyen el término de búsqueda.
-   * @param event
+   * Establece el filtro de estado activo y aplica los filtros a la lista de clientes. Si el filtro seleccionado ya está activo, se desactiva el filtro.
+   * @param value
    */
-  onSearch(event: Event): void {
-    const term = (event.target as HTMLInputElement).value.toLowerCase();
-    this.filteredClients = this.clients.filter(
-      (client) =>
-        client.clientName.toLowerCase().includes(term) ||
-        client.dni.includes(term),
-    );
+  setStatusFilter(value: string): void {
+    this.activeStatusFilter = this.activeStatusFilter === value ? null : value;
+    this.applyFilters();
   }
 
   /**
-   * Aplica la mora a un cliente específico. Si ya hay una operación en proceso, la función retorna sin hacer nada.
-   * Si no, establece processingId para indicar que se está procesando una acción para ese cliente.
-   * Luego, llama al método applyDelinquency del servicio de datos con el ID del cliente.
-   * Utiliza el operador takeUntil para cancelar la suscripción cuando el componente se destruya.
-   * Al completar la operación, actualiza el estado del cliente a "EN_MORA", restablece processingId a null y muestra un mensaje de éxito.
+   * Aplica los filtros de búsqueda, estado y días de mora a la lista de clientes. Filtra la lista de clientes en función del término de búsqueda (que se aplica al nombre del cliente y al DNI), el estado seleccionado y el rango de días de mora seleccionado. Actualiza la lista de clientes filtrada que se muestra en la tabla.
+   */
+  applyFilters(): void {
+    let result = [...this.clients];
+
+    const term = this.searchTerm.toLowerCase().trim();
+    if (term) {
+      result = result.filter(
+        (c) =>
+          c.clientName.toLowerCase().includes(term) || c.dni.includes(term),
+      );
+    }
+
+    const status = this.activeStatusFilter ?? this.filterEstado;
+    if (status) {
+      result = result.filter((c) => c.status === status);
+    }
+
+    if (this.filterDias) {
+      result = result.filter((c) => {
+        if (this.filterDias === '1-15')
+          return c.daysOverdue >= 1 && c.daysOverdue <= 15;
+        if (this.filterDias === '16-30')
+          return c.daysOverdue >= 16 && c.daysOverdue <= 30;
+        if (this.filterDias === '30+') return c.daysOverdue > 30;
+        return true;
+      });
+    }
+
+    this.filteredClients = result;
+  }
+
+  /**
+   *  Simula el envío de un aviso al cliente. Establece un ID de procesamiento para bloquear la acción mientras se simula el envío y luego muestra un mensaje de información indicando que el aviso ha sido enviado.
+   * @param row
+   * @returns
+   */
+  onNotify(row: DelinquencyClient): void {
+    if (this.processingId) return;
+    this.processingId = `${row.id}_notify`;
+    setTimeout(() => {
+      this.processingId = null;
+      this.msg.add({
+        severity: 'info',
+        summary: 'Aviso enviado',
+        detail: row.clientName,
+        life: 3000,
+      });
+    }, 800);
+  }
+
+  /**
+   * Simula la aplicación de mora a un cliente. Establece un ID de procesamiento para bloquear la acción mientras se simula la aplicación y luego actualiza el estado del cliente a "En Mora" y muestra un mensaje de advertencia indicando que la mora ha sido aplicada.
    * @param row
    * @returns
    */
@@ -133,11 +199,7 @@ export class DelinquencyComponent {
   }
 
   /**
-   * Condona la mora de un cliente específico. Si ya hay una operación en proceso, la función retorna sin hacer nada.
-   * Si no, establece processingId para indicar que se está procesando una acción para ese cliente.
-   * Luego, llama al método condoneDelinquency del servicio de datos con el ID del cliente.
-   * Utiliza el operador takeUntil para cancelar la suscripción cuando el componente se destruya.
-   * Al completar la operación, actualiza el estado del cliente a "APLICADA", restablece processingId a null y muestra un mensaje de éxito.
+   * Simula la condonación de mora para un cliente. Establece un ID de procesamiento para bloquear la acción mientras se simula la condonación y luego actualiza el estado del cliente a "Aplicada" y muestra un mensaje de éxito indicando que la mora ha sido condonada.
    * @param row
    * @returns
    */
@@ -160,8 +222,7 @@ export class DelinquencyComponent {
   }
 
   /**
-   * Actualiza el estado de un cliente específico en la lista de clientes. Busca el índice del cliente por su ID y, si lo encuentra, actualiza su estado.
-   * Luego, actualiza la lista filteredClients para reflejar el cambio en la interfaz de usuario.
+   * Actualiza el estado de un cliente en la lista de clientes y aplica los filtros.
    * @param id
    * @param status
    */
@@ -172,13 +233,12 @@ export class DelinquencyComponent {
     const idx = this.clients.findIndex((c) => c.id === id);
     if (idx > -1) {
       this.clients[idx] = { ...this.clients[idx], status };
-      this.filteredClients = [...this.clients];
+      this.applyFilters();
     }
   }
 
   /**
-   * Devuelve una etiqueta legible para el estado de morosidad de un cliente. Utiliza un mapa para traducir los estados internos a etiquetas más amigables.
-   * Si el estado no se encuentra en el mapa, devuelve el estado original.
+   * Devuelve la etiqueta legible para un estado dado.
    * @param status
    * @returns
    */
@@ -189,5 +249,31 @@ export class DelinquencyComponent {
       APLICADA: 'Aplicada',
     };
     return map[status] ?? status;
+  }
+
+  /**
+   * Devuelve el severidad para un estado dado.
+   * @param status
+   * @returns
+   */
+  statusSeverity(
+    status: string,
+  ):
+    | 'success'
+    | 'info'
+    | 'warning'
+    | 'danger'
+    | 'secondary'
+    | 'contrast'
+    | undefined {
+    const map: Record<
+      string,
+      'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast'
+    > = {
+      EN_MORA: 'danger',
+      SIN_APLICAR: 'secondary',
+      APLICADA: 'success',
+    };
+    return map[status];
   }
 }
