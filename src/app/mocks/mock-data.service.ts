@@ -29,7 +29,7 @@ export interface PendingApproval {
 }
 
 export interface DelinquencyStats {
-  enMora: number;
+  enMoraCount: number;
   sinAplicar: number;
   aplicada: number;
 }

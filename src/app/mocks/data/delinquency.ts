@@ -2,8 +2,8 @@ import { DelinquencyClient, DelinquencyStats } from '../mock-data.service';
 
 // Pantalla de Mora (mockup pág. 17)
 export const MOCK_DELINQUENCY_STATS: DelinquencyStats = {
-  enMora: 5_800,
-  sinAplicar: 0, // número de registros sin aplicar
+  enMoraCount: 12,
+  sinAplicar: 5_800,
   aplicada: 3_500,
 };
 
