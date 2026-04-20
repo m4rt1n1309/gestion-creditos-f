@@ -57,7 +57,6 @@
   background-color: #4f46e5 !important;
 }
 
-
 .p-inputtext {
   background-color: #f9fafb !important;
   border: 1px solid #d1d5db !important;
@@ -93,7 +92,6 @@
   }
 }
 
-
 .cancel-btn {
   height: 2.75rem;
   padding: 0 1.25rem;
@@ -104,7 +102,9 @@
   font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 
   &:hover {
     background: #f3f4f6;
@@ -118,6 +118,25 @@
     &:hover {
       background: #fef2f2;
       color: #dc2626;
+    }
+  }
+}
+
+.movement-detail-dialog .p-dialog-content {
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+
+    &:hover {
+      background: #94a3b8;
     }
   }
 }
