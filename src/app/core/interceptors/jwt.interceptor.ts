@@ -1,11 +1,15 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { MockAuthService } from '../auth/mock-auth.service';
+import { environment } from '../../../environments/environment';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
-  const auth = inject(MockAuthService);
-  const token = auth.token;
+  // Solo adjuntar Bearer en llamadas al backend propio
+  if (!req.url.startsWith(environment.apiBaseUrl)) {
+    return next(req);
+  }
 
+  const token = typeof localStorage !== 'undefined'
+    ? localStorage.getItem(environment.tokenKey)
+    : null;
   if (!token) return next(req);
 
   return next(

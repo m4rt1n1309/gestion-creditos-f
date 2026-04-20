@@ -1,69 +1,83 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
+
+const isBrowser = typeof localStorage !== 'undefined';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { delay, tap } from 'rxjs/operators';
+import { AuthServiceBase } from './auth-service.base';
 import { AuthUser } from '../models/interface/auth-user';
 import { LoginCredentials } from '../models/interface/login-credentials';
 import { AuthError } from '../models/interface/auth.error';
 import { UserRole } from '../models/types/user-role';
 
-
-
-// ── Usuarios mock — representan los mockups exactos ──────────────────────────
+// ── Usuarios mock ─────────────────────────────────────────────────────────────
+// DNIs usados como credencial de login (igual que el backend real).
+// quickAccess en login.component usa estos DNIs.
 export const MOCK_USERS: AuthUser[] = [
   {
     id: 'usr-001',
+    full_name: 'Carlos López',
     name: 'Carlos López',
+    dni: '12345678',
     email: 'admin@siscreditos.com',
     avatar: 'CL',
     roles: ['ADMIN'],
-    // payload decodificado: { sub: 'usr-001', roles: ['ADMIN'], aud: 'sistema-interno', exp: 8h }
+    is_temp_password: false,
+    force_relogin_at: null,
     token:
-      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c3ItMDAxIiwicm9sZXMiOlsiQURNSU4iXSwiYXVkIjoic2lzdGVtYS1pbnRlcm5vIn0.mock_admin',
+      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c3ItMDAxIiwicm9sZSI6IkFETUlOIiwiYXVkIjoic2lzdGVtYS1pbnRlcm5vIn0.mock_admin',
   },
   {
     id: 'usr-002',
+    full_name: 'María Sánchez',
     name: 'María Sánchez',
+    dni: '87654321',
     email: 'vendedor@siscreditos.com',
     avatar: 'MS',
     roles: ['SELLER'],
+    is_temp_password: false,
+    force_relogin_at: null,
     token:
-      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c3ItMDAyIiwicm9sZXMiOlsiU0VMTEVSIl0sImF1ZCI6InNpc3RlbWEtaW50ZXJubyJ9.mock_seller',
+      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c3ItMDAyIiwicm9sZSI6IlNFTExFUiIsImF1ZCI6InNpc3RlbWEtaW50ZXJubyJ9.mock_seller',
   },
   {
     id: 'usr-003',
+    full_name: 'Juan Pedraza',
     name: 'Juan Pedraza',
+    dni: '11223344',
     email: 'cobrador@siscreditos.com',
     avatar: 'JP',
     roles: ['COLLECTOR'],
+    is_temp_password: false,
+    force_relogin_at: null,
     token:
-      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c3ItMDAzIiwicm9sZXMiOlsiQ09MTEVDVE9SIl0sImF1ZCI6InNpc3RlbWEtaW50ZXJubyJ9.mock_collector',
+      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c3ItMDAzIiwicm9sZSI6IkNPTExFQ1RPUiIsImF1ZCI6InNpc3RlbWEtaW50ZXJubyJ9.mock_collector',
   },
 ];
 
 // ── Servicio ──────────────────────────────────────────────────────────────────
-@Injectable({ providedIn: 'root' })
-export class MockAuthService {
+@Injectable()
+export class MockAuthService extends AuthServiceBase {
   private readonly TOKEN_KEY = 'sgcf_token';
-  private readonly USER_KEY = 'sgcf_user';
-  readonly NETWORK_LATENCY_MS = 800; // visible en tests para acelerar
+  private readonly USER_KEY  = 'sgcf_user';
+  readonly NETWORK_LATENCY_MS = 800;
 
   private _user$ = new BehaviorSubject<AuthUser | null>(this.rehydrate());
   readonly currentUser$ = this._user$.asObservable();
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) {
+    super();
+  }
 
-  // ── Login ─────────────────────────────────────────────────────────────────
+  // ── Login — autenticación por DNI (igual que el backend real) ────────────
   login(credentials: LoginCredentials): Observable<AuthUser> {
-    const match = MOCK_USERS.find((u) => u.email === credentials.email);
+    const match = MOCK_USERS.find((u) => u.dni === credentials.dni);
 
     if (!match) {
-      // Simula 401 con latencia — idéntico a un servidor real
       return throwError(
         (): AuthError => ({
           status: 401,
-          message:
-            'Credenciales incorrectas. Verificá tus datos e intentá nuevamente.',
+          message: 'Credenciales incorrectas. Verificá tus datos e intentá nuevamente.',
         }),
       ).pipe(delay(this.NETWORK_LATENCY_MS));
     }
@@ -74,15 +88,15 @@ export class MockAuthService {
     );
   }
 
-  // ── Logout ────────────────────────────────────────────────────────────────
   logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.USER_KEY);
+    if (isBrowser) {
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem(this.USER_KEY);
+    }
     this._user$.next(null);
     this.router.navigate(['/login']);
   }
 
-  // ── Queries de rol ────────────────────────────────────────────────────────
   hasRole(role: UserRole): boolean {
     return this._user$.value?.roles.includes(role) ?? false;
   }
@@ -100,17 +114,24 @@ export class MockAuthService {
   }
 
   get token(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return isBrowser ? localStorage.getItem(this.TOKEN_KEY) : null;
   }
 
-  // ── Privados ──────────────────────────────────────────────────────────────
+  // No-op: mock ya rehidrata sincronamente en el constructor.
+  restoreSession(): Observable<void> {
+    return of(undefined);
+  }
+
   private persist(user: AuthUser): void {
-    localStorage.setItem(this.TOKEN_KEY, user.token);
-    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    if (isBrowser) {
+      localStorage.setItem(this.TOKEN_KEY, user.token);
+      localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    }
     this._user$.next(user);
   }
 
   private rehydrate(): AuthUser | null {
+    if (!isBrowser) return null;
     try {
       const raw = localStorage.getItem(this.USER_KEY);
       return raw ? (JSON.parse(raw) as AuthUser) : null;

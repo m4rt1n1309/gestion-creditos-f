@@ -19,20 +19,18 @@ describe('MockAuthService', () => {
 
   afterEach(() => localStorage.clear());
 
-  // ── Estado inicial ────────────────────────────────────────────────────────
   it('debería iniciar sin usuario autenticado', () => {
     expect(service.isAuthenticated()).toBeFalse();
     expect(service.snapshot).toBeNull();
   });
 
-  // ── Login exitoso ─────────────────────────────────────────────────────────
-  it('debería autenticar con credenciales válidas y persistir en localStorage', fakeAsync(() => {
-    const admin = MOCK_USERS[0];
+  it('debería autenticar con DNI válido y persistir en localStorage', fakeAsync(() => {
+    const admin = MOCK_USERS[0]; // dni: '12345678'
     let result: any;
 
-    (service as any)['NETWORK_LATENCY_MS'] = 0; // acelerar el test
+    (service as any)['NETWORK_LATENCY_MS'] = 0;
     service
-      .login({ email: admin.email, password: 'cualquiera' })
+      .login({ dni: admin.dni, password: 'cualquiera' })
       .subscribe((user) => (result = user));
 
     tick(0);
@@ -43,12 +41,11 @@ describe('MockAuthService', () => {
     expect(localStorage.getItem('sgcf_token')).toBe(admin.token);
   }));
 
-  // ── Login fallido ─────────────────────────────────────────────────────────
-  it('debería emitir error 401 con email inexistente', fakeAsync(() => {
+  it('debería emitir error 401 con DNI inexistente', fakeAsync(() => {
     let error: any;
     (service as any)['NETWORK_LATENCY_MS'] = 0;
     service
-      .login({ email: 'no-existe@test.com', password: '123' })
+      .login({ dni: '00000000', password: '123' })
       .subscribe({ error: (e) => (error = e) });
 
     tick(0);
@@ -57,12 +54,9 @@ describe('MockAuthService', () => {
     expect(service.isAuthenticated()).toBeFalse();
   }));
 
-  // ── RBAC ──────────────────────────────────────────────────────────────────
   it('debería verificar roles correctamente con hasRole()', fakeAsync(() => {
     (service as any)['NETWORK_LATENCY_MS'] = 0;
-    service
-      .login({ email: 'vendedor@siscreditos.com', password: 'x' })
-      .subscribe();
+    service.login({ dni: '87654321', password: 'x' }).subscribe(); // SELLER
     tick(0);
 
     expect(service.hasRole('SELLER')).toBeTrue();
@@ -72,22 +66,17 @@ describe('MockAuthService', () => {
 
   it('debería verificar hasAnyRole() con múltiples roles', fakeAsync(() => {
     (service as any)['NETWORK_LATENCY_MS'] = 0;
-    service
-      .login({ email: 'cobrador@siscreditos.com', password: 'x' })
-      .subscribe();
+    service.login({ dni: '11223344', password: 'x' }).subscribe(); // COLLECTOR
     tick(0);
 
     expect(service.hasAnyRole(['ADMIN', 'COLLECTOR'])).toBeTrue();
     expect(service.hasAnyRole(['ADMIN', 'SELLER'])).toBeFalse();
   }));
 
-  // ── Logout ────────────────────────────────────────────────────────────────
   it('debería limpiar localStorage y emitir null al hacer logout', fakeAsync(() => {
     (service as any)['NETWORK_LATENCY_MS'] = 0;
     const navigateSpy = spyOn(router, 'navigate');
-    service
-      .login({ email: 'admin@siscreditos.com', password: 'x' })
-      .subscribe();
+    service.login({ dni: '12345678', password: 'x' }).subscribe();
     tick(0);
 
     service.logout();
@@ -97,15 +86,12 @@ describe('MockAuthService', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   }));
 
-  // ── currentUser$ stream ───────────────────────────────────────────────────
   it('currentUser$ debería emitir el usuario tras login exitoso', fakeAsync(() => {
     (service as any)['NETWORK_LATENCY_MS'] = 0;
     const emitted: any[] = [];
     service.currentUser$.subscribe((u) => emitted.push(u));
 
-    service
-      .login({ email: 'admin@siscreditos.com', password: 'x' })
-      .subscribe();
+    service.login({ dni: '12345678', password: 'x' }).subscribe();
     tick(0);
 
     expect(emitted.length).toBe(2); // null inicial + usuario logueado
