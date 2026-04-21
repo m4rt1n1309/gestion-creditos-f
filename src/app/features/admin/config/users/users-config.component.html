@@ -1,0 +1,106 @@
+<div class="space-y-4">
+
+  <!-- toolbar -->
+  <div class="flex items-center gap-3">
+    <div class="relative">
+      <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+      <input
+        type="text"
+        placeholder="Buscar usuario..."
+        [value]="searchQuery()"
+        (input)="onSearch($any($event.target).value)"
+        class="pl-9 pr-4 h-9 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 w-52"
+      />
+    </div>
+
+    <p-dropdown
+      [options]="roleOptions"
+      optionLabel="label"
+      optionValue="value"
+      [ngModel]="selectedRole()"
+      (ngModelChange)="onRoleChange($event)"
+      styleClass="h-9 text-sm rounded-xl"
+    />
+
+    <div class="ml-auto">
+      <p-button
+        label="Nuevo Usuario"
+        icon="pi pi-plus"
+        iconPos="left"
+        styleClass="h-9 px-4 rounded-xl !bg-blue-500 !border-blue-500 hover:!bg-blue-600 text-sm"
+        (onClick)="openNew()"
+      />
+    </div>
+  </div>
+
+  <!-- table -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-gray-100">
+          <th class="text-left text-xs font-medium text-gray-400 uppercase px-5 py-3">Nombre</th>
+          <th class="text-left text-xs font-medium text-gray-400 uppercase px-5 py-3">Rol</th>
+          <th class="text-left text-xs font-medium text-gray-400 uppercase px-5 py-3">Sucursal</th>
+          <th class="text-left text-xs font-medium text-gray-400 uppercase px-5 py-3">Último acceso</th>
+          <th class="text-left text-xs font-medium text-gray-400 uppercase px-5 py-3">Estado</th>
+          <th class="text-left text-xs font-medium text-gray-400 uppercase px-5 py-3">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of filteredUsers(); track user.id) {
+          <tr class="border-b border-gray-50 hover:bg-gray-50/60 transition-colors">
+            <!-- name + email with avatar -->
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-3">
+                <div [class]="'w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0 ' + avatarColor(user.name)">
+                  {{ initials(user.name) }}
+                </div>
+                <div>
+                  <div class="text-sm font-medium text-gray-800">{{ user.name }}</div>
+                  <div class="text-xs text-gray-400">{{ user.email }}</div>
+                </div>
+              </div>
+            </td>
+            <!-- role -->
+            <td class="px-5 py-3.5">
+              <p-tag [value]="roleLabel(user.role)" [severity]="roleSeverity(user.role)" styleClass="text-xs" />
+            </td>
+            <!-- branch -->
+            <td class="px-5 py-3.5 text-sm text-gray-600">{{ user.branch }}</td>
+            <!-- last login -->
+            <td class="px-5 py-3.5 text-sm text-gray-400">{{ user.lastLogin }}</td>
+            <!-- status -->
+            <td class="px-5 py-3.5">
+              <p-tag
+                [value]="user.active ? 'Activo' : 'Inactivo'"
+                [severity]="user.active ? 'success' : 'secondary'"
+                styleClass="text-xs"
+              />
+            </td>
+            <!-- actions -->
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2.5">
+                <p-button icon="pi pi-pencil" size="small" severity="info" [outlined]="true" styleClass="!w-8 !h-8 !rounded-lg" (onClick)="openEdit(user)" />
+                <p-inputSwitch [(ngModel)]="user.active" />
+              </div>
+            </td>
+          </tr>
+        }
+        @empty {
+          <tr>
+            <td colspan="6" class="px-5 py-10 text-center text-sm text-gray-400">
+              No se encontraron usuarios
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<app-user-form-modal
+  [(visible)]="modalVisible"
+  [editRecord]="editingUser"
+  (saved)="onSaved($event)"
+/>
