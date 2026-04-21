@@ -166,21 +166,17 @@
                 />
               </td>
               <td class="text-center">
-                <div class="flex items-center justify-center gap-1">
-                  <button class="action-link" (click)="downloadHistorialPdf(item)">
-                    <i class="pi pi-download text-xs"></i> Descargar
+                <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                  <button class="btn-soft-blue" (click)="downloadHistorialPdf(item)">
+                    <i class="pi pi-download"></i> Descargar
                   </button>
                   @if (item.status === 'COMPLETA') {
-                    <span class="text-gray-300 select-none">|</span>
-                    <button class="action-link"
-                      (click)="msg.add({ severity:'info', summary:'Reenviado', detail:item.collectorName, life:3000 })">
-                      <i class="pi pi-send text-xs"></i> Reenviar
+                    <button class="btn-soft-purple" (click)="msg.add({ severity:'info', summary:'Reenviado', detail:item.collectorName, life:3000 })">
+                      <i class="pi pi-send"></i> Reenviar
                     </button>
                   }
-                  <span class="text-gray-300 select-none">|</span>
-                  <button class="action-link"
-                    (click)="msg.add({ severity:'info', summary:'Próximamente', detail:'Vista de detalle en desarrollo', life:3000 })">
-                    Ver Detalles
+                  <button class="btn-soft-slate" (click)="msg.add({ severity:'info', summary:'Próximamente', detail:'Vista de detalle en desarrollo', life:3000 })">
+                    <i class="pi pi-eye"></i> Ver Detalles
                   </button>
                 </div>
               </td>
@@ -212,38 +208,18 @@
     </div>
 
     <div class="flex flex-wrap gap-2 flex-shrink-0">
-      <p-button
-        label="Descargar PDF"
-        icon="pi pi-download"
-        size="small"
-        styleClass="rounded-lg"
-        (onClick)="downloadPdf(res)"
-      />
-      <p-button
-        label="Enviar"
-        icon="pi pi-send"
-        severity="success"
-        size="small"
-        styleClass="rounded-lg"
-        (onClick)="openSendDialog(res)"
-      />
-      <p-button
-        label="Revisar"
-        severity="secondary"
-        [outlined]="true"
-        size="small"
-        styleClass="rounded-lg"
-        (onClick)="openReview(res)"
-      />
-      <p-button
-        label="Imprimir"
-        icon="pi pi-print"
-        severity="secondary"
-        [outlined]="true"
-        size="small"
-        styleClass="rounded-lg"
-        (onClick)="printPlanilla(res)"
-      />
+      <button class="btn-primary" (click)="downloadPdf(res)">
+        <i class="pi pi-download"></i> Descargar PDF
+      </button>
+      <button class="btn-success" (click)="openSendDialog(res)">
+        <i class="pi pi-send"></i> Enviar
+      </button>
+      <button class="btn-soft-slate" (click)="openReview(res)">
+        <i class="pi pi-eye"></i> Revisar
+      </button>
+      <button class="btn-soft-slate" (click)="printPlanilla(res)">
+        <i class="pi pi-print"></i> Imprimir
+      </button>
     </div>
   </div>
 </ng-template>
