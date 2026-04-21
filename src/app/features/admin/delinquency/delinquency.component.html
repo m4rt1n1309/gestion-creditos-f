@@ -80,12 +80,12 @@
       />
       <input
         pInputText
-        class="flex-1 min-w-48 h-10"
+        class="flex-1 min-w-48 h-11 px-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 shadow-sm"
         placeholder="Buscar cliente..."
         [(ngModel)]="searchTerm"
         (input)="applyFilters()"
       />
-      <p-button label="Buscar" icon="pi pi-search" styleClass="h-10 px-5" (onClick)="applyFilters()" />
+      <p-button label="Buscar" icon="pi pi-search" styleClass="h-11 px-5 rounded-xl" (onClick)="applyFilters()" />
     </div>
 
     <div class="flex gap-2 mb-4">
