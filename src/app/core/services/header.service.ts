@@ -18,14 +18,21 @@ export interface HeaderAction {
 export class HeaderService {
   readonly breadcrumbs = signal<BreadcrumbItem[]>([{ label: 'Dashboard' }]);
   readonly actions = signal<HeaderAction[]>([]);
+  readonly pageTitle = signal<string | null>(null);
 
   set(breadcrumbs: BreadcrumbItem[], actions: HeaderAction[] = []): void {
     this.breadcrumbs.set(breadcrumbs);
     this.actions.set(actions);
+    this.pageTitle.set(null);
+  }
+
+  setTitle(title: string): void {
+    this.pageTitle.set(title);
   }
 
   reset(): void {
     this.breadcrumbs.set([{ label: 'Dashboard' }]);
     this.actions.set([]);
+    this.pageTitle.set(null);
   }
 }

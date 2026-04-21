@@ -1,1 +1,410 @@
-<p>sheet works!</p>
+<p-toast />
+
+<div class="p-6 space-y-5">
+
+  <!-- ── Generar Nueva Planilla ────────────────────────────────────────────── -->
+  <p-card styleClass="shadow-sm">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-base font-semibold text-gray-800">Generar Nueva Planilla</h2>
+      <!-- FIX: botón para resetear el formulario y desbloquear el cobrador -->
+      @if (hasResults) {
+        <button class="action-link text-xs" (click)="resetForm()">
+          <i class="pi pi-refresh"></i> Limpiar y generar otra
+        </button>
+      }
+    </div>
+
+    <!-- Fila de controles -->
+    <div class="flex flex-wrap items-end gap-4 mb-5">
+
+      <!-- Fecha nativa -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Fecha</label>
+        <input
+          type="date"
+          [(ngModel)]="selectedDateStr"
+          [max]="todayMax"
+          class="date-input"
+        />
+      </div>
+
+      <!-- Cobrador -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Cobrador</label>
+        @if (loadingCollectors) {
+          <p-skeleton width="12rem" height="2.5rem" styleClass="rounded-xl" />
+        } @else {
+          <p-dropdown
+            [options]="collectorOptions"
+            [(ngModel)]="selectedCollectorId"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccionar cobrador"
+            styleClass="w-52"
+            [disabled]="generateForAll"
+          />
+        }
+      </div>
+
+      <!-- Checkbox todos — nativo -->
+      <div class="pb-1">
+        <label class="flex items-center gap-2.5 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            [(ngModel)]="generateForAll"
+            (change)="onGenerateForAllChange()"
+            class="native-checkbox"
+          />
+          <span class="text-sm text-gray-700">Generar para TODOS los cobradores</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Radios cuotas — nativos -->
+    <div class="flex flex-wrap items-center gap-x-5 gap-y-2.5 mb-6">
+      <span class="text-sm font-medium text-gray-600">Cuotas a incluir:</span>
+      @for (opt of cuotasOptions; track opt.value) {
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="radio"
+            name="cuotasFilter"
+            [value]="opt.value"
+            [(ngModel)]="cuotasFilter"
+            class="native-radio"
+          />
+          <span class="text-sm text-gray-700">{{ opt.label }}</span>
+        </label>
+      }
+    </div>
+
+    <p-button
+      [label]="generating ? 'Generando...' : 'Generar Planilla'"
+      [icon]="generating ? 'pi pi-spin pi-spinner' : 'pi pi-list'"
+      [disabled]="generating"
+      styleClass="h-10 px-6 rounded-lg"
+      (onClick)="generatePlanilla()"
+    />
+  </p-card>
+
+  <!-- ── Banner: cobrador único ─────────────────────────────────────────────── -->
+  @if (generatedResult) {
+    <ng-container *ngTemplateOutlet="resultBanner; context: { $implicit: generatedResult }" />
+  }
+
+  <!-- ── Banners: todos los cobradores (uno por cobrador) ──────────────────── -->
+  @if (generatedResults.length > 0) {
+    <div class="space-y-3">
+      <p class="text-sm font-medium text-gray-600">
+        <i class="pi pi-check-circle text-green-600 mr-1"></i>
+        {{ generatedResults.length }} planillas generadas para {{ formatDateDisplay(selectedDateStr) }}
+      </p>
+      @for (res of generatedResults; track res.collectorName) {
+        <ng-container *ngTemplateOutlet="resultBanner; context: { $implicit: res }" />
+      }
+    </div>
+  }
+
+  <!-- ── Historial de Planillas ─────────────────────────────────────────────── -->
+  <div>
+    <h2 class="text-base font-semibold text-gray-800 mb-3">Historial de Planillas</h2>
+
+    <p-card styleClass="shadow-sm">
+      @if (loadingHistorial) {
+        <p-table [value]="[1,2,3,4]" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Fecha</th><th>Cobrador</th><th>Clientes</th>
+              <th>Monto</th><th>Estado</th><th>Acciones</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body">
+            <tr>
+              <td><p-skeleton width="70%" /></td>
+              <td><p-skeleton width="80%" /></td>
+              <td><p-skeleton width="40%" /></td>
+              <td><p-skeleton width="60%" /></td>
+              <td><p-skeleton width="5rem" height="1.5rem" styleClass="rounded-full" /></td>
+              <td><p-skeleton width="10rem" height="1.5rem" /></td>
+            </tr>
+          </ng-template>
+        </p-table>
+
+      } @else if (historial.length === 0) {
+        <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+          <i class="pi pi-inbox text-4xl mb-2"></i>
+          <p class="text-base font-medium">Sin historial de planillas</p>
+        </div>
+
+      } @else {
+        <p-table [value]="historial" styleClass="p-datatable-sm" [rowHover]="true">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Fecha</th>
+              <th>Cobrador</th>
+              <th class="text-center">Clientes</th>
+              <th class="text-right">Monto</th>
+              <th class="text-center">Estado</th>
+              <th class="text-center" style="min-width:220px">Acciones</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td class="text-gray-700 font-medium text-sm whitespace-nowrap">
+                {{ formatDateDisplay(item.fecha) }}
+              </td>
+              <td class="text-gray-800 whitespace-nowrap">{{ item.collectorName }}</td>
+              <td class="text-center text-gray-600">{{ item.clientCount }}</td>
+              <td class="text-right font-mono font-semibold text-gray-800 text-sm whitespace-nowrap">
+                {{ formatCurrency(item.totalAmount) }}
+              </td>
+              <td class="text-center">
+                <p-tag
+                  [value]="historialStatusLabel(item.status)"
+                  [severity]="historialStatusSeverity(item.status)"
+                  [rounded]="true"
+                />
+              </td>
+              <td class="text-center">
+                <div class="flex items-center justify-center gap-1">
+                  <button class="action-link" (click)="downloadHistorialPdf(item)">
+                    <i class="pi pi-download text-xs"></i> Descargar
+                  </button>
+                  @if (item.status === 'COMPLETA') {
+                    <span class="text-gray-300 select-none">|</span>
+                    <button class="action-link"
+                      (click)="msg.add({ severity:'info', summary:'Reenviado', detail:item.collectorName, life:3000 })">
+                      <i class="pi pi-send text-xs"></i> Reenviar
+                    </button>
+                  }
+                  <span class="text-gray-300 select-none">|</span>
+                  <button class="action-link"
+                    (click)="msg.add({ severity:'info', summary:'Próximamente', detail:'Vista de detalle en desarrollo', life:3000 })">
+                    Ver Detalles
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </p-card>
+  </div>
+
+</div>
+
+<!-- ── Template reutilizable: banner de resultado ──────────────────────────── -->
+<ng-template #resultBanner let-res>
+  <div class="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-green-300 bg-green-50 px-5 py-4 shadow-sm">
+    <div class="flex items-center gap-3 flex-1 min-w-0">
+      <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+        <i class="pi pi-check text-white text-xs font-bold"></i>
+      </div>
+      <div class="min-w-0">
+        <p class="font-semibold text-green-800 leading-tight text-sm">
+          Planilla lista para {{ res.collectorName }}
+        </p>
+        <p class="text-xs text-green-700 mt-0.5">
+          {{ res.clientCount }} clientes &nbsp;|&nbsp;
+          Monto total: {{ formatCurrency(res.totalAmount) }}
+        </p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 flex-shrink-0">
+      <p-button
+        label="Descargar PDF"
+        icon="pi pi-download"
+        size="small"
+        styleClass="rounded-lg"
+        (onClick)="downloadPdf(res)"
+      />
+      <p-button
+        label="Enviar"
+        icon="pi pi-send"
+        severity="success"
+        size="small"
+        styleClass="rounded-lg"
+        (onClick)="openSendDialog(res)"
+      />
+      <p-button
+        label="Revisar"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        styleClass="rounded-lg"
+        (onClick)="openReview(res)"
+      />
+      <p-button
+        label="Imprimir"
+        icon="pi pi-print"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        styleClass="rounded-lg"
+        (onClick)="printPlanilla(res)"
+      />
+    </div>
+  </div>
+</ng-template>
+
+<!-- ── Dialog: Revisar planilla ───────────────────────────────────────────── -->
+<p-dialog
+  [(visible)]="showReviewDialog"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Revisión de Planilla"
+  [style]="{ width: '90vw', maxWidth: '900px' }"
+  (onHide)="activeResult = null; reviewEntries = []"
+>
+  @if (activeResult) {
+    <div class="mb-4 pb-3 border-b border-gray-100">
+      <p class="font-semibold text-gray-800">{{ activeResult.collectorName }}</p>
+      <p class="text-sm text-gray-500">
+        {{ formatDateDisplay(activeResult.fecha) }}
+        &nbsp;·&nbsp; {{ activeResult.clientCount }} clientes
+        &nbsp;·&nbsp; {{ formatCurrency(activeResult.totalAmount) }}
+      </p>
+    </div>
+
+    @if (reviewEntries.length === 0) {
+      <div class="py-12 text-center text-gray-400">
+        <i class="pi pi-inbox text-4xl mb-2 block"></i>
+        Sin detalle disponible
+      </div>
+    } @else {
+      <p-table
+        [value]="reviewEntries"
+        [paginator]="true"
+        [rows]="10"
+        styleClass="p-datatable-sm"
+        [rowHover]="true"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Cliente</th>
+            <th>DNI</th>
+            <th>Crédito</th>
+            <th class="text-center">Cuota</th>
+            <th class="text-right">Monto</th>
+            <th class="text-center">Vencimiento</th>
+            <th class="text-center">Estado</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-entry>
+          <tr>
+            <td class="font-semibold text-gray-800">{{ entry.clientName }}</td>
+            <td class="text-gray-500 text-sm font-mono">{{ entry.clientDni }}</td>
+            <td>
+              <div class="flex flex-col leading-tight">
+                <span class="text-sm font-mono">{{ entry.creditId }}</span>
+                <span class="text-xs text-gray-400">{{ entry.creditType }}</span>
+              </div>
+            </td>
+            <td class="text-center text-gray-600 text-sm">
+              {{ entry.installmentNumber }}/{{ entry.totalInstallments }}
+            </td>
+            <td class="text-right font-mono font-semibold text-gray-800">
+              {{ entry.amount | currency: "$" : "symbol" : "1.0-0" }}
+            </td>
+            <td class="text-center text-sm text-gray-600">
+              {{ formatDateDisplay(entry.dueDate) }}
+            </td>
+            <td class="text-center">
+              <span
+                class="px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                [class]="{
+                  'bg-green-100 text-green-700': entry.paymentStatus === 'COBRADO',
+                  'bg-blue-100 text-blue-700': entry.paymentStatus === 'PENDIENTE',
+                  'bg-amber-100 text-amber-700': entry.paymentStatus === 'PARCIAL',
+                  'bg-red-100 text-red-700': entry.paymentStatus === 'EN_MORA'
+                }"
+              >
+                {{ entry.paymentStatus === 'COBRADO' ? 'Cobrado'
+                  : entry.paymentStatus === 'PENDIENTE' ? 'Pendiente'
+                  : entry.paymentStatus === 'PARCIAL' ? 'Parcial'
+                  : 'En mora' }}
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="footer">
+          <tr>
+            <td colspan="4" class="text-sm text-gray-500">{{ reviewEntries.length }} entradas</td>
+            <td class="text-right font-mono font-bold text-gray-800 text-sm">
+              {{ activeResult.totalAmount | currency: "$" : "symbol" : "1.0-0" }}
+            </td>
+            <td colspan="2"></td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  }
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-between items-center">
+      @if (activeResult) {
+        <p-button
+          label="Descargar PDF"
+          icon="pi pi-download"
+          (onClick)="downloadPdf(activeResult); showReviewDialog = false"
+        />
+      }
+      <p-button
+        label="Cerrar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="showReviewDialog = false"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- ── Dialog: Confirmar envío ────────────────────────────────────────────── -->
+<p-dialog
+  [(visible)]="showSendDialog"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Enviar Planilla"
+  [style]="{ width: '90vw', maxWidth: '420px' }"
+  (onHide)="activeResult = null"
+>
+  @if (activeResult) {
+    <div class="py-3 space-y-3">
+      <div class="flex items-center gap-3 bg-blue-50 rounded-xl p-4">
+        <i class="pi pi-send text-blue-600 text-xl"></i>
+        <div>
+          <p class="font-semibold text-gray-800 text-sm">{{ activeResult.collectorName }}</p>
+          <p class="text-xs text-gray-500">
+            {{ activeResult.clientCount }} clientes
+            &nbsp;·&nbsp; {{ formatCurrency(activeResult.totalAmount) }}
+          </p>
+        </div>
+      </div>
+      <p class="text-sm text-gray-600">
+        Se notificará al cobrador por el canal configurado (WhatsApp / email).
+      </p>
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    <div class="flex gap-2 justify-end">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="showSendDialog = false"
+        [disabled]="sending"
+      />
+      <p-button
+        [label]="sending ? 'Enviando...' : 'Confirmar envío'"
+        [icon]="sending ? 'pi pi-spin pi-spinner' : 'pi pi-send'"
+        [disabled]="sending"
+        severity="success"
+        (onClick)="confirmSend()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
