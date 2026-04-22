@@ -9,6 +9,7 @@ import { AuthUser } from '../models/interface/auth-user';
 import { LoginCredentials } from '../models/interface/login-credentials';
 import { AuthError } from '../models/interface/auth.error';
 import { UserRole } from '../models/types/user-role';
+import { Roles } from '../../shared/models/enums/roles.enum';
 
 // ── Usuarios mock ─────────────────────────────────────────────────────────────
 // DNIs usados como credencial de login (igual que el backend real).
@@ -21,7 +22,7 @@ export const MOCK_USERS: AuthUser[] = [
     dni: '12345678',
     email: 'admin@siscreditos.com',
     avatar: 'CL',
-    roles: ['ADMIN'],
+    roles: [Roles.ADMIN],
     is_temp_password: false,
     force_relogin_at: null,
     token:

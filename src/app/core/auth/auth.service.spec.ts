@@ -10,6 +10,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { AuthUser } from '../models/interface/auth-user';
+import { Roles } from '../../shared/models/enums/roles.enum';
 
 const API = 'http://localhost:3000/api';
 
@@ -22,7 +23,7 @@ const mockLoginResponse = {
       id: 'u-1',
       full_name: 'Carlos López',
       dni: '12345678',
-      role: 'ADMIN',
+      role: Roles.ADMIN,
       is_temp_password: false,
     },
   },
@@ -35,7 +36,7 @@ const mockMeResponse = {
     id: 'u-1',
     full_name: 'Carlos López',
     dni: '12345678',
-    role: 'ADMIN',
+    role: Roles.ADMIN,
     status: 'ACTIVE',
     is_temp_password: false,
     force_relogin_at: null,
@@ -86,9 +87,9 @@ describe('AuthService', () => {
     expect(localStorage.getItem('sgcf_token')).toBe('jwt.token.here');
     expect(emitted).not.toBeNull();
     expect(emitted!.full_name).toBe('Carlos López');
-    expect(emitted!.name).toBe('Carlos López');        // alias compat
-    expect(emitted!.roles).toEqual(['ADMIN']);          // role singular → array
-    expect(emitted!.avatar).toBe('CL');                // iniciales calculadas
+    expect(emitted!.name).toBe('Carlos López'); // alias compat
+    expect(emitted!.roles).toEqual([Roles.ADMIN]); // role singular → array
+    expect(emitted!.avatar).toBe('CL'); // iniciales calculadas
     expect(emitted!.is_temp_password).toBeFalse();
   }));
 
@@ -101,7 +102,11 @@ describe('AuthService', () => {
 
     const req = http.expectOne(`${API}/auth/login`);
     req.flush(
-      { ok: false, message: 'Credenciales incorrectas. Verificá tus datos e intentá nuevamente.' },
+      {
+        ok: false,
+        message:
+          'Credenciales incorrectas. Verificá tus datos e intentá nuevamente.',
+      },
       { status: 401, statusText: 'Unauthorized' },
     );
     tick();
@@ -127,7 +132,7 @@ describe('AuthService', () => {
 
     expect(emitted).not.toBeNull();
     expect(emitted!.id).toBe('u-1');
-    expect(emitted!.roles).toEqual(['ADMIN']);
+    expect(emitted!.roles).toEqual([Roles.ADMIN]);
   }));
 
   // ── restoreSession con token inválido (401) ───────────────────────────────
@@ -140,7 +145,10 @@ describe('AuthService', () => {
     service.restoreSession().subscribe();
 
     const req = http.expectOne(`${API}/auth/me`);
-    req.flush({ ok: false, message: 'Token expirado.' }, { status: 401, statusText: 'Unauthorized' });
+    req.flush(
+      { ok: false, message: 'Token expirado.' },
+      { status: 401, statusText: 'Unauthorized' },
+    );
     tick();
 
     expect(emitted).toBeNull();
@@ -159,7 +167,10 @@ describe('AuthService', () => {
   it('logout: limpia storage y emite null incluso si POST /logout falla', fakeAsync(() => {
     // Simular sesión activa
     localStorage.setItem('sgcf_token', 'live.token');
-    localStorage.setItem('sgcf_user', JSON.stringify({ id: 'u-1', name: 'Test' }));
+    localStorage.setItem(
+      'sgcf_user',
+      JSON.stringify({ id: 'u-1', name: 'Test' }),
+    );
 
     let emitted: AuthUser | null | undefined = undefined;
     service.currentUser$.subscribe((u) => (emitted = u));
@@ -168,7 +179,10 @@ describe('AuthService', () => {
 
     // POST logout falla con 500
     const req = http.expectOne(`${API}/auth/logout`);
-    req.flush({ ok: false, message: 'Error' }, { status: 500, statusText: 'Server Error' });
+    req.flush(
+      { ok: false, message: 'Error' },
+      { status: 500, statusText: 'Server Error' },
+    );
     tick();
 
     expect(localStorage.getItem('sgcf_token')).toBeNull();

@@ -37,7 +37,7 @@ describe('MockAuthService', () => {
 
     expect(result).toEqual(admin);
     expect(service.isAuthenticated()).toBeTrue();
-    expect(service.snapshot?.roles).toContain('ADMIN');
+    expect(service.snapshot?.roles).toContain(Roles.ADMIN);
     expect(localStorage.getItem('sgcf_token')).toBe(admin.token);
   }));
 
@@ -59,9 +59,9 @@ describe('MockAuthService', () => {
     service.login({ dni: '87654321', password: 'x' }).subscribe(); // SELLER
     tick(0);
 
-    expect(service.hasRole('SELLER')).toBeTrue();
-    expect(service.hasRole('ADMIN')).toBeFalse();
-    expect(service.hasRole('COLLECTOR')).toBeFalse();
+    expect(service.hasRole(Roles.SELLER)).toBeTrue();
+    expect(service.hasRole(Roles.ADMIN)).toBeFalse();
+    expect(service.hasRole(Roles.COLLECTOR)).toBeFalse();
   }));
 
   it('debería verificar hasAnyRole() con múltiples roles', fakeAsync(() => {
@@ -69,8 +69,8 @@ describe('MockAuthService', () => {
     service.login({ dni: '11223344', password: 'x' }).subscribe(); // COLLECTOR
     tick(0);
 
-    expect(service.hasAnyRole(['ADMIN', 'COLLECTOR'])).toBeTrue();
-    expect(service.hasAnyRole(['ADMIN', 'SELLER'])).toBeFalse();
+    expect(service.hasAnyRole([Roles.ADMIN, Roles.COLLECTOR])).toBeTrue();
+    expect(service.hasAnyRole([Roles.ADMIN, Roles.SELLER])).toBeFalse();
   }));
 
   it('debería limpiar localStorage y emitir null al hacer logout', fakeAsync(() => {
@@ -95,6 +95,6 @@ describe('MockAuthService', () => {
     tick(0);
 
     expect(emitted.length).toBe(2); // null inicial + usuario logueado
-    expect(emitted[1]?.roles).toContain('ADMIN');
+    expect(emitted[1]?.roles).toContain(Roles.ADMIN);
   }));
 });

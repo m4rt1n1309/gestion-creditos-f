@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { MockAuthService } from './mock-auth.service';
+import { Roles } from '../../shared/models/enums/roles.enum';
 
 export const noAuthGuard: CanActivateFn = () => {
   const auth = inject(MockAuthService);
@@ -9,8 +10,10 @@ export const noAuthGuard: CanActivateFn = () => {
   if (!auth.isAuthenticated()) return true;
 
   const user = auth.snapshot!;
-  if (user.roles.includes('ADMIN')) return router.createUrlTree(['/admin']);
-  if (user.roles.includes('SELLER')) return router.createUrlTree(['/seller']);
-  if (user.roles.includes('COLLECTOR')) return router.createUrlTree(['/collector']);
+  if (user.roles.includes(Roles.ADMIN)) return router.createUrlTree(['/admin']);
+  if (user.roles.includes(Roles.SELLER))
+    return router.createUrlTree(['/seller']);
+  if (user.roles.includes(Roles.COLLECTOR))
+    return router.createUrlTree(['/collector']);
   return router.createUrlTree(['/admin']);
 };

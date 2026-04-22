@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 import { noAuthGuard } from './core/auth/no-auth.guard';
+import { Roles } from './shared/models/enums/roles.enum';
 
 export const routes: Routes = [
   {
@@ -15,21 +16,28 @@ export const routes: Routes = [
   {
     path: 'admin',
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['ADMIN'] },
+    data: { roles: [Roles.ADMIN] },
     loadChildren: () =>
       import('./features/admin/admin.routes').then((r) => r.ADMIN_ROUTES),
   },
   {
     path: 'seller',
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['SELLER', 'ADMIN'] },
+    data: {
+      roles: [
+        Roles.SELLER,
+        Roles.ADMIN,
+        Roles.COLLECTOR,
+        Roles.SELLER_COLLECTOR,
+      ],
+    },
     loadChildren: () =>
       import('./features/seller/seller.routes').then((r) => r.SELLER_ROUTES),
   },
   {
     path: 'collector',
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['COLLECTOR'] },
+    data: { roles: [Roles.COLLECTOR] },
     loadChildren: () =>
       import('./features/collector/collector.routes').then(
         (r) => r.COLLECTOR_ROUTES,

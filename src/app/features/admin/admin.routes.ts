@@ -44,6 +44,27 @@ export const ADMIN_ROUTES: Routes = [
       ),
   },
   {
+    path: 'users/new',
+    loadComponent: () =>
+      import('./users/user-create/user-create.component').then(
+        (c) => c.UserCreateComponent,
+      ),
+  },
+  {
+    path: 'users/:id',
+    loadComponent: () =>
+      import('./users/user-detail/user-detail.component').then(
+        (c) => c.UserDetailComponent,
+      ),
+  },
+  {
+    path: 'users',
+    loadComponent: () =>
+      import('./users/users-list/users-list.component').then(
+        (c) => c.UsersListComponent,
+      ),
+  },
+  {
     path: 'approvals',
     loadComponent: () =>
       import('./approvals/approvals.component').then(
