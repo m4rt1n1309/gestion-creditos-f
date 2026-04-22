@@ -55,7 +55,7 @@ export class LoginComponent implements OnDestroy {
   readonly showQuickAccess = environment.useMocks;
 
   quickAccess = [
-    { label: 'Admin',    dni: '12345678' },
+    { label: 'Admin', dni: '12345678' },
     { label: 'Vendedor', dni: '87654321' },
     { label: 'Cobrador', dni: '11223344' },
   ];
