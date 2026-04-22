@@ -44,6 +44,12 @@ export const NAV_CONFIG: NavItem[] = [
     isGroupLabel: true,
   },
   {
+    label: 'Usuarios',
+    icon: 'pi pi-user',
+    route: AppRoutes.ADMIN_USERS,
+    requiredRoles: ['ADMIN'],
+  },
+  {
     label: 'Aprobaciones',
     icon: 'pi pi-check-square',
     route: AppRoutes.ADMIN_APPROVALS,
