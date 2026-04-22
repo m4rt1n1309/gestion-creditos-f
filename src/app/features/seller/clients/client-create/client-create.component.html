@@ -1,0 +1,124 @@
+<p-toast />
+<div class="p-4 max-w-2xl mx-auto">
+  <h2 class="text-xl font-semibold mb-6">Nuevo cliente</h2>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+    <div class="flex flex-col gap-1">
+      <label for="fullName" class="text-sm font-medium"
+        >Nombre completo *</label
+      >
+      <input
+        id="fullName"
+        pInputText
+        formControlName="fullName"
+        placeholder="Ingresá el nombre completo"
+        [class.ng-invalid]="isInvalid('fullName')"
+        [class.ng-dirty]="isInvalid('fullName')"
+      />
+      @if (isInvalid("fullName")) {
+        <small class="text-red-500">{{ getError("fullName") }}</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="dni" class="text-sm font-medium">DNI *</label>
+      <input
+        id="dni"
+        pInputText
+        formControlName="dni"
+        placeholder="Ej: 12345678"
+        [class.ng-invalid]="isInvalid('dni')"
+        [class.ng-dirty]="isInvalid('dni')"
+      />
+      @if (isInvalid("dni")) {
+        <small class="text-red-500">{{ getError("dni") }}</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="address" class="text-sm font-medium">Dirección</label>
+      <input
+        id="address"
+        pInputText
+        formControlName="address"
+        placeholder="Ej: Av. Corrientes 1234"
+        [class.ng-invalid]="isInvalid('address')"
+        [class.ng-dirty]="isInvalid('address')"
+      />
+      @if (isInvalid("address")) {
+        <small class="text-red-500">{{ getError("address") }}</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="phone" class="text-sm font-medium">Teléfono</label>
+      <input
+        id="phone"
+        pInputText
+        formControlName="phone"
+        placeholder="Ej: +54 9 11 1234-5678"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="email" class="text-sm font-medium">Email</label>
+      <input
+        id="email"
+        pInputText
+        formControlName="email"
+        placeholder="ejemplo@correo.com"
+        [class.ng-invalid]="isInvalid('email')"
+        [class.ng-dirty]="isInvalid('email')"
+      />
+      @if (isInvalid("email")) {
+        <small class="text-red-500">{{ getError("email") }}</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="assignedCollectorId" class="text-sm font-medium"
+        >Cobrador asignado</label
+      >
+      <p-dropdown
+        inputId="assignedCollectorId"
+        formControlName="assignedCollectorId"
+        [options]="collectorOptions"
+        optionLabel="label"
+        optionValue="value"
+        [placeholder]="
+          collectorsLoading
+            ? 'Cargando cobradores…'
+            : collectorOptions.length === 0
+              ? 'No hay cobradores activos'
+              : 'Seleccionar cobrador'
+        "
+        [disabled]="collectorsLoading"
+        [showClear]="true"
+        [class.ng-invalid]="isInvalid('assignedCollectorId')"
+        [class.ng-dirty]="isInvalid('assignedCollectorId')"
+      />
+      @if (isInvalid("assignedCollectorId")) {
+        <small class="text-red-500">{{
+          getError("assignedCollectorId")
+        }}</small>
+      }
+    </div>
+
+    <div class="flex gap-3 pt-2">
+      <p-button
+        type="submit"
+        label="Registrar cliente"
+        icon="pi pi-check"
+        [loading]="submitting"
+        [disabled]="form.invalid || submitting"
+      />
+      <p-button
+        type="button"
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="cancel()"
+      />
+    </div>
+  </form>
+</div>
