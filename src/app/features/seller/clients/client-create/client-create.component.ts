@@ -16,6 +16,7 @@ import { AppError } from '../../../../core/models/app-error';
 import { HeaderService } from '../../../../core/services/header.service';
 import { UsersService } from '../../../../features/admin/users/users.service';
 import { CustomersService } from '../customers.service';
+import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
 
 @Component({
   selector: 'app-client-create',
@@ -147,7 +148,7 @@ export class ClientCreateComponent implements OnInit {
             detail: 'Cliente registrado correctamente.',
           });
           setTimeout(
-            () => this.router.navigate(['/seller/clients', customer.id]),
+            () => this.router.navigate([AppRoutes.CLIENTS, customer.id]),
             1000,
           );
         },
@@ -176,6 +177,6 @@ export class ClientCreateComponent implements OnInit {
    * Navega de vuelta a la lista de clientes sin guardar los cambios.
    */
   cancel(): void {
-    this.router.navigate(['/seller/clients']);
+    this.router.navigate([AppRoutes.CLIENTS]);
   }
 }

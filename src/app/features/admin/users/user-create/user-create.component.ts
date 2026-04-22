@@ -16,6 +16,7 @@ import { AppError } from '../../../../core/models/app-error';
 import { HeaderService } from '../../../../core/services/header.service';
 import { TempPasswordDialogComponent } from '../../../../shared/components/temp-password-dialog/temp-password-dialog.component';
 import { UsersService } from '../users.service';
+import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
 
 @Component({
   selector: 'app-user-create',
@@ -162,13 +163,13 @@ export class UserCreateComponent implements OnInit {
   onTempPasswordClosed(): void {
     this.showTempPasswordDialog = false;
     this.tempPassword = '';
-    this.router.navigate(['/admin/users', this.createdUserId]);
+    this.router.navigate([AppRoutes.USERS_DETAIL, this.createdUserId]);
   }
 
   /**
    * Cancela la creación del usuario y redirige de vuelta a la lista de usuarios. No realiza ninguna acción adicional, ya que el usuario aún no ha sido creado hasta que se envía el formulario exitosamente.
    */
   cancel(): void {
-    this.router.navigate(['/admin/users']);
+    this.router.navigate([AppRoutes.USERS]);
   }
 }

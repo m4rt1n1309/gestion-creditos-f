@@ -1,30 +1,26 @@
 export enum AppRoutes {
-  // Rutas específicas:
-  LOGIN = 'login',
-  FORGOT_PASSWORD = 'forgot-password',
   ADMIN = 'admin',
-  SELLER = 'seller',
+  APPROVALS = 'approvals',
+  AUTH_LOGOUT = 'auth/logout',
+  CASH_REGISTER = 'cash-register',
+  CHANGE_PASSWORD = 'change-password',
+  CLIENTS = 'clients',
+  CLIENTS_DETAIL = 'clients/:dni',
+  CLIENTS_NEW = 'clients/new',
   COLLECTOR = 'collector',
-
-  // Rutas internas:
-  // ADMIN:
-  ADMIN_DASHBOARD = '/admin/dashboard',
-  ADMIN_APPROVALS = '/admin/approvals',
-  ADMIN_DELINQUENCY = '/admin/delinquency',
-  ADMIN_SHEET = '/admin/sheet',
-  ADMIN_CASH_REGISTER = '/admin/cash-register',
-  ADMIN_REPORTS = '/admin/reports',
-  ADMIN_CONFIG = '/admin/config',
-  ADMIN_OPERATIONS = '/admin/operations',
-  ADMIN_CLIENTS = '/admin/clients',
-  ADMIN_PRODUCTS = '/admin/products',
-  ADMIN_USERS = '/admin/users',
-
-  // SELLER:
-  SELLER_OPERATIONS = '/seller/operations',
-  SELLER_CLIENTS = '/seller/clients',
-  SELLER_PRODUCTS = '/seller/products',
-
-  // COLLECTOR:
-  COLLECTOR_ROUTE = '/collector/route',
+  CONFIG = 'config',
+  DASHBOARD = 'dashboard',
+  DELINQUENCY = 'delinquency',
+  FORGOT_PASSWORD = 'forgot-password',
+  LOGIN = 'login',
+  OPERATIONS = 'operations',
+  OPERATIONS_NEW = 'operations/new',
+  PRODUCTS = 'products',
+  REPORTS = 'reports',
+  ROUTE = '/collector/route',
+  SELLER = 'seller',
+  SHEET = 'sheet',
+  USERS = 'users',
+  USERS_DETAIL = 'users/:id',
+  USERS_NEW = 'users/new',
 }

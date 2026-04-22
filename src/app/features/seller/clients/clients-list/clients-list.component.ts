@@ -22,6 +22,7 @@ import { ErrorStateComponent } from '../../../../shared/states/error-state/error
 import { EmptyStateComponent } from '../../../../shared/states/empty-state/empty-state.component';
 import { AppError } from '../../../../core/models/app-error';
 import { UserRoleEnum } from '../../../../core/models/types/user-role';
+import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
 
 @Component({
   selector: 'app-clients-list',
@@ -119,14 +120,14 @@ export class ClientsListComponent implements OnInit, OnDestroy {
    * @param id - El ID del cliente.
    */
   navigateToDetail(id: string): void {
-    this.router.navigate(['/seller/clients', id]);
+    this.router.navigate([AppRoutes.CLIENTS, id]);
   }
 
   /**
    * Navega a la vista de creación de un nuevo cliente.
    */
   navigateToCreate(): void {
-    this.router.navigate(['/seller/clients/new']);
+    this.router.navigate([AppRoutes.CLIENTS_NEW]);
   }
 
   /**

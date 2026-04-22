@@ -1,16 +1,17 @@
 import { Routes } from '@angular/router';
 import { roleGuard } from '../../core/auth/role.guard';
+import { AppRoutes } from '../../shared/models/enums/routes.enum';
 
 export const SELLER_ROUTES: Routes = [
   {
-    path: 'operations',
+    path: AppRoutes.OPERATIONS,
     loadComponent: () =>
       import('../../shared/operations/operations.component').then(
         (c) => c.OperationsComponent,
       ),
   },
   {
-    path: 'clients',
+    path: AppRoutes.CLIENTS,
     canActivate: [roleGuard],
     data: { roles: ['ADMIN', 'SELLER', 'COLLECTOR', 'SELLER_COLLECTOR'] },
     loadComponent: () =>
@@ -19,7 +20,7 @@ export const SELLER_ROUTES: Routes = [
       ),
   },
   {
-    path: 'clients/new',
+    path: AppRoutes.CLIENTS_NEW,
     canActivate: [roleGuard],
     data: { roles: ['ADMIN', 'SELLER', 'SELLER_COLLECTOR'] },
     loadComponent: () =>
@@ -28,7 +29,7 @@ export const SELLER_ROUTES: Routes = [
       ),
   },
   {
-    path: 'clients/:id',
+    path: AppRoutes.CLIENTS_DETAIL,
     canActivate: [roleGuard],
     data: { roles: ['ADMIN', 'SELLER', 'COLLECTOR', 'SELLER_COLLECTOR'] },
     loadComponent: () =>
@@ -37,7 +38,7 @@ export const SELLER_ROUTES: Routes = [
       ),
   },
   {
-    path: 'products',
+    path: AppRoutes.PRODUCTS,
     loadComponent: () =>
       import('../../shared/products/products.component').then(
         (c) => c.ProductsComponent,

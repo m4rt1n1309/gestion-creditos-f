@@ -19,6 +19,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 
 import { Client } from '../models/interface/client';
+import { AppRoutes } from '../models/enums/routes.enum';
 
 @Component({
   selector: 'app-clients',
@@ -190,8 +191,8 @@ export class ClientsComponent {
    * @param client
    */
   openView(client: Client): void {
-    const base = this.router.url.split('/clients')[0];
-    this.router.navigate([base, 'clients', client.dni]);
+    const base = this.router.url.split(`/${AppRoutes.CLIENTS}`)[0];
+    this.router.navigate([base, AppRoutes.CLIENTS, client.dni]);
   }
 
   /**
@@ -209,8 +210,8 @@ export class ClientsComponent {
    * @param client
    */
   openCredits(client: Client): void {
-    const base = this.router.url.split('/clients')[0];
-    this.router.navigate([base, 'clients', client.dni]);
+    const base = this.router.url.split(`/${AppRoutes.CLIENTS}`)[0];
+    this.router.navigate([base, AppRoutes.CLIENTS, client.dni]);
   }
 
   /**

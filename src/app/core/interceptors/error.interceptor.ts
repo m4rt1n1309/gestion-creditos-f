@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { AppRoutes } from '../../shared/models/enums/routes.enum';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
@@ -21,7 +22,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           localStorage.removeItem(environment.tokenKey);
           localStorage.removeItem('sgcf_user');
         }
-        router.navigate(['/login']);
+        router.navigate([AppRoutes.LOGIN]);
       }
 
       if (err?.status === 403) {

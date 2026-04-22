@@ -21,7 +21,8 @@ import { ToastModule } from 'primeng/toast';
 import { Subject, takeUntil } from 'rxjs';
 import { MockAuthService } from '../../../core/auth/mock-auth.service';
 import { AppRoutes } from '../../../shared/models/enums/routes.enum';
-import { UserRole, UserRoleEnum } from './../../../core/models/types/user-role';
+import { UserRoleEnum } from './../../../core/models/types/user-role';
+import { AuthUser } from '../../../core/models/interface/auth-user';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -96,7 +97,7 @@ export class LoginComponent implements OnDestroy {
       .login(this.form.value)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (user) => this.redirectByRole(user.roles),
+        next: (user) => this.redirectByRole(user),
         error: (err) => {
           this.loading = false;
           this.errorMessage = err.message ?? 'Credenciales incorrectas.';
@@ -113,18 +114,20 @@ export class LoginComponent implements OnDestroy {
     this.onSubmit();
   }
 
-  private redirectByRole(roles: UserRole[]): void {
+  private redirectByRole(user: AuthUser): void {
     this.loading = false;
 
-    // TODO (prompt-05): si user.is_temp_password === true → redirigir a /change-password
-    if (roles.includes(UserRoleEnum.ADMIN))
-      return void this.router.navigate([AppRoutes.ADMIN_DASHBOARD]);
-    if (roles.includes(UserRoleEnum.SELLER))
-      return void this.router.navigate([AppRoutes.SELLER_OPERATIONS]);
-    if (roles.includes(UserRoleEnum.COLLECTOR))
-      return void this.router.navigate([AppRoutes.COLLECTOR_ROUTE]);
-    if (roles.includes(UserRoleEnum.SELLER_COLLECTOR))
-      return void this.router.navigate([AppRoutes.SELLER_OPERATIONS]);
+    if (user.is_temp_password)
+      return void this.router.navigate([AppRoutes.CHANGE_PASSWORD]);
+
+    if (user.roles.includes(UserRoleEnum.ADMIN))
+      return void this.router.navigate([AppRoutes.DASHBOARD]);
+    if (user.roles.includes(UserRoleEnum.SELLER))
+      return void this.router.navigate([AppRoutes.OPERATIONS]);
+    if (user.roles.includes(UserRoleEnum.COLLECTOR))
+      return void this.router.navigate([AppRoutes.ROUTE]);
+    if (user.roles.includes(UserRoleEnum.SELLER_COLLECTOR))
+      return void this.router.navigate([AppRoutes.OPERATIONS]);
 
     this.router.navigate([AppRoutes.LOGIN]);
   }

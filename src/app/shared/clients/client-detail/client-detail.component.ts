@@ -8,6 +8,7 @@ import { ClientContactarComponent } from './tabs/client-contactar/client-contact
 import { ClientCreditsComponent } from './tabs/client-credits/client-credits.component';
 import { ClientDocumentsComponent } from './tabs/client-documents/client-documents.component';
 import { ClientHistorialComponent } from './tabs/client-historial/client-historial.component';
+import { AppRoutes } from '../../models/enums/routes.enum';
 
 type TabId = 'creditos' | 'historial' | 'documentos' | 'contactar';
 
@@ -414,7 +415,7 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
           icon: 'pi pi-plus',
           severity: 'primary',
           action: () => {
-            this.router.navigate([`${this.base}/operations/new`], {
+            this.router.navigate([`${this.base}/${AppRoutes.OPERATIONS_NEW}`], {
               queryParams: { clientDni: this.client?.dni },
             });
           },

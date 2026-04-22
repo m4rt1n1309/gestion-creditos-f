@@ -7,6 +7,7 @@ import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { ClientDetail } from '../../../../models/interface/client';
 import { Credit } from '../../../../models/interface/credit';
+import { AppRoutes } from '../../../../models/enums/routes.enum';
 
 @Component({
   selector: 'app-client-credits',
@@ -51,7 +52,7 @@ export class ClientCreditsComponent {
   }
 
   navigateToNew(): void {
-    this.router.navigate([`${this.base}/operations/new`], {
+    this.router.navigate([`${this.base}/${AppRoutes.OPERATIONS_NEW}`], {
       queryParams: { clientDni: this.client.dni },
     });
   }

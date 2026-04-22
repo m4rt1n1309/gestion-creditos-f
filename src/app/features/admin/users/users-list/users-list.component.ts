@@ -18,6 +18,7 @@ import { ErrorStateComponent } from '../../../../shared/states/error-state/error
 import { LoadingStateComponent } from '../../../../shared/states/loading-state/loading-state.component';
 import { User, UserListFilters, UserStatus } from '../user.model';
 import { UsersService } from '../users.service';
+import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
 
 const ROLE_LABEL: Record<string, string> = {
   ADMIN: 'Administrador',
@@ -125,14 +126,14 @@ export class UsersListComponent implements OnInit, OnDestroy {
    * @param id
    */
   navigateToDetail(id: string): void {
-    this.router.navigate(['/admin/users', id]);
+    this.router.navigate([AppRoutes.USERS_DETAIL, id]);
   }
 
   /**
    * Navega a la página de creación de nuevo usuario.
    */
   navigateToCreate(): void {
-    this.router.navigate(['/admin/users/new']);
+    this.router.navigate([AppRoutes.USERS_NEW]);
   }
 
   /**
