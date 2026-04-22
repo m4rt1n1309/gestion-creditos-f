@@ -5,13 +5,14 @@ import { TagModule } from 'primeng/tag';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { UserFormModalComponent, UserForm, UserRecord } from './user-form-modal/user-form-modal.component';
+import { Roles } from '../../../../shared/models/enums/roles.enum';
 
 interface SystemUser {
   id: string;
   name: string;
   email: string;
   dni: string;
-  role: 'ADMIN' | 'SELLER' | 'COLLECTOR' | 'CASHIER';
+  role: Roles;
   branch: string;
   active: boolean;
   lastLogin: string;
@@ -38,11 +39,11 @@ export class UsersConfigComponent {
   ];
 
   allUsers: SystemUser[] = [
-    { id: 'U001', name: 'Carlos Andrade', email: 'c.andrade@siscreditos.com', dni: '30123456', role: 'ADMIN', branch: 'Central', active: true, lastLogin: 'Hoy, 09:42 am' },
-    { id: 'U002', name: 'María López', email: 'm.lopez@siscreditos.com', dni: '32456789', role: 'SELLER', branch: 'Norte', active: true, lastLogin: 'Ayer, 03:15 pm' },
-    { id: 'U003', name: 'Roberto García', email: 'r.garcia@siscreditos.com', dni: '28987654', role: 'CASHIER', branch: 'Sur', active: true, lastLogin: 'Hoy, 08:00 am' },
-    { id: 'U004', name: 'Jorge Peñafiel', email: 'j.peñafiel@siscreditos.com', dni: '35112233', role: 'COLLECTOR', branch: 'Este', active: true, lastLogin: '18/04/2025' },
-    { id: 'U005', name: 'Ana Torres', email: 'a.torres@siscreditos.com', dni: '29334455', role: 'SELLER', branch: 'Oeste', active: false, lastLogin: '05/03/2025' },
+    { id: 'U001', name: 'Carlos Andrade', email: 'c.andrade@siscreditos.com', dni: '30123456', role: Roles.ADMIN, branch: 'Central', active: true, lastLogin: 'Hoy, 09:42 am' },
+    { id: 'U002', name: 'María López', email: 'm.lopez@siscreditos.com', dni: '32456789', role: Roles.SELLER, branch: 'Norte', active: true, lastLogin: 'Ayer, 03:15 pm' },
+    { id: 'U003', name: 'Roberto García', email: 'r.garcia@siscreditos.com', dni: '28987654', role: Roles.CASHIER, branch: 'Sur', active: true, lastLogin: 'Hoy, 08:00 am' },
+    { id: 'U004', name: 'Jorge Peñafiel', email: 'j.peñafiel@siscreditos.com', dni: '35112233', role: Roles.COLLECTOR, branch: 'Este', active: true, lastLogin: '18/04/2025' },
+    { id: 'U005', name: 'Ana Torres', email: 'a.torres@siscreditos.com', dni: '29334455', role: Roles.SELLER, branch: 'Oeste', active: false, lastLogin: '05/03/2025' },
   ];
 
   filteredUsers = computed(() => {
@@ -74,7 +75,7 @@ export class UsersConfigComponent {
           name: form.name,
           email: form.email,
           dni: form.dni,
-          role: form.role as SystemUser['role'],
+          role: form.role as Roles,
           branch: form.branch ?? this.allUsers[idx].branch,
           active: form.active,
         };
@@ -85,7 +86,7 @@ export class UsersConfigComponent {
         name: form.name,
         email: form.email,
         dni: form.dni,
-        role: form.role as SystemUser['role'],
+        role: form.role as Roles,
         branch: form.branch ?? '',
         active: form.active,
         lastLogin: '—',

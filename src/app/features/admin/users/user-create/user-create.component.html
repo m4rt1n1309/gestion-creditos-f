@@ -1,0 +1,106 @@
+<p-toast />
+<app-temp-password-dialog
+  [visible]="showTempPasswordDialog"
+  [password]="tempPassword"
+  (closed)="onTempPasswordClosed()"
+/>
+
+<div class="p-4 max-w-2xl mx-auto">
+  <h2 class="text-xl font-semibold mb-6">Nuevo usuario</h2>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+    <div class="flex flex-col gap-1">
+      <label for="fullName" class="text-sm font-medium"
+        >Nombre completo *</label
+      >
+      <input
+        id="fullName"
+        pInputText
+        formControlName="fullName"
+        [class.ng-invalid]="isInvalid('fullName')"
+        [class.ng-dirty]="isInvalid('fullName')"
+      />
+      @if (isInvalid("fullName")) {
+        <small class="text-red-500">{{ getError("fullName") }}</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="dni" class="text-sm font-medium">DNI *</label>
+      <input
+        id="dni"
+        pInputText
+        formControlName="dni"
+        placeholder="Ej: 12345678"
+        [class.ng-invalid]="isInvalid('dni')"
+        [class.ng-dirty]="isInvalid('dni')"
+      />
+      @if (isInvalid("dni")) {
+        <small class="text-red-500">{{ getError("dni") }}</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="email" class="text-sm font-medium">Email</label>
+      <input
+        id="email"
+        pInputText
+        formControlName="email"
+        placeholder="ejemplo@correo.com"
+        [class.ng-invalid]="isInvalid('email')"
+        [class.ng-dirty]="isInvalid('email')"
+      />
+      @if (isInvalid("email")) {
+        <small class="text-red-500">{{ getError("email") }}</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="address" class="text-sm font-medium">Dirección</label>
+      <input
+        id="address"
+        pInputText
+        formControlName="address"
+        [class.ng-invalid]="isInvalid('address')"
+        [class.ng-dirty]="isInvalid('address')"
+      />
+      @if (isInvalid("address")) {
+        <small class="text-red-500">{{ getError("address") }}</small>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label for="role" class="text-sm font-medium">Rol *</label>
+      <p-dropdown
+        inputId="role"
+        formControlName="role"
+        [options]="roleOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Seleccionar rol"
+        [class.ng-invalid]="isInvalid('role')"
+        [class.ng-dirty]="isInvalid('role')"
+      />
+      @if (isInvalid("role")) {
+        <small class="text-red-500">{{ getError("role") }}</small>
+      }
+    </div>
+
+    <div class="flex gap-3 pt-2">
+      <p-button
+        type="submit"
+        label="Crear usuario"
+        icon="pi pi-check"
+        [loading]="submitting"
+        [disabled]="form.invalid || submitting"
+      />
+      <p-button
+        type="button"
+        label="Cancelar"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="cancel()"
+      />
+    </div>
+  </form>
+</div>

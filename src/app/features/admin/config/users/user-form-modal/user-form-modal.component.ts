@@ -5,6 +5,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputSwitchModule } from 'primeng/inputswitch';
+import { Roles } from '../../../../../shared/models/enums/roles.enum';
 
 export interface UserForm {
   name: string;
@@ -21,7 +22,7 @@ export interface UserRecord {
   name: string;
   email: string;
   dni?: string;
-  role: 'ADMIN' | 'SELLER' | 'COLLECTOR' | 'CASHIER';
+  role: Roles;
   branch: string;
   active: boolean;
   lastLogin: string;
