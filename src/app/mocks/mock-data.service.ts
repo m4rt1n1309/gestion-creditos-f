@@ -48,6 +48,7 @@ export interface DelinquencyClient {
 }
 
 export type PaymentStatus = 'PENDIENTE' | 'COBRADO' | 'PARCIAL' | 'EN_MORA';
+export type PaymentMethod = 'EFECTIVO' | 'TRANSFERENCIA';
 
 export interface Collector {
   id: string;
@@ -71,6 +72,7 @@ export interface PlanillaEntry {
   dueDate: string;
   paymentStatus: PaymentStatus;
   paidAmount?: number;
+  paymentMethod?: PaymentMethod;
   paymentDate?: string;
   notes?: string;
 }

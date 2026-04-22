@@ -19,6 +19,7 @@ import {
   CuotasFilter,
   GeneratedPlanillaResult,
   MockDataService,
+  PaymentMethod,
   PaymentStatus,
   PlanillaEntry,
   PlanillaHistorial,
@@ -288,31 +289,33 @@ export class SheetComponent implements OnInit, OnDestroy {
 
     // ── Definición de columnas ───────────────────────────────────────────────
     const cols: { header: string; width: number; align: 'left' | 'center' | 'right' }[] = [
-      { header: 'Cliente',     width: 65, align: 'left'   },
-      { header: 'DNI',         width: 28, align: 'left'   },
-      { header: 'Crédito',     width: 22, align: 'left'   },
-      { header: 'Cuota',       width: 18, align: 'center' },
-      { header: 'Monto',       width: 46, align: 'right'  },
-      { header: 'Vencimiento', width: 27, align: 'center' },
-      { header: 'Estado',      width: 27, align: 'center' },
+      { header: 'Cliente',       width: 55, align: 'left'   },
+      { header: 'DNI',           width: 24, align: 'left'   },
+      { header: 'Crédito',       width: 20, align: 'left'   },
+      { header: 'Cuota',         width: 15, align: 'center' },
+      { header: 'Monto',         width: 38, align: 'right'  },
+      { header: 'Monto Cobrado', width: 38, align: 'right'  },
+      { header: 'Método',        width: 30, align: 'center' },
+      { header: 'Vencimiento',   width: 25, align: 'center' },
+      { header: 'Estado',        width: 24, align: 'center' },
     ];
 
-    const rowH  = 7.5;
-    const hdrH  = 9;
-    let y = 23;
+    const rowH  = 6;
+    const hdrH  = 7.5;
+    let y = 22;
 
     const drawHeader = () => {
       doc.setFillColor(30, 41, 59);
       doc.rect(mL, y, usableW, hdrH, 'F');
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(8);
+      doc.setFontSize(6.5);
       doc.setFont('helvetica', 'bold');
       let x = mL;
       for (const col of cols) {
         const tx = col.align === 'right'  ? x + col.width - 2
                  : col.align === 'center' ? x + col.width / 2
                  : x + 2;
-        doc.text(col.header.toUpperCase(), tx, y + 6, { align: col.align });
+        doc.text(col.header.toUpperCase(), tx, y + 5, { align: col.align });
         x += col.width;
       }
       y += hdrH;
@@ -323,11 +326,11 @@ export class SheetComponent implements OnInit, OnDestroy {
     // ── Filas ────────────────────────────────────────────────────────────────
     if (result.entries.length === 0) {
       doc.setTextColor(150, 150, 150);
-      doc.setFontSize(9);
+      doc.setFontSize(7);
       doc.setFont('helvetica', 'italic');
       doc.text('Sin detalle disponible', mL + usableW / 2, y + 10, { align: 'center' });
     } else {
-      doc.setFontSize(9);
+      doc.setFontSize(7.5);
 
       result.entries.forEach((entry, idx) => {
         if (y + rowH > pageH - 14) {
@@ -347,6 +350,10 @@ export class SheetComponent implements OnInit, OnDestroy {
           entry.creditId,
           `${entry.installmentNumber}/${entry.totalInstallments}`,
           this.formatCurrency(entry.amount),
+          entry.paidAmount != null ? this.formatCurrency(entry.paidAmount) : '—',
+          entry.paymentMethod === 'EFECTIVO' ? 'Efectivo'
+            : entry.paymentMethod === 'TRANSFERENCIA' ? 'Transf.'
+            : '—',
           this.formatDateDisplay(entry.dueDate),
           this.paymentStatusLabel(entry.paymentStatus),
         ];
@@ -367,7 +374,7 @@ export class SheetComponent implements OnInit, OnDestroy {
           }
           if (rowData[ci].length > text.length) text += '…';
 
-          doc.text(text, tx, y + 5, { align: col.align });
+          doc.text(text, tx, y + 4, { align: col.align });
           x += col.width;
         });
 

@@ -264,6 +264,8 @@
             <th>Crédito</th>
             <th class="text-center">Cuota</th>
             <th class="text-right">Monto</th>
+            <th class="text-right">Monto Cobrado</th>
+            <th class="text-center">Método</th>
             <th class="text-center">Vencimiento</th>
             <th class="text-center">Estado</th>
           </tr>
@@ -283,6 +285,20 @@
             </td>
             <td class="text-right font-mono font-semibold text-gray-800">
               {{ entry.amount | currency: "$" : "symbol" : "1.0-0" }}
+            </td>
+            <td class="text-right font-mono text-gray-700">
+              {{ entry.paidAmount != null ? (entry.paidAmount | currency: "$" : "symbol" : "1.0-0") : '—' }}
+            </td>
+            <td class="text-center">
+              @if (entry.paymentMethod) {
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                  [class]="entry.paymentMethod === 'EFECTIVO' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'">
+                  <i [class]="entry.paymentMethod === 'EFECTIVO' ? 'pi pi-wallet' : 'pi pi-arrow-right-arrow-left'" class="text-xs"></i>
+                  {{ entry.paymentMethod === 'EFECTIVO' ? 'Efectivo' : 'Transferencia' }}
+                </span>
+              } @else {
+                <span class="text-gray-300 text-sm">—</span>
+              }
             </td>
             <td class="text-center text-sm text-gray-600">
               {{ formatDateDisplay(entry.dueDate) }}
@@ -311,7 +327,7 @@
             <td class="text-right font-mono font-bold text-gray-800 text-sm">
               {{ activeResult.totalAmount | currency: "$" : "symbol" : "1.0-0" }}
             </td>
-            <td colspan="2"></td>
+            <td colspan="4"></td>
           </tr>
         </ng-template>
       </p-table>

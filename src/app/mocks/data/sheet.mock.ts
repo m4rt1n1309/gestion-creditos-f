@@ -40,6 +40,7 @@ export const MOCK_PLANILLA: PlanillaEntry[] = [
     dueDate: '2026-04-20',
     paymentStatus: 'COBRADO',
     paidAmount: 2916670,
+    paymentMethod: 'EFECTIVO',
     paymentDate: '2026-04-20',
   },
   {
@@ -84,6 +85,7 @@ export const MOCK_PLANILLA: PlanillaEntry[] = [
     dueDate: '2026-04-20',
     paymentStatus: 'PARCIAL',
     paidAmount: 1500000,
+    paymentMethod: 'TRANSFERENCIA',
   },
   {
     id: 'PL005',
@@ -129,6 +131,7 @@ export const MOCK_PLANILLA: PlanillaEntry[] = [
     dueDate: '2026-04-20',
     paymentStatus: 'COBRADO',
     paidAmount: 3500000,
+    paymentMethod: 'TRANSFERENCIA',
     paymentDate: '2026-04-20',
   },
   {
@@ -173,6 +176,7 @@ export const MOCK_PLANILLA: PlanillaEntry[] = [
     dueDate: '2026-04-20',
     paymentStatus: 'COBRADO',
     paidAmount: 1200000,
+    paymentMethod: 'EFECTIVO',
     paymentDate: '2026-04-20',
   },
   {
@@ -189,6 +193,7 @@ export const MOCK_PLANILLA: PlanillaEntry[] = [
     dueDate: '2026-04-20',
     paymentStatus: 'PARCIAL',
     paidAmount: 2000000,
+    paymentMethod: 'EFECTIVO',
   },
 
   // Carlos López - Zona Centro
@@ -220,6 +225,7 @@ export const MOCK_PLANILLA: PlanillaEntry[] = [
     dueDate: '2026-04-20',
     paymentStatus: 'COBRADO',
     paidAmount: 2300000,
+    paymentMethod: 'TRANSFERENCIA',
     paymentDate: '2026-04-20',
   },
   {
@@ -250,6 +256,7 @@ export const MOCK_PLANILLA: PlanillaEntry[] = [
     dueDate: '2026-04-20',
     paymentStatus: 'COBRADO',
     paidAmount: 750000,
+    paymentMethod: 'EFECTIVO',
     paymentDate: '2026-04-20',
   },
   {
@@ -280,6 +287,7 @@ export const MOCK_PLANILLA: PlanillaEntry[] = [
     dueDate: '2026-04-20',
     paymentStatus: 'PARCIAL',
     paidAmount: 900000,
+    paymentMethod: 'TRANSFERENCIA',
   },
 ];
 
