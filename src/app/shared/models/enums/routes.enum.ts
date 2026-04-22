@@ -18,6 +18,7 @@ export enum AppRoutes {
   ADMIN_OPERATIONS = '/admin/operations',
   ADMIN_CLIENTS = '/admin/clients',
   ADMIN_PRODUCTS = '/admin/products',
+  ADMIN_USERS = '/admin/users',
 
   // SELLER:
   SELLER_OPERATIONS = '/seller/operations',

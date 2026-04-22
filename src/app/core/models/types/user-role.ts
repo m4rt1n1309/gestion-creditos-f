@@ -1,7 +1,7 @@
 export enum UserRoleEnum {
-  ADMIN            = 'ADMIN',
-  SELLER           = 'SELLER',
-  COLLECTOR        = 'COLLECTOR',
+  ADMIN = 'ADMIN',
+  SELLER = 'SELLER',
+  COLLECTOR = 'COLLECTOR',
   SELLER_COLLECTOR = 'SELLER_COLLECTOR',
 }
 
