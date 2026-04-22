@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { AuthUser } from '../models/interface/auth-user';
-import { LoginCredentials } from '../models/interface/login-credentials';
+import { LoginCredentials } from '../models/interface/login';
 import { UserRole } from '../models/types/user-role';
 
 /**
@@ -26,4 +26,8 @@ export abstract class AuthServiceBase {
    * Usado en APP_INITIALIZER.
    */
   abstract restoreSession(): Observable<void>;
+  abstract changePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): Observable<void>;
 }

@@ -1,57 +1,44 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  catchError,
+  map,
+  of,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { ApiHttpService } from '../http/api-http.service';
 import { AuthUser } from '../models/interface/auth-user';
-import { LoginCredentials } from '../models/interface/login-credentials';
-import { UserRole } from '../models/types/user-role';
+import { UserRole, UserRoleEnum } from '../models/types/user-role';
 import { environment } from '../../../environments/environment';
 import { AuthServiceBase } from './auth-service.base';
+import { AppRoutes } from '../../shared/models/enums/routes.enum';
+import {
+  LoginCredentials,
+  LoginResponseData,
+  MeResponseData,
+} from '../models/interface/login';
 
-// ── Shapes de respuesta del backend ──────────────────────────────────────────
-// Fuente verificada: back/src/modules/auth/auth.service.js → loginInternal()
-interface LoginUserPayload {
-  id: string;
-  full_name: string;
-  dni: string;
-  role: string;
-  is_temp_password: boolean;
-}
-
-interface LoginResponseData {
-  token: string;
-  user: LoginUserPayload;
-}
-
-// Fuente: back/src/middlewares/auth.middleware.js → _verifyInternalSession()
-interface MeResponseData {
-  id: string;
-  full_name: string;
-  dni: string;
-  role: string;
-  status: string;
-  is_temp_password: boolean;
-  force_relogin_at: string | null;
-}
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** true solo en entornos browser — false en SSR/Node (prerender) */
 const isBrowser = typeof localStorage !== 'undefined';
 
 @Injectable()
 export class AuthService extends AuthServiceBase {
-  private readonly api    = inject(ApiHttpService);
+  private readonly api = inject(ApiHttpService);
   private readonly router = inject(Router);
 
   private readonly TOKEN_KEY = environment.tokenKey;
-  private readonly USER_KEY  = 'sgcf_user';
+  private readonly USER_KEY = 'sgcf_user';
 
-  // Rehidratación síncrona desde localStorage para que los guards no flasheen
-  // a /login en el primer render. Se valida después en restoreSession().
   private _user$ = new BehaviorSubject<AuthUser | null>(this.readStoredUser());
   readonly currentUser$ = this._user$.asObservable();
 
-  // ── Login ─────────────────────────────────────────────────────────────────
+  /**
+   * Inicia sesión con las credenciales proporcionadas.
+   * @param credentials
+   * @returns
+   */
   login(credentials: LoginCredentials): Observable<AuthUser> {
     return this.api.post<LoginResponseData>('auth/login', credentials).pipe(
       map((data) => this.mapLoginUser(data)),
@@ -59,38 +46,63 @@ export class AuthService extends AuthServiceBase {
     );
   }
 
-  // ── Logout — best-effort: limpia local aunque el POST falle ──────────────
+  /**
+   * Cierra la sesión del usuario actual, limpia el estado y redirige al login.
+   */
   logout(): void {
-    this.api.post<void>('auth/logout').pipe(catchError(() => of(null))).subscribe();
+    this.api
+      .post<void>(AppRoutes.AUTH_LOGOUT)
+      .pipe(catchError(() => of(null)))
+      .subscribe();
     this.clear();
-    this.router.navigate(['/login']);
+    this.router.navigate([AppRoutes.LOGIN]);
   }
 
-  // ── Queries de rol ────────────────────────────────────────────────────────
+  /**
+   * Verifica si el usuario actual tiene un rol específico.
+   * @param role
+   * @returns
+   */
   hasRole(role: UserRole): boolean {
     return this._user$.value?.roles.includes(role) ?? false;
   }
 
+  /**
+   * Verifica si el usuario actual tiene alguno de los roles especificados.
+   * @param roles
+   * @returns
+   */
   hasAnyRole(roles: UserRole[]): boolean {
-    return roles.some((r) => this.hasRole(r));
+    return roles.some((role) => this.hasRole(role));
   }
 
+  /**
+   * Verifica si el usuario actual está autenticado.
+   * @returns
+   */
   isAuthenticated(): boolean {
     return !!this._user$.value;
   }
 
+  /**
+   * Devuelve una instantánea del usuario autenticado actualmente, o null si no hay ninguno.
+   */
   get snapshot(): AuthUser | null {
     return this._user$.value;
   }
 
+  /**
+   * Devuelve el token de autenticación del usuario actual, o null si no hay ninguno.
+   * @returns
+   */
   get token(): string | null {
     return isBrowser ? localStorage.getItem(this.TOKEN_KEY) : null;
   }
 
-  // ── Restauración de sesión (APP_INITIALIZER) ──────────────────────────────
-  // Valida el token almacenado con GET /api/auth/me.
-  // Si responde con 401 (token expirado/blacklisteado), el error.interceptor
-  // ya limpia el token; aquí solo sincronizamos _user$.
+  /**
+   * Restaura la sesión del usuario actual.
+   * @returns
+   */
   restoreSession(): Observable<void> {
     if (!this.token) return of(undefined);
 
@@ -107,35 +119,93 @@ export class AuthService extends AuthServiceBase {
     );
   }
 
-  // ── Privados ──────────────────────────────────────────────────────────────
+  /**
+   * Cambia la contraseña del usuario actual.
+   * @param currentPassword
+   * @param newPassword
+   * @returns
+   */
+  changePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): Observable<void> {
+    return this.api
+      .patch<void>('users/me/change-password', {
+        current_password: currentPassword,
+        new_password: newPassword,
+      })
+      .pipe(
+        switchMap(() => this.api.get<MeResponseData>('auth/me')),
+        tap((me) => {
+          const user = this.mapMeUser(me, this.token!);
+          this.persist(user);
+          this.redirectByRole(user.roles);
+        }),
+        map(() => undefined),
+      );
+  }
+
+  /**
+   * Redirige al usuario según su rol.
+   * @param roles
+   * @returns
+   */
+  private redirectByRole(roles: UserRole[]): void {
+    if (roles.includes(UserRoleEnum.ADMIN))
+      return void this.router.navigate([AppRoutes.DASHBOARD]);
+    if (roles.includes(UserRoleEnum.SELLER))
+      return void this.router.navigate([AppRoutes.OPERATIONS]);
+    if (roles.includes(UserRoleEnum.COLLECTOR))
+      return void this.router.navigate([AppRoutes.ROUTE]);
+    if (roles.includes(UserRoleEnum.SELLER_COLLECTOR))
+      return void this.router.navigate([AppRoutes.OPERATIONS]);
+    this.router.navigate([AppRoutes.LOGIN]);
+  }
+
+  /**
+   * Mapea los datos de respuesta de login a un objeto AuthUser.
+   * @param data
+   * @returns
+   */
   private mapLoginUser(data: LoginResponseData): AuthUser {
     return {
-      id:               data.user.id,
-      full_name:        data.user.full_name,
-      name:             data.user.full_name,   // compat con templates que usan .name
-      dni:              data.user.dni,
-      roles:            [data.user.role as UserRole],
-      avatar:           this.initials(data.user.full_name),
+      id: data.user.id,
+      full_name: data.user.full_name,
+      name: data.user.full_name,
+      dni: data.user.dni,
+      roles: [data.user.role as UserRole],
+      avatar: this.initials(data.user.full_name),
       is_temp_password: data.user.is_temp_password,
       force_relogin_at: null,
-      token:            data.token,
+      token: data.token,
     };
   }
 
+  /**
+   * Mapea los datos de respuesta de la ruta 'auth/me' a un objeto AuthUser.
+   * @param me
+   * @param token
+   * @returns
+   */
   private mapMeUser(me: MeResponseData, token: string): AuthUser {
     return {
-      id:               me.id,
-      full_name:        me.full_name,
-      name:             me.full_name,
-      dni:              me.dni,
-      roles:            [me.role as UserRole],
-      avatar:           this.initials(me.full_name),
+      id: me.id,
+      full_name: me.full_name,
+      name: me.full_name,
+      dni: me.dni,
+      roles: [me.role as UserRole],
+      avatar: this.initials(me.full_name),
       is_temp_password: me.is_temp_password,
       force_relogin_at: me.force_relogin_at ?? null,
       token,
     };
   }
 
+  /**
+   * Genera las iniciales del nombre completo del usuario.
+   * @param fullName
+   * @returns
+   */
   private initials(fullName: string): string {
     return fullName
       .trim()
@@ -145,6 +215,11 @@ export class AuthService extends AuthServiceBase {
       .join('');
   }
 
+  /**
+   * Almacena la información del usuario en el almacenamiento local.
+   * @param user
+   * @returns
+   */
   private persist(user: AuthUser): void {
     if (!isBrowser) return;
     localStorage.setItem(this.TOKEN_KEY, user.token);
@@ -152,6 +227,9 @@ export class AuthService extends AuthServiceBase {
     this._user$.next(user);
   }
 
+  /**
+   * Limpia la información del usuario del almacenamiento local y del estado de la aplicación.
+   */
   private clear(): void {
     if (isBrowser) {
       localStorage.removeItem(this.TOKEN_KEY);
@@ -160,6 +238,10 @@ export class AuthService extends AuthServiceBase {
     this._user$.next(null);
   }
 
+  /**
+   * Lee la información del usuario del almacenamiento local.
+   * @returns
+   */
   private readStoredUser(): AuthUser | null {
     if (!isBrowser) return null;
     try {

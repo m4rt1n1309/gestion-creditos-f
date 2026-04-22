@@ -1,15 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-
-const isBrowser = typeof localStorage !== 'undefined';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { delay, tap } from 'rxjs/operators';
-import { AuthServiceBase } from './auth-service.base';
-import { AuthUser } from '../models/interface/auth-user';
-import { LoginCredentials } from '../models/interface/login-credentials';
-import { AuthError } from '../models/interface/auth.error';
-import { UserRole } from '../models/types/user-role';
 import { Roles } from '../../shared/models/enums/roles.enum';
+import { AppRoutes } from '../../shared/models/enums/routes.enum';
+import { AuthUser } from '../models/interface/auth-user';
+import { AuthError } from '../models/interface/auth.error';
+import { LoginCredentials } from '../models/interface/login';
+import { UserRole, UserRoleEnum } from '../models/types/user-role';
+import { AuthServiceBase } from './auth-service.base';
+
+const isBrowser = typeof localStorage !== 'undefined';
 
 // ── Usuarios mock ─────────────────────────────────────────────────────────────
 // DNIs usados como credencial de login (igual que el backend real).
@@ -60,7 +61,7 @@ export const MOCK_USERS: AuthUser[] = [
 @Injectable()
 export class MockAuthService extends AuthServiceBase {
   private readonly TOKEN_KEY = 'sgcf_token';
-  private readonly USER_KEY  = 'sgcf_user';
+  private readonly USER_KEY = 'sgcf_user';
   readonly NETWORK_LATENCY_MS = 800;
 
   private _user$ = new BehaviorSubject<AuthUser | null>(this.rehydrate());
@@ -78,7 +79,8 @@ export class MockAuthService extends AuthServiceBase {
       return throwError(
         (): AuthError => ({
           status: 401,
-          message: 'Credenciales incorrectas. Verificá tus datos e intentá nuevamente.',
+          message:
+            'Credenciales incorrectas. Verificá tus datos e intentá nuevamente.',
         }),
       ).pipe(delay(this.NETWORK_LATENCY_MS));
     }
@@ -95,7 +97,7 @@ export class MockAuthService extends AuthServiceBase {
       localStorage.removeItem(this.USER_KEY);
     }
     this._user$.next(null);
-    this.router.navigate(['/login']);
+    this.router.navigate([AppRoutes.LOGIN]);
   }
 
   hasRole(role: UserRole): boolean {
@@ -121,6 +123,34 @@ export class MockAuthService extends AuthServiceBase {
   // No-op: mock ya rehidrata sincronamente en el constructor.
   restoreSession(): Observable<void> {
     return of(undefined);
+  }
+
+  changePassword(
+    _currentPassword: string,
+    _newPassword: string,
+  ): Observable<void> {
+    const user = this._user$.value;
+    if (!user) return of(undefined);
+
+    const updated: AuthUser = { ...user, is_temp_password: false };
+    this.persist(updated);
+
+    return of(undefined).pipe(
+      delay(this.NETWORK_LATENCY_MS),
+      tap(() => this.redirectByRole(updated.roles)),
+    );
+  }
+
+  private redirectByRole(roles: UserRole[]): void {
+    if (roles.includes(UserRoleEnum.ADMIN))
+      return void this.router.navigate([AppRoutes.DASHBOARD]);
+    if (roles.includes(UserRoleEnum.SELLER))
+      return void this.router.navigate([AppRoutes.OPERATIONS]);
+    if (roles.includes(UserRoleEnum.COLLECTOR))
+      return void this.router.navigate([AppRoutes.ROUTE]);
+    if (roles.includes(UserRoleEnum.SELLER_COLLECTOR))
+      return void this.router.navigate([AppRoutes.OPERATIONS]);
+    this.router.navigate([AppRoutes.LOGIN]);
   }
 
   private persist(user: AuthUser): void {

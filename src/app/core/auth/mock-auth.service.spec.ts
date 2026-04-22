@@ -2,6 +2,7 @@ import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MockAuthService, MOCK_USERS } from './mock-auth.service';
+import { Roles } from '../../shared/models/enums/roles.enum';
 
 describe('MockAuthService', () => {
   let service: MockAuthService;
