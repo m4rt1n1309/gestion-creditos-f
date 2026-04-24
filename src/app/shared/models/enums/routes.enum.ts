@@ -14,8 +14,12 @@ export enum AppRoutes {
   FORGOT_PASSWORD = 'forgot-password',
   LOGIN = 'login',
   OPERATIONS = 'operations',
+  OPERATIONS_DETAIL = 'operations/:id',
   OPERATIONS_NEW = 'operations/new',
   PRODUCTS = 'products',
+  PRODUCTS_NEW = 'products/new',
+  PRODUCTS_DETAIL = 'products/:id',
+  PRODUCTS_EDIT = 'products/:id/edit',
   REPORTS = 'reports',
   ROUTE = '/collector/route',
   SELLER = 'seller',
@@ -23,4 +27,12 @@ export enum AppRoutes {
   USERS = 'users',
   USERS_DETAIL = 'users/:id',
   USERS_NEW = 'users/new',
+
+  // Seller
+  SELLER_OPERATIONS = 'seller/operations/new',
+  SELLER_OPERATIONS_DETAIL = 'seller/operations/:id',
+  SELLER_PRODUCTS = 'seller/products',
+  SELLER_PRODUCTS_NEW = 'seller/products/new',
+  SELLER_PRODUCTS_DETAIL = 'seller/products/:id',
+  SELLER_PRODUCTS_EDIT = 'seller/products/:id/edit',
 }

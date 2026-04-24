@@ -6,8 +6,24 @@ export const SELLER_ROUTES: Routes = [
   {
     path: AppRoutes.OPERATIONS,
     loadComponent: () =>
-      import('../../shared/operations/operations.component').then(
-        (c) => c.OperationsComponent,
+      import('./operations/credits-list/credits-list.component').then(
+        (c) => c.CreditsListComponent,
+      ),
+  },
+  {
+    path: AppRoutes.OPERATIONS_NEW,
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN', 'SELLER', 'SELLER_COLLECTOR'] },
+    loadComponent: () =>
+      import('./operations/credit-create/credit-create.component').then(
+        (c) => c.CreditCreateComponent,
+      ),
+  },
+  {
+    path: AppRoutes.OPERATIONS_DETAIL,
+    loadComponent: () =>
+      import('./operations/credit-detail/credit-detail.component').then(
+        (c) => c.CreditDetailComponent,
       ),
   },
   {
@@ -40,8 +56,33 @@ export const SELLER_ROUTES: Routes = [
   {
     path: AppRoutes.PRODUCTS,
     loadComponent: () =>
-      import('../../shared/products/products.component').then(
-        (c) => c.ProductsComponent,
+      import('./products/products-list/products-list.component').then(
+        (c) => c.ProductsListComponent,
+      ),
+  },
+  {
+    path: AppRoutes.PRODUCTS_NEW,
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN'] },
+    loadComponent: () =>
+      import('./products/product-create/product-create.component').then(
+        (c) => c.ProductCreateComponent,
+      ),
+  },
+  {
+    path: AppRoutes.PRODUCTS_EDIT,
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN'] },
+    loadComponent: () =>
+      import('./products/product-edit/product-edit.component').then(
+        (c) => c.ProductEditComponent,
+      ),
+  },
+  {
+    path: AppRoutes.PRODUCTS_DETAIL,
+    loadComponent: () =>
+      import('./products/product-detail/product-detail.component').then(
+        (c) => c.ProductDetailComponent,
       ),
   },
   { path: '', redirectTo: 'operations', pathMatch: 'full' },
