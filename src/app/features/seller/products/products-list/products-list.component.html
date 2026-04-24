@@ -1,0 +1,94 @@
+<div class="p-4">
+  <div class="flex flex-wrap gap-3 mb-4 items-center justify-between">
+    <div class="flex flex-wrap gap-3 items-center">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar por nombre"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange($event)"
+          class="w-72"
+        />
+      </span>
+      <p-dropdown
+        [options]="statusOptions"
+        [(ngModel)]="selectedStatus"
+        (onChange)="applyFilters()"
+        placeholder="Estado"
+        [showClear]="true"
+        optionLabel="label"
+        optionValue="value"
+      />
+    </div>
+    @if (canCreate) {
+      <p-button
+        label="Nuevo producto"
+        icon="pi pi-plus"
+        (onClick)="navigateToCreate()"
+      />
+    }
+  </div>
+
+  @if (loading) {
+    <app-loading-state />
+  } @else if (error) {
+    <app-error-state />
+  } @else if (products.length === 0) {
+    <app-empty-state />
+  } @else {
+    <p-table
+      [value]="products"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      styleClass="p-datatable-sm"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Precio</th>
+          <th>Stock</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-product>
+        <tr>
+          <td>{{ product.name }}</td>
+          <td [pTooltip]="product.description" tooltipPosition="top">
+            {{ truncateDescription(product.description) }}
+          </td>
+          <td>{{ product.currentPrice | currency: "ARS" : "$" : "1.2-2" }}</td>
+          <td>
+            @if (product.availableStock === 0) {
+              <p-tag value="Sin stock" severity="danger" />
+            } @else if (product.availableStock <= LOW_STOCK_THRESHOLD) {
+              <p-tag value="Stock bajo" severity="warning" />
+            } @else {
+              {{ product.availableStock }}
+            }
+          </td>
+          <td>
+            <p-tag
+              [value]="product.status === 'ACTIVE' ? 'Activo' : 'Inactivo'"
+              [severity]="product.status === 'ACTIVE' ? 'success' : 'danger'"
+            />
+          </td>
+          <td>
+            <p-button
+              label="Ver"
+              icon="pi pi-eye"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              (onClick)="navigateToDetail(product.id)"
+            />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>

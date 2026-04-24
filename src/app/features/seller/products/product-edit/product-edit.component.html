@@ -1,0 +1,98 @@
+<p-toast />
+<div class="p-4 max-w-2xl mx-auto">
+  @if (loading) {
+    <app-loading-state />
+  } @else if (error) {
+    <app-error-state />
+  } @else if (product && form) {
+    <h2 class="text-xl font-semibold mb-6">Editar producto</h2>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+      <div class="flex flex-col gap-1">
+        <label for="name" class="text-sm font-medium">Nombre *</label>
+        <input
+          id="name"
+          pInputText
+          formControlName="name"
+          placeholder="Nombre del producto"
+          [class.ng-invalid]="isInvalid('name')"
+          [class.ng-dirty]="isInvalid('name')"
+        />
+        @if (isInvalid("name")) {
+          <small class="text-red-500">{{ getError("name") }}</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="description" class="text-sm font-medium">Descripción</label>
+        <textarea
+          pInputTextarea
+          id="description"
+          formControlName="description"
+          rows="4"
+          placeholder="Descripción opcional del producto"
+          [class.ng-invalid]="isInvalid('description')"
+          [class.ng-dirty]="isInvalid('description')"
+          class="w-full"
+        ></textarea>
+        @if (isInvalid("description")) {
+          <small class="text-red-500">{{ getError("description") }}</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="currentPrice" class="text-sm font-medium">Precio *</label>
+        <p-inputNumber
+          inputId="currentPrice"
+          formControlName="currentPrice"
+          [min]="0.01"
+          [max]="99999999"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="2"
+          mode="decimal"
+          locale="es-AR"
+          placeholder="0,00"
+          [class.ng-invalid]="isInvalid('currentPrice')"
+          [class.ng-dirty]="isInvalid('currentPrice')"
+        />
+        @if (isInvalid("currentPrice")) {
+          <small class="text-red-500">{{ getError("currentPrice") }}</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-500">
+          Stock disponible
+          <span
+            class="ml-1 pi pi-info-circle text-xs cursor-help"
+            pTooltip="El stock se gestiona desde el botón Ajustar stock"
+            tooltipPosition="right"
+          ></span>
+        </label>
+        <input
+          pInputText
+          [value]="product.availableStock"
+          [disabled]="true"
+          class="opacity-60 cursor-not-allowed"
+        />
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <p-button
+          type="submit"
+          label="Guardar cambios"
+          icon="pi pi-check"
+          [loading]="submitting"
+          [disabled]="form.invalid || submitting"
+        />
+        <p-button
+          type="button"
+          label="Cancelar"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="cancel()"
+        />
+      </div>
+    </form>
+  }
+</div>

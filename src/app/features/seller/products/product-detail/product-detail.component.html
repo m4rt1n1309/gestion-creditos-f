@@ -1,0 +1,209 @@
+<p-toast />
+<p-confirmDialog />
+
+<p-dialog
+  header="Ajustar stock"
+  [(visible)]="showStockDialog"
+  [modal]="true"
+  [style]="{ width: '450px' }"
+  [closable]="true"
+  (onHide)="closeStockDialog()"
+>
+  @if (stockForm) {
+    <form
+      [formGroup]="stockForm"
+      (ngSubmit)="onStockSubmit()"
+      class="space-y-4 pt-2"
+    >
+      <div class="flex flex-col gap-1">
+        <label for="movement" class="text-sm font-medium"
+          >Tipo de movimiento *</label
+        >
+        <p-dropdown
+          inputId="movement"
+          formControlName="movement"
+          [options]="movementOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar tipo"
+          [class.ng-invalid]="isStockInvalid('movement')"
+          [class.ng-dirty]="isStockInvalid('movement')"
+        />
+        @if (isStockInvalid("movement")) {
+          <small class="text-red-500">{{ getStockError("movement") }}</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="quantity" class="text-sm font-medium">Cantidad *</label>
+        <p-inputNumber
+          inputId="quantity"
+          formControlName="quantity"
+          [min]="1"
+          [max]="99999"
+          [maxFractionDigits]="0"
+          placeholder="Ingresá la cantidad"
+          [class.ng-invalid]="isStockInvalid('quantity')"
+          [class.ng-dirty]="isStockInvalid('quantity')"
+        />
+        @if (isStockInvalid("quantity")) {
+          <small class="text-red-500">{{ getStockError("quantity") }}</small>
+        }
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="reason" class="text-sm font-medium">Motivo *</label>
+        <textarea
+          pInputTextarea
+          id="reason"
+          formControlName="reason"
+          rows="3"
+          placeholder="Describí el motivo del ajuste"
+          [class.ng-invalid]="isStockInvalid('reason')"
+          [class.ng-dirty]="isStockInvalid('reason')"
+          class="w-full"
+        ></textarea>
+        @if (isStockInvalid("reason")) {
+          <small class="text-red-500">{{ getStockError("reason") }}</small>
+        }
+      </div>
+
+      @if (stockDialogError) {
+        <div class="bg-orange-50 border border-orange-200 rounded p-3">
+          <small class="text-orange-700">{{ stockDialogError }}</small>
+        </div>
+      }
+
+      <div class="flex gap-3 pt-2">
+        <p-button
+          type="submit"
+          [label]="stockDialogConfirmLabel"
+          icon="pi pi-check"
+          [loading]="adjustingStock"
+          [disabled]="stockForm.invalid || adjustingStock"
+        />
+        <p-button
+          type="button"
+          label="Cancelar"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="closeStockDialog()"
+        />
+      </div>
+    </form>
+  }
+</p-dialog>
+
+<div class="p-4">
+  <div class="mb-4">
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="goBack()"
+    />
+  </div>
+
+  @if (loading) {
+    <app-loading-state />
+  } @else if (error) {
+    <app-error-state />
+  } @else if (product) {
+    <div class="bg-white rounded-lg shadow p-6 space-y-6">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-3">
+          <h2 class="text-xl font-semibold">{{ product.name }}</h2>
+          <p-tag
+            [value]="product.status === 'ACTIVE' ? 'Activo' : 'Inactivo'"
+            [severity]="product.status === 'ACTIVE' ? 'success' : 'danger'"
+          />
+        </div>
+
+        @if (isAdmin) {
+          <div class="flex gap-2 flex-wrap">
+            <p-button
+              label="Editar"
+              icon="pi pi-pencil"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="navigateToEdit()"
+            />
+            <p-button
+              label="Ajustar stock"
+              icon="pi pi-arrows-v"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="openStockDialog()"
+            />
+            @if (product.status === "ACTIVE") {
+              <p-button
+                label="Desactivar"
+                icon="pi pi-ban"
+                severity="danger"
+                [outlined]="true"
+                (onClick)="confirmDeactivate()"
+              />
+            } @else {
+              <p-button
+                label="Activar"
+                icon="pi pi-check-circle"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="confirmActivate()"
+              />
+            }
+          </div>
+        }
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        @if (product.description) {
+          <div class="md:col-span-2">
+            <span class="text-sm text-gray-500">Descripción</span>
+            <p class="font-medium">{{ product.description }}</p>
+          </div>
+        }
+
+        <div>
+          <span class="text-sm text-gray-500">Precio</span>
+          <p class="font-medium text-lg">
+            {{ product.currentPrice | currency: "ARS" : "$" : "1.2-2" }}
+          </p>
+        </div>
+
+        <div>
+          <span class="text-sm text-gray-500">Stock disponible</span>
+          <div class="mt-1">
+            @if (product.availableStock === 0) {
+              <p-tag value="Sin stock" severity="danger" />
+            } @else if (product.availableStock <= LOW_STOCK_THRESHOLD) {
+              <p-tag value="Stock bajo" severity="warning" />
+              <span class="ml-2 font-medium"
+                >{{ product.availableStock }} unidades</span
+              >
+            } @else {
+              <p class="font-medium">{{ product.availableStock }} unidades</p>
+            }
+          </div>
+        </div>
+
+        <div>
+          <span class="text-sm text-gray-500">Fecha de alta</span>
+          <p class="font-medium">
+            {{ product.createdAt | date: "dd/MM/yyyy HH:mm" }}
+          </p>
+        </div>
+
+        @if (product.updatedAt) {
+          <div>
+            <span class="text-sm text-gray-500">Última modificación</span>
+            <p class="font-medium">
+              {{ product.updatedAt | date: "dd/MM/yyyy HH:mm" }}
+            </p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
