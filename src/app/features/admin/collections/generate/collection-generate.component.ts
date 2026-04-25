@@ -10,12 +10,12 @@ import { ToastModule } from 'primeng/toast';
 import { AppError } from '../../../../core/models/app-error';
 import { HeaderService } from '../../../../core/services/header.service';
 import {
-  CollectionGeneratePayload,
   CollectionsService,
 } from '../../../collector/collections.service';
 import {
   COLLECTION_FILTER_LABELS,
   CollectionFilter,
+  CollectionGeneratePayload,
 } from '../../../collector/models/collection.model';
 import { User } from '../../users/user.model';
 import { UsersService } from '../../users/users.service';
