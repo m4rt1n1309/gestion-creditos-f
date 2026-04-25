@@ -11,6 +11,7 @@ import {
   CreditRaw,
   SimulateResult,
 } from '../models/credit.model';
+
 import { CreditsService } from './credits.service';
 
 const BASE = environment.apiBaseUrl;
@@ -242,6 +243,81 @@ describe('CreditsService', () => {
       req.flush({
         ok: true,
         data: { id: 'new-id', status: 'PENDING_APPROVAL' },
+        message: '',
+      });
+    });
+  });
+
+  describe('approve', () => {
+    it('sends PATCH with empty body when no installmentsCount', () => {
+      service.approve('credit-1', {}).subscribe();
+      const req = httpMock.expectOne(`${BASE}/credits/credit-1/approve`);
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body).toEqual({});
+      req.flush({ ok: true, data: mockDetailRaw, message: '' });
+    });
+
+    it('sends installments_count when provided', () => {
+      service.approve('credit-1', { installmentsCount: 6 }).subscribe();
+      const req = httpMock.expectOne(`${BASE}/credits/credit-1/approve`);
+      expect(req.request.body['installments_count']).toBe(6);
+      req.flush({ ok: true, data: mockDetailRaw, message: '' });
+    });
+
+    it('maps response to CreditDetail', () => {
+      let result: any;
+      service.approve('credit-1', {}).subscribe((d) => (result = d));
+      const req = httpMock.expectOne(`${BASE}/credits/credit-1/approve`);
+      req.flush({ ok: true, data: mockDetailRaw, message: '' });
+      expect(result.customerPhone).toBe('1122334455');
+      expect(result.installments.length).toBe(1);
+    });
+  });
+
+  describe('reject', () => {
+    it('sends rejectionReason as rejection_reason in body', () => {
+      service.reject('credit-1', { rejectionReason: 'Mora activa' }).subscribe();
+      const req = httpMock.expectOne(`${BASE}/credits/credit-1/reject`);
+      expect(req.request.method).toBe('PATCH');
+      expect(req.request.body['rejection_reason']).toBe('Mora activa');
+      req.flush({ ok: true, data: null, message: '' });
+    });
+  });
+
+  describe('earlySettlement', () => {
+    it('maps settlementAmount from snake_case response', () => {
+      let result: any;
+      service
+        .earlySettlement('credit-1', { paymentMethod: 'CASH' })
+        .subscribe((r) => (result = r));
+      const req = httpMock.expectOne(`${BASE}/credits/credit-1/early-settlement`);
+      expect(req.request.method).toBe('PATCH');
+      req.flush({
+        ok: true,
+        data: {
+          credit_id: 'credit-1',
+          settlement_amount: 5000,
+          payment_method: 'CASH',
+        },
+        message: '',
+      });
+      expect(result.creditId).toBe('credit-1');
+      expect(result.settlementAmount).toBe(5000);
+    });
+
+    it('includes transfer_reference when TRANSFER method', () => {
+      service
+        .earlySettlement('credit-1', {
+          paymentMethod: 'TRANSFER',
+          transferReference: 'REF123',
+        })
+        .subscribe();
+      const req = httpMock.expectOne(`${BASE}/credits/credit-1/early-settlement`);
+      expect(req.request.body['payment_method']).toBe('TRANSFER');
+      expect(req.request.body['transfer_reference']).toBe('REF123');
+      req.flush({
+        ok: true,
+        data: { credit_id: 'credit-1', settlement_amount: 3000, payment_method: 'TRANSFER' },
         message: '',
       });
     });

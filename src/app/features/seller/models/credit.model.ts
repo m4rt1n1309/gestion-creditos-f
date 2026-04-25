@@ -138,3 +138,22 @@ export interface CreditDetailRaw extends CreditRaw {
   products?: CreditProductRaw[];
   installments: CreditInstallmentRaw[];
 }
+
+export interface ApprovePayload {
+  installmentsCount?: number;
+}
+
+export interface RejectPayload {
+  rejectionReason: string;
+}
+
+export interface EarlySettlementPayload {
+  paymentMethod: 'CASH' | 'TRANSFER';
+  transferReference?: string;
+}
+
+export interface EarlySettlementResult {
+  creditId: string;
+  settlementAmount: number;
+  paymentMethod: string;
+}

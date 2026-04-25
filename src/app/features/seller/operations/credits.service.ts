@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiHttpService } from '../../../core/http/api-http.service';
 import {
+  ApprovePayload,
   Credit,
   CreditCreatePayload,
   CreditDetail,
@@ -14,6 +15,9 @@ import {
   CreditProductRaw,
   CreditRaw,
   CreditStatus,
+  EarlySettlementPayload,
+  EarlySettlementResult,
+  RejectPayload,
   SimulatePayload,
   SimulateResult,
 } from '../models/credit.model';
@@ -190,5 +194,64 @@ export class CreditsService {
       'credits',
       toCreateBody(payload),
     );
+  }
+
+  /**
+   * Aprueba un crédito.
+   * @param id
+   * @param payload
+   * @returns
+   */
+  approve(id: string, payload: ApprovePayload): Observable<CreditDetail> {
+    const body: Record<string, unknown> = {};
+    if (payload.installmentsCount !== undefined) {
+      body['installments_count'] = payload.installmentsCount;
+    }
+    return this.api
+      .patch<CreditDetailRaw>(`credits/${id}/approve`, body)
+      .pipe(map(toCreditDetail));
+  }
+
+  /**
+   * Rechaza un crédito.
+   * @param id
+   * @param payload
+   * @returns
+   */
+  reject(id: string, payload: RejectPayload): Observable<void> {
+    return this.api.patch<void>(`credits/${id}/reject`, {
+      rejection_reason: payload.rejectionReason,
+    });
+  }
+
+  /**
+   * Realiza un pago anticipado del crédito.
+   * @param id
+   * @param payload
+   * @returns
+   */
+  earlySettlement(
+    id: string,
+    payload: EarlySettlementPayload,
+  ): Observable<EarlySettlementResult> {
+    const body: Record<string, unknown> = {
+      payment_method: payload.paymentMethod,
+    };
+    if (payload.transferReference) {
+      body['transfer_reference'] = payload.transferReference;
+    }
+    return this.api
+      .patch<{
+        credit_id: string;
+        settlement_amount: number;
+        payment_method: string;
+      }>(`credits/${id}/early-settlement`, body)
+      .pipe(
+        map((raw) => ({
+          creditId: raw.credit_id,
+          settlementAmount: raw.settlement_amount,
+          paymentMethod: raw.payment_method,
+        })),
+      );
   }
 }
