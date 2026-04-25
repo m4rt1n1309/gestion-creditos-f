@@ -92,6 +92,11 @@ export const ADMIN_ROUTES: Routes = [
       import('./sheet/sheet.component').then((c) => c.SheetComponent),
   },
   {
+    path: AppRoutes.ADMIN_COMMISSIONS,
+    loadComponent: () =>
+      import('./commissions/commissions.component').then((c) => c.CommissionsComponent),
+  },
+  {
     path: AppRoutes.REPORTS,
     loadComponent: () =>
       import('./reports/reports.component').then((c) => c.ReportsComponent),
