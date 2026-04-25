@@ -1,0 +1,138 @@
+<div class="flex flex-col gap-6">
+  <div class="flex items-center gap-3">
+    <button
+      pButton
+      type="button"
+      icon="pi pi-arrow-left"
+      class="p-button-text p-button-secondary p-button-sm"
+      (click)="back()"
+    ></button>
+    <h2 class="text-xl font-bold text-gray-800">Detalle del crédito</h2>
+  </div>
+
+  @if (loading) {
+    <p-skeleton height="8rem" borderRadius="0.75rem" />
+    <p-skeleton height="20rem" borderRadius="0.75rem" />
+  } @else if (credit) {
+    <!-- Credit header -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <p class="text-xs text-gray-400">Tipo</p>
+          <p class="font-semibold text-gray-800">
+            {{ credit.type === "SALE" ? "Venta en cuotas" : "Préstamo" }}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Monto total</p>
+          <p class="font-semibold text-gray-800">
+            {{ credit.totalAmount | currency: "ARS" : "symbol" : "1.0-0" }}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Frecuencia</p>
+          <p class="font-semibold text-gray-800">{{ frequencyLabel }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Estado</p>
+          <p-tag
+            [value]="credit.status === 'ACTIVE' ? 'Activo' : 'Saldado'"
+            [severity]="credit.status === 'ACTIVE' ? 'success' : 'secondary'"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Installments table -->
+    <div
+      class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+    >
+      <div class="px-4 py-3 border-b border-gray-100">
+        <h3 class="font-semibold text-gray-700">Cronograma de cuotas</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="text-center px-3 py-2 text-gray-500 font-medium">
+                N°
+              </th>
+              <th class="text-left px-3 py-2 text-gray-500 font-medium">
+                Vencimiento
+              </th>
+              <th class="text-right px-3 py-2 text-gray-500 font-medium">
+                Monto
+              </th>
+              <th class="text-right px-3 py-2 text-gray-500 font-medium">
+                Pagado
+              </th>
+              <th class="text-right px-3 py-2 text-gray-500 font-medium">
+                Mora
+              </th>
+              <th class="text-center px-3 py-2 text-gray-500 font-medium">
+                Estado
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (inst of credit.installments; track inst.id) {
+              <tr
+                class="border-t border-gray-50"
+                [class.bg-red-50]="inst.status === 'OVERDUE'"
+                [class.bg-green-50]="inst.status === 'PAID'"
+              >
+                <td class="px-3 py-2 text-center text-gray-600">
+                  {{ inst.installmentNumber }}
+                </td>
+                <td class="px-3 py-2 text-gray-700">
+                  {{ inst.dueDate | date: "dd/MM/yyyy" }}
+                </td>
+                <td class="px-3 py-2 text-right font-medium">
+                  {{ inst.amountDue | currency: "ARS" : "symbol" : "1.0-0" }}
+                </td>
+                <td class="px-3 py-2 text-right text-gray-600">
+                  {{ inst.amountPaid | currency: "ARS" : "symbol" : "1.0-0" }}
+                </td>
+                <td class="px-3 py-2 text-right">
+                  @if (inst.penaltyAmount > 0) {
+                    <span class="text-red-600 font-medium">{{
+                      inst.penaltyAmount | currency: "ARS" : "symbol" : "1.0-0"
+                    }}</span>
+                  } @else {
+                    <span class="text-gray-300">—</span>
+                  }
+                </td>
+                <td class="px-3 py-2 text-center">
+                  <p-tag
+                    [value]="installmentLabel(inst.status)"
+                    [severity]="installmentSeverity(inst.status)"
+                  />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Summary footer -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-xs text-gray-400">Total pagado</p>
+          <p class="text-xl font-bold text-green-600">
+            {{ totalPaid | currency: "ARS" : "symbol" : "1.0-0" }}
+          </p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Saldo pendiente</p>
+          <p class="text-xl font-bold text-gray-800">
+            {{ pendingBalance | currency: "ARS" : "symbol" : "1.0-0" }}
+          </p>
+        </div>
+      </div>
+    </div>
+  } @else if (error) {
+    <div class="text-center py-8 text-red-500 text-sm">{{ error }}</div>
+  }
+</div>

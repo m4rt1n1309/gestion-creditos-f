@@ -60,6 +60,11 @@ export const routes: Routes = [
         (c) => c.ForgotPasswordComponent,
       ),
   },
+  {
+    path: AppRoutes.PORTAL,
+    loadChildren: () =>
+      import('./features/portal/portal.routes').then((r) => r.PORTAL_ROUTES),
+  },
   { path: '', redirectTo: AppRoutes.LOGIN, pathMatch: 'full' },
   { path: '**', redirectTo: AppRoutes.LOGIN },
 ];

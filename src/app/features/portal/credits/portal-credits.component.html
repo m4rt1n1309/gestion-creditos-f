@@ -1,0 +1,98 @@
+<div class="flex flex-col gap-6">
+  <h2 class="text-xl font-bold text-gray-800">Mis créditos</h2>
+
+  @if (loading) {
+    <div class="flex flex-col gap-4">
+      @for (i of [1, 2, 3]; track i) {
+        <p-skeleton height="6rem" borderRadius="0.75rem" />
+      }
+    </div>
+  } @else if (credits.length === 0) {
+    <div class="text-center py-12 text-gray-400">
+      <i class="pi pi-inbox text-4xl mb-3 block"></i>
+      No tenés créditos registrados.
+    </div>
+  } @else {
+    <div class="flex flex-col gap-4">
+      @for (credit of credits; track credit.id) {
+        <div
+          class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-shadow"
+          (click)="goToDetail(credit.id)"
+        >
+          <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+          >
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center"
+              >
+                <i
+                  class="pi"
+                  [class.pi-shopping-cart]="credit.type === 'SALE'"
+                  [class.pi-dollar]="credit.type === 'LOAN'"
+                  class="text-blue-600"
+                ></i>
+              </div>
+              <div>
+                <p class="font-semibold text-gray-800">
+                  {{ credit.type === "SALE" ? "Venta en cuotas" : "Préstamo" }}
+                </p>
+                <p class="text-xs text-gray-400">
+                  {{ credit.createdAt | date: "dd/MM/yyyy" }}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="text-right">
+                <p class="text-xs text-gray-400">Total</p>
+                <p class="font-bold text-gray-800">
+                  {{
+                    credit.totalAmount | currency: "ARS" : "symbol" : "1.0-0"
+                  }}
+                </p>
+              </div>
+              <p-tag
+                [value]="credit.status === 'ACTIVE' ? 'Activo' : 'Saldado'"
+                [severity]="
+                  credit.status === 'ACTIVE' ? 'success' : 'secondary'
+                "
+              />
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+              <span
+                >{{ credit.paidInstallments }} de
+                {{ credit.totalInstallments }} cuotas pagadas</span
+              >
+              <span>{{ progressPercent(credit) }}%</span>
+            </div>
+            <p-progressBar
+              [value]="progressPercent(credit)"
+              [showValue]="false"
+              styleClass="h-2"
+            />
+          </div>
+
+          @if (credit.nextDueDate) {
+            <div class="mt-3 text-xs text-gray-500">
+              Próximo vencimiento:
+              <span class="font-medium text-gray-700">{{
+                credit.nextDueDate | date: "dd/MM/yyyy"
+              }}</span>
+              —
+              <span class="font-medium text-gray-700">{{
+                credit.nextDueAmount | currency: "ARS" : "symbol" : "1.0-0"
+              }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (error) {
+    <div class="text-center py-8 text-red-500 text-sm">{{ error }}</div>
+  }
+</div>

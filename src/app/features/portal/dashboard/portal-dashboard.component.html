@@ -1,0 +1,142 @@
+<div class="flex flex-col gap-6">
+  <div class="flex items-center justify-between">
+    <h2 class="text-xl font-bold text-gray-800">Resumen de cuenta</h2>
+    <button
+      pButton
+      type="button"
+      label="Ver mis créditos"
+      icon="pi pi-list"
+      class="p-button-outlined p-button-sm"
+      routerLink="/portal/credits"
+    ></button>
+  </div>
+
+  @if (loading) {
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <p-skeleton height="5rem" borderRadius="0.75rem" />
+      }
+    </div>
+  } @else if (summary) {
+    <!-- Status indicator -->
+    <div class="flex items-center justify-center">
+      <div class="flex flex-col items-center gap-2">
+        <div
+          class="w-20 h-20 rounded-full flex items-center justify-center shadow-lg"
+          [class.bg-green-500]="summary.statusIndicator === 'GREEN'"
+          [class.bg-yellow-400]="summary.statusIndicator === 'YELLOW'"
+          [class.bg-red-500]="summary.statusIndicator === 'RED'"
+        >
+          <i class="pi pi-circle-fill text-white text-3xl"></i>
+        </div>
+        <span class="text-sm font-medium text-gray-700">
+          {{ statusLabel }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+        <p class="text-xs text-gray-500 mb-1">Deuda total</p>
+        <p class="text-2xl font-bold text-gray-800">
+          {{ summary.totalOwed | currency: "ARS" : "symbol" : "1.0-0" }}
+        </p>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+        <p class="text-xs text-gray-500 mb-1">Cuotas pendientes</p>
+        <p class="text-2xl font-bold text-blue-600">
+          {{ summary.pendingCount }}
+        </p>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+        <p class="text-xs text-gray-500 mb-1">Cuotas vencidas</p>
+        <p
+          class="text-2xl font-bold"
+          [class.text-red-600]="summary.overdueCount > 0"
+          [class.text-gray-800]="summary.overdueCount === 0"
+        >
+          {{ summary.overdueCount }}
+        </p>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+        <p class="text-xs text-gray-500 mb-1">Cuotas pagadas</p>
+        <p class="text-2xl font-bold text-green-600">{{ summary.paidCount }}</p>
+      </div>
+    </div>
+
+    <!-- Upcoming installments -->
+    <div
+      class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+    >
+      <div class="px-4 py-3 border-b border-gray-100">
+        <h3 class="font-semibold text-gray-700">Próximos vencimientos</h3>
+      </div>
+
+      @if (summary.upcomingInstallments.length === 0) {
+        <div class="px-4 py-8 text-center text-gray-400 text-sm">
+          <i class="pi pi-check-circle text-green-400 text-2xl mb-2 block"></i>
+          No tenés vencimientos en los próximos 30 días.
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left px-4 py-2 text-gray-500 font-medium">
+                  Crédito
+                </th>
+                <th class="text-center px-4 py-2 text-gray-500 font-medium">
+                  Cuota
+                </th>
+                <th class="text-left px-4 py-2 text-gray-500 font-medium">
+                  Vencimiento
+                </th>
+                <th class="text-right px-4 py-2 text-gray-500 font-medium">
+                  Monto
+                </th>
+                <th class="text-center px-4 py-2 text-gray-500 font-medium">
+                  Estado
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (inst of summary.upcomingInstallments; track inst.id) {
+                <tr class="border-t border-gray-50 hover:bg-gray-50">
+                  <td class="px-4 py-2">
+                    <a
+                      [routerLink]="['/portal/credits', inst.creditId]"
+                      class="text-blue-600 hover:underline text-xs"
+                    >
+                      {{ inst.creditType === "SALE" ? "Venta" : "Préstamo" }}
+                    </a>
+                  </td>
+                  <td class="px-4 py-2 text-center text-gray-600">
+                    N° {{ inst.installmentNumber }}
+                  </td>
+                  <td class="px-4 py-2 text-gray-600">
+                    {{ inst.dueDate | date: "dd/MM/yyyy" }}
+                  </td>
+                  <td class="px-4 py-2 text-right font-medium">
+                    {{ inst.amountDue | currency: "ARS" : "symbol" : "1.0-0" }}
+                  </td>
+                  <td class="px-4 py-2 text-center">
+                    <p-tag
+                      [value]="statusLabel_(inst.status)"
+                      [severity]="statusSeverity(inst.status)"
+                    />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  } @else if (error) {
+    <div class="text-center py-8 text-red-500 text-sm">
+      <i class="pi pi-exclamation-triangle text-2xl mb-2 block"></i>
+      {{ error }}
+    </div>
+  }
+</div>

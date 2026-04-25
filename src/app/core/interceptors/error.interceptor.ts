@@ -11,24 +11,28 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err) => {
-      // Solo actuar sobre llamadas al backend propio
       if (!req.url.startsWith(environment.apiBaseUrl)) {
         return throwError(() => err);
       }
 
       if (err?.status === 401) {
-        // Sesión expirada, invalidada o cerrada — limpiar y redirigir a login
         if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem(environment.tokenKey);
-          localStorage.removeItem('sgcf_user');
+          if (req.url.includes(AppRoutes.PORTAL)) {
+            localStorage.removeItem(environment.portalTokenKey);
+            localStorage.removeItem('sgcf_portal_customer');
+            router.navigate([AppRoutes.PORTAL_LOGIN]);
+          } else {
+            localStorage.removeItem(environment.tokenKey);
+            localStorage.removeItem('sgcf_user');
+            router.navigate([AppRoutes.LOGIN]);
+          }
         }
-        router.navigate([AppRoutes.LOGIN]);
       }
 
       if (err?.status === 403) {
         // "Debés cambiar tu contraseña antes de continuar." (is_temp_password)
         // TODO (prompt-05): crear ruta /change-password y descomentar la navegación
-        // router.navigate(['/change-password']);
+        // router.navigate([AppRoutes.CHANGE_PASSWORD]);
       }
 
       return throwError(() => err);

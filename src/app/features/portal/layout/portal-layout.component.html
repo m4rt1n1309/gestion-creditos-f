@@ -1,0 +1,47 @@
+<div class="min-h-screen bg-gray-50 flex flex-col">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-xl font-bold text-blue-700">FinFlow</span>
+        <span class="text-gray-400 hidden sm:inline">|</span>
+        <span class="text-gray-700 text-sm hidden sm:inline"
+          >Portal del Cliente</span
+        >
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-600 hidden sm:inline font-medium">
+          {{ customer?.fullName }}
+        </span>
+        <button
+          pButton
+          type="button"
+          label="Cerrar sesión"
+          icon="pi pi-sign-out"
+          class="p-button-outlined p-button-sm p-button-secondary"
+          (click)="logout()"
+        ></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Temp password banner -->
+  @if (customer?.portalIsTempPassword) {
+    <div class="bg-yellow-50 border-b border-yellow-200">
+      <div
+        class="max-w-4xl mx-auto px-4 py-2 flex items-center gap-2 text-yellow-800 text-sm"
+      >
+        <i class="pi pi-exclamation-triangle text-yellow-500"></i>
+        <span
+          >Tu contraseña es temporal. Comunicate con el negocio para solicitar
+          el cambio.</span
+        >
+      </div>
+    </div>
+  }
+
+  <!-- Content -->
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-6">
+    <router-outlet />
+  </main>
+</div>
