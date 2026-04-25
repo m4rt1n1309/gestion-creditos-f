@@ -1,4 +1,4 @@
-@if (auth.currentUser$ | async) {
+@if (!isPortalRoute() && (auth.currentUser$ | async)) {
   <div class="flex h-dvh w-full overflow-hidden bg-gray-50">
     <sidebar />
     <div class="flex flex-col flex-1 overflow-hidden">
