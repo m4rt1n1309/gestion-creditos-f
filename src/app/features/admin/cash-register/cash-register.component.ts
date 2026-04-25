@@ -1,278 +1,297 @@
-import { CurrencyPipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { CurrencyPipe, DatePipe } from '@angular/common';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { CalendarModule } from 'primeng/calendar';
 import { CardModule } from 'primeng/card';
+import { DialogModule } from 'primeng/dialog';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { InputTextareaModule } from 'primeng/inputtextarea';
+import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { DateService } from '../../../core/services/date.service';
+import { ToastModule } from 'primeng/toast';
+import { TooltipModule } from 'primeng/tooltip';
+import { Subject, interval } from 'rxjs';
+import { finalize, switchMap, takeUntil } from 'rxjs/operators';
+import { AppError } from '../../../core/models/app-error';
+import { HeaderService } from '../../../core/services/header.service';
+import { ErrorStateComponent } from '../../../shared/states/error-state/error-state.component';
+import { LoadingStateComponent } from '../../../shared/states/loading-state/loading-state.component';
 import {
-  CloseRegisterComponent,
-  CloseRegisterData,
-} from './close-register/close-register.component';
-import {
-  CashMovementDetail,
-  MovementDetailComponent,
-} from './movement-detail/movement-detail.component';
-
-interface CashMovement {
-  id: string;
-  date: string;
-  time: string;
-  type: 'INGRESO' | 'EGRESO';
-  concept: string;
-  amount: number;
-  paymentMethod: string;
-  paymentMethodIcon: string;
-  createdBy: string;
-  status: 'Aplicado' | 'Pendiente' | 'Anulado';
-  creditId?: string;
-  clientName?: string;
-  installment?: string;
-  category?: string;
-  authorizedBy?: string;
-  receiptNumber?: string;
-  observations?: string;
-}
-
-interface ClosedRegisterSnapshot {
-  closedAt: string;
-  closedBy: string;
-  initialBalance: number;
-  income: number;
-  expenses: number;
-  incomeTransactions: number;
-  expenseTransactions: number;
-  movements: CashMovement[];
-}
-
-const CLOSED_REGISTERS: Record<string, ClosedRegisterSnapshot> = {
-  '19-04-2026': {
-    closedAt: '06:00 p.m.',
-    closedBy: 'Carlos Ruiz',
-    initialBalance: 5000,
-    income: 45200,
-    expenses: 12300,
-    incomeTransactions: 32,
-    expenseTransactions: 8,
-    movements: [
-      {
-        id: 'MOV-2026-04190015',
-        date: '19 Abr 2026',
-        time: '14:30',
-        type: 'INGRESO',
-        concept: 'Pago cuota CR001 · Juan Pérez',
-        amount: 2916670,
-        paymentMethod: 'Efectivo',
-        paymentMethodIcon: 'pi pi-money-bill',
-        createdBy: 'María S.',
-        status: 'Aplicado',
-        creditId: 'CR001',
-        clientName: 'Juan Pérez · CC 1.012.345.678',
-        installment: 'Cuota 1 de 12',
-      },
-      {
-        id: 'MOV-2026-04190014',
-        date: '19 Abr 2026',
-        time: '13:45',
-        type: 'EGRESO',
-        concept: 'Pago comisiones Vendedores',
-        amount: 1200000,
-        paymentMethod: 'Efectivo',
-        paymentMethodIcon: 'pi pi-money-bill',
-        createdBy: 'Admin',
-        status: 'Aplicado',
-        category: 'Comisiones',
-        authorizedBy: 'Carlos Ruiz · Administrador',
-      },
-      {
-        id: 'MOV-2026-04190013',
-        date: '19 Abr 2026',
-        time: '13:30',
-        type: 'INGRESO',
-        concept: 'Pago cuota CR002 · María López',
-        amount: 3500000,
-        paymentMethod: 'Nequi',
-        paymentMethodIcon: 'pi pi-mobile',
-        createdBy: 'Juan P.',
-        status: 'Aplicado',
-        creditId: 'CR002',
-        clientName: 'María López · CC 1.054.321.987',
-        installment: 'Cuota 7 de 12',
-      },
-    ],
-  },
-};
+  CashRegister,
+  CashRegisterClosePayload,
+  CashRegisterDashboard,
+  CashRegisterFilters,
+  DifferenceStatus,
+} from '../models/cash-register.model';
+import { CashRegisterService } from './cash-register.service';
 
 @Component({
   selector: 'app-cash-register',
   standalone: true,
   imports: [
     CurrencyPipe,
+    DatePipe,
     FormsModule,
     ButtonModule,
-    CalendarModule,
     CardModule,
-    TagModule,
+    DialogModule,
+    InputNumberModule,
+    InputTextareaModule,
+    SkeletonModule,
     TableModule,
-    CloseRegisterComponent,
-    MovementDetailComponent,
+    TagModule,
+    ToastModule,
+    TooltipModule,
+    LoadingStateComponent,
+    ErrorStateComponent,
   ],
+  providers: [MessageService],
   templateUrl: './cash-register.component.html',
-  styleUrl: './cash-register.component.scss',
 })
-export class CashRegisterComponent implements OnInit {
-  today = '';
-  selectedDate: Date = new Date();
-  initialBalance = 5000;
-  income = 4850000;
-  expenses = 1230000;
-  incomeTransactions = 23;
-  expenseTransactions = 8;
+export class CashRegisterComponent implements OnInit, OnDestroy {
+  private readonly service = inject(CashRegisterService);
+  private readonly header = inject(HeaderService);
+  private readonly msg = inject(MessageService);
+  private destroy$ = new Subject<void>();
 
-  closedSnapshot: ClosedRegisterSnapshot | null = null;
+  dashboard: CashRegisterDashboard | null = null;
+  loadingDashboard = true;
+  errorDashboard: AppError | null = null;
+  closedToday = false;
 
-  showCloseModal = false;
-  closeRegisterData!: CloseRegisterData;
+  history: CashRegister[] = [];
+  loadingHistory = true;
+  errorHistory: AppError | null = null;
 
-  showMovementDetail = false;
-  selectedMovement!: CashMovementDetail;
+  filterDateFrom: string | null = null;
+  filterDateTo: string | null = null;
 
-  private readonly defaultMovements: CashMovement[] = [
-    {
-      id: 'MOV-2026-04180021',
-      date: '18 Abr 2026',
-      time: '10:32 a.m.',
-      type: 'INGRESO',
-      concept: 'Pago cuota crédito',
-      amount: 1250000,
-      paymentMethod: 'Efectivo',
-      paymentMethodIcon: 'pi pi-money-bill',
-      createdBy: 'Ana Martínez · Cajero',
-      status: 'Aplicado',
-      creditId: 'CR-2024-0341',
-      clientName: 'Juan Pérez García · CC 1.012.345.678',
-      installment: 'Cuota 3 de 12',
-    },
-    {
-      id: 'MOV-2026-04180020',
-      date: '18 Abr 2026',
-      time: '09:15 a.m.',
-      type: 'EGRESO',
-      concept: 'Pago proveedor papelería',
-      amount: 380000,
-      paymentMethod: 'Efectivo',
-      paymentMethodIcon: 'pi pi-money-bill',
-      createdBy: 'Carlos Ruiz · Administrador',
-      status: 'Aplicado',
-      category: 'Gastos operativos',
-      authorizedBy: 'Ana Martínez · Supervisor',
-      receiptNumber: 'COMP-2026-00892',
-      observations: 'Proveedor: Papelería El Centro · Factura #8821',
-    },
-    {
-      id: 'MOV-2026-04180019',
-      date: '18 Abr 2026',
-      time: '08:50 a.m.',
-      type: 'INGRESO',
-      concept: 'Pago cuota crédito',
-      amount: 3500000,
-      paymentMethod: 'Nequi',
-      paymentMethodIcon: 'pi pi-mobile',
-      createdBy: 'Juan P.',
-      status: 'Aplicado',
-      creditId: 'CR-2024-0290',
-      clientName: 'María López · CC 1.054.321.987',
-      installment: 'Cuota 7 de 12',
-    },
-  ];
+  showCloseDialog = false;
+  declaredCash: number | null = null;
+  observations = '';
+  closing = false;
 
-  movements: CashMovement[] = [...this.defaultMovements];
-
-  constructor(private dateService: DateService) {}
+  showDetailDialog = false;
+  selectedRegister: CashRegister | null = null;
 
   ngOnInit(): void {
-    this.today = this.dateService.display(new Date(), 'dd-MM-yyyy');
-    this.closeRegisterData = {
-      date: this.today,
-      shift: '08:00 - 18:00',
-      totalIncome: this.income,
-      incomeTransactions: this.incomeTransactions,
-      totalExpenses: this.expenses,
-      expenseTransactions: this.expenseTransactions,
-      expectedBalance: this.finalBalance,
-      breakdown: [
-        { label: 'Efectivo', icon: 'pi pi-money-bill', amount: 2100000 },
-        {
-          label: 'Transferencia / Nequi',
-          icon: 'pi pi-credit-card',
-          amount: 1120000,
+    this.header.set([{ label: 'Caja' }]);
+    this.loadDashboard();
+    this.loadHistory();
+    this.startPolling();
+  }
+
+  ngOnDestroy(): void {
+    this.header.reset();
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Inicia un polling que actualiza el dashboard cada minuto para mantener los datos frescos, especialmente si hay otras personas usando el sistema y cerrando cajas. El historial no se actualiza automáticamente para no interferir con la revisión de datos históricos, pero se puede actualizar manualmente con los filtros.
+   */
+  private startPolling(): void {
+    interval(60_000)
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap(() => this.service.getDashboard()),
+      )
+      .subscribe({
+        next: (d) => {
+          this.dashboard = d;
         },
-        { label: 'Datafono', icon: 'pi pi-mobile', amount: 400000 },
-      ],
+      });
+  }
+
+  /**
+   * Carga los datos del dashboard, incluyendo el estado actual de la caja del día. Si la caja ya fue cerrada, se muestra un mensaje informativo. Cualquier error durante la carga se muestra en pantalla.
+   */
+  loadDashboard(): void {
+    this.loadingDashboard = true;
+    this.errorDashboard = null;
+    this.service
+      .getDashboard()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.loadingDashboard = false;
+        }),
+      )
+      .subscribe({
+        next: (d) => {
+          this.dashboard = d;
+        },
+        error: (err: AppError) => {
+          this.errorDashboard = err;
+        },
+      });
+  }
+
+  /**
+   * Carga el historial de cajas cerradas, aplicando los filtros de fecha si están establecidos. Mientras se cargan los datos, se muestra un indicador de carga. Si ocurre un error, se muestra un mensaje de error en pantalla.
+   */
+  loadHistory(): void {
+    this.loadingHistory = true;
+    this.errorHistory = null;
+    const filters: CashRegisterFilters = {};
+    if (this.filterDateFrom) filters.dateFrom = this.filterDateFrom;
+    if (this.filterDateTo) filters.dateTo = this.filterDateTo;
+    this.service
+      .getAll(filters)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.loadingHistory = false;
+        }),
+      )
+      .subscribe({
+        next: (history) => {
+          this.history = history;
+        },
+        error: (err: AppError) => {
+          this.errorHistory = err;
+        },
+      });
+  }
+
+  /**
+   * Abre el diálogo para cerrar la caja del día. Se precarga el monto declarado con el total de efectivo registrado en el dashboard para facilitar el proceso. Al confirmar el cierre, se envía la información al servicio y se maneja la respuesta para actualizar la interfaz y mostrar mensajes informativos o de error según corresponda.
+   */
+  openCloseDialog(): void {
+    this.declaredCash = this.dashboard?.cashAmount ?? 0;
+    this.observations = '';
+    this.showCloseDialog = true;
+  }
+
+  /**
+   * Confirma el cierre de la caja del día.
+   * @returns
+   */
+  confirmClose(): void {
+    if (this.declaredCash == null) return;
+    const payload: CashRegisterClosePayload = {
+      declaredCash: this.declaredCash,
     };
+    if (this.observations.trim())
+      payload.observations = this.observations.trim();
+    this.closing = true;
+    this.service
+      .close(payload)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.closing = false;
+        }),
+      )
+      .subscribe({
+        next: (reg) => {
+          this.showCloseDialog = false;
+          this.closedToday = true;
+          this.history = [reg, ...this.history];
+          this.msg.add({
+            severity: 'success',
+            summary: 'Caja cerrada',
+            detail: 'Cierre de caja registrado correctamente.',
+            life: 5000,
+          });
+          this.selectedRegister = reg;
+          this.showDetailDialog = true;
+          this.loadDashboard();
+        },
+        error: (err: AppError) => {
+          if (err.status === 409) {
+            this.closedToday = true;
+            this.showCloseDialog = false;
+            this.msg.add({
+              severity: 'warn',
+              summary: 'Caja ya cerrada',
+              detail: err.message,
+              life: 5000,
+            });
+          } else {
+            this.msg.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: err.message ?? 'No se pudo cerrar la caja.',
+              life: 5000,
+            });
+          }
+        },
+      });
   }
 
-  onDateChange(): void {
-    const key = this.dateService.display(this.selectedDate, 'dd-MM-yyyy');
-    const snapshot = CLOSED_REGISTERS[key] ?? null;
-    this.closedSnapshot = snapshot;
-
-    if (snapshot) {
-      this.initialBalance = snapshot.initialBalance;
-      this.income = snapshot.income;
-      this.expenses = snapshot.expenses;
-      this.incomeTransactions = snapshot.incomeTransactions;
-      this.expenseTransactions = snapshot.expenseTransactions;
-      this.movements = snapshot.movements;
-    } else {
-      this.initialBalance = 5000;
-      this.income = 4850000;
-      this.expenses = 1230000;
-      this.incomeTransactions = 23;
-      this.expenseTransactions = 8;
-      this.movements = [...this.defaultMovements];
-    }
+  /**
+   * Abre el diálogo de detalles para una caja cerrada específica.
+   * @param reg
+   */
+  openDetail(reg: CashRegister): void {
+    this.selectedRegister = reg;
+    this.showDetailDialog = true;
   }
 
-  openCloseRegister(): void {
-    this.closeRegisterData = {
-      ...this.closeRegisterData,
-      expectedBalance: this.finalBalance,
-    };
-    this.showCloseModal = true;
+  /**
+   * Aplica los filtros de fecha para actualizar el historial de cajas cerradas. Si se han establecido fechas de filtro, se cargarán los datos correspondientes a ese rango. Si no hay filtros, se cargará todo el historial disponible.
+   */
+  applyFilters(): void {
+    this.loadHistory();
   }
 
-  onRegisterClosed(result: {
-    countedCash: number;
-    observations: string;
-  }): void {
-    console.log('Cierre de caja:', result);
+  /**
+   * Limpia los filtros de fecha y recarga el historial completo de cajas cerradas. Esto permite al usuario volver a ver todo el historial sin restricciones de fecha después de haber aplicado algún filtro.
+   */
+  clearFilters(): void {
+    this.filterDateFrom = null;
+    this.filterDateTo = null;
+    this.loadHistory();
   }
 
-  viewMovement(mov: CashMovement): void {
-    this.selectedMovement = mov;
-    this.showMovementDetail = true;
+  /**
+   * Devuelve la etiqueta correspondiente al estado de diferencia.
+   * @param status
+   * @returns
+   */
+  differenceLabel(status: DifferenceStatus): string {
+    return { BALANCED: 'Cuadrada', SURPLUS: 'Sobrante', SHORTAGE: 'Faltante' }[
+      status
+    ];
   }
 
-  get formattedSelectedDate(): string {
-    return this.dateService.display(this.selectedDate, 'dd-MM-yyyy');
+  /**
+   * Devuelve el severidad correspondiente al estado de diferencia.
+   * @param status
+   * @returns
+   */
+  differenceSeverity(
+    status: DifferenceStatus,
+  ): 'success' | 'warning' | 'danger' {
+    return { BALANCED: 'success', SURPLUS: 'warning', SHORTAGE: 'danger' }[
+      status
+    ] as 'success' | 'warning' | 'danger';
   }
 
-  get isToday(): boolean {
-    return this.formattedSelectedDate === this.today;
+  /**
+   * Formatea un valor numérico como moneda.
+   * @param value
+   * @returns
+   */
+  formatCurrency(value: number): string {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      maximumFractionDigits: 0,
+    }).format(value);
   }
 
-  get closedDateLabel(): string {
-    if (!this.closedSnapshot) return '';
-    const d = this.selectedDate;
-    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  }
-
-  get finalBalance(): number {
-    return this.initialBalance + this.income - this.expenses;
+  /**
+   * Formatea una fecha en formato dd/mm/yyyy.
+   * @param iso
+   * @returns
+   */
+  formatDate(iso: string): string {
+    if (!iso) return '—';
+    const d = iso.split('T')[0].split('-');
+    return `${d[2]}/${d[1]}/${d[0]}`;
   }
 }
