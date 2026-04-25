@@ -49,3 +49,4 @@ src/environments/environment.ts
 
 # Claude AI
 .claude
+CLAUDE.md
