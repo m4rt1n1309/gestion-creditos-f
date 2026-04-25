@@ -1,147 +1,130 @@
-import {
-  ComponentFixture,
-  TestBed,
-  fakeAsync,
-  tick,
-} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { MessageService, ConfirmationService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { ApprovalsComponent } from './approvals.component';
-import { MockDataService } from '../../../mocks/mock-data.service';
+import { CreditsService } from '../../seller/operations/credits.service';
 import { DateService } from '../../../core/services/date.service';
 import { RouterTestingModule } from '@angular/router/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { Credit } from '../../seller/models/credit.model';
 
-const MOCK_ROWS = [
+const MOCK_CREDITS: Credit[] = [
   {
     id: 'CR001',
-    type: 'VENTA' as const,
-    clientName: 'Juan Pérez',
-    createdBy: 'María S.',
-    amount: 35000,
-    installments: 12,
-    waitingHours: 4,
-    status: 'PENDING_APPROVAL' as const,
-    riskLevel: 'MEDIUM' as const,
-    createdAt: '2026-04-15T10:00:00',
+    type: 'SALE',
+    totalAmount: 35000,
+    installmentsCount: 12,
+    paymentFrequency: 'MONTHLY',
+    interestRate: 5,
+    status: 'PENDING_APPROVAL',
+    createdAt: '2026-04-15T10:00:00Z',
+    approvedAt: null,
+    customerId: 'cust-1',
+    customerName: 'Juan Pérez',
+    customerDni: '12345678',
+    createdById: 'seller-1',
+    createdByName: 'María S.',
   },
   {
     id: 'CR002',
-    type: 'PRÉSTAMO' as const,
-    clientName: 'María López',
-    createdBy: 'Carlos L.',
-    amount: 15000,
-    installments: 6,
-    waitingHours: 52,
-    status: 'PENDING_APPROVAL' as const,
-    riskLevel: 'HIGH' as const,
-    createdAt: '2026-04-13T10:00:00',
+    type: 'LOAN',
+    totalAmount: 15000,
+    installmentsCount: 6,
+    paymentFrequency: 'MONTHLY',
+    interestRate: 5,
+    status: 'PENDING_APPROVAL',
+    createdAt: '2026-04-13T10:00:00Z',
+    approvedAt: null,
+    customerId: 'cust-2',
+    customerName: 'María López',
+    customerDni: '87654321',
+    createdById: 'seller-2',
+    createdByName: 'Carlos L.',
   },
 ];
 
 describe('ApprovalsComponent', () => {
   let component: ApprovalsComponent;
   let fixture: ComponentFixture<ApprovalsComponent>;
-  let mockData: jasmine.SpyObj<MockDataService>;
-  let confirmSvc: ConfirmationService;
+  let creditsSvc: jasmine.SpyObj<CreditsService>;
 
   beforeEach(async () => {
-    mockData = jasmine.createSpyObj('MockDataService', [
-      'getPendingApprovals',
-      'approveCredit',
-      'rejectCredit',
+    creditsSvc = jasmine.createSpyObj('CreditsService', [
+      'list',
+      'approve',
+      'reject',
     ]);
-
-    mockData.getPendingApprovals.and.returnValue(of([...MOCK_ROWS]));
-    mockData.approveCredit.and.returnValue(of({ ok: true }));
-    mockData.rejectCredit.and.returnValue(of({ ok: true }));
+    creditsSvc.list.and.returnValue(of([...MOCK_CREDITS]));
+    creditsSvc.approve.and.returnValue(of({} as any));
+    creditsSvc.reject.and.returnValue(of(undefined as any));
 
     await TestBed.configureTestingModule({
       imports: [ApprovalsComponent, RouterTestingModule, NoopAnimationsModule],
       providers: [
-        { provide: MockDataService, useValue: mockData },
-        ConfirmationService,
+        { provide: CreditsService, useValue: creditsSvc },
         MessageService,
         DateService,
       ],
     })
-    .overrideComponent(ApprovalsComponent, { set: { providers: [] } })
-    .compileComponents();
-
-    confirmSvc = TestBed.inject(ConfirmationService);
-    spyOn(confirmSvc, 'confirm');
+      .overrideComponent(ApprovalsComponent, { set: { providers: [] } })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ApprovalsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  // ── Carga de datos ─────────────────────────────────────────────────────────
-  it('debería cargar las aprobaciones en ngOnInit', () => {
-    expect(mockData.getPendingApprovals).toHaveBeenCalledTimes(1);
+  it('carga aprobaciones en ngOnInit', () => {
+    expect(creditsSvc.list).toHaveBeenCalledWith({ status: 'PENDING_APPROVAL' });
     expect(component.approvals.length).toBe(2);
     expect(component.loading).toBeFalse();
   });
 
-  it('debería mostrar loading=true antes de que lleguen los datos', () => {
-    // Crear una instancia fresca sin detectar cambios
+  it('loading=true antes de que lleguen datos', () => {
     const f = TestBed.createComponent(ApprovalsComponent);
     expect(f.componentInstance.loading).toBeTrue();
   });
 
-  it('debería manejar error en carga y desactivar loading', () => {
-    mockData.getPendingApprovals.and.returnValue(
-      throwError(() => new Error('500')),
-    );
+  it('maneja error en carga y desactiva loading', () => {
+    creditsSvc.list.and.returnValue(throwError(() => new Error('500')));
     const f = TestBed.createComponent(ApprovalsComponent);
     f.detectChanges();
     expect(f.componentInstance.loading).toBeFalse();
     expect(f.componentInstance.approvals.length).toBe(0);
   });
 
-  // ── Anti-doble-submit ──────────────────────────────────────────────────────
-  it('processingId debería quedar en null antes de iniciar', () => {
+  it('processingId null al inicio', () => {
     expect(component.processingId).toBeNull();
   });
 
-  it('onApprove debería ignorar el clic si processingId está activo', () => {
-    component.processingId = 'CR001_approve';
-    component.onApprove(MOCK_ROWS[0]);
-    expect(confirmSvc.confirm).not.toHaveBeenCalled();
+  it('onApprove ignora clic si processingId activo', () => {
+    component.processingId = 'CR001';
+    component.onApprove(MOCK_CREDITS[0]);
+    expect(component.showApproveDialog).toBeFalse();
   });
 
-  it('onReject debería ignorar el clic si processingId está activo', () => {
-    component.processingId = 'CR001_approve';
-    component.onReject(MOCK_ROWS[0]);
-    expect(confirmSvc.confirm).not.toHaveBeenCalled();
+  it('onReject ignora clic si processingId activo', () => {
+    component.processingId = 'CR001';
+    component.onReject(MOCK_CREDITS[0]);
+    expect(component.showRejectDialog).toBeFalse();
   });
 
-  // ── Lógica de aprobación ───────────────────────────────────────────────────
-  it('aprobar debería quitar la fila del array y resetear processingId', () => {
-    // Simular que el usuario acepta el confirm
-    (confirmSvc.confirm as jasmine.Spy).and.callFake((config: any) => config.accept());
-
-    component.onApprove(MOCK_ROWS[0]);
-
-    expect(mockData.approveCredit).toHaveBeenCalledWith('CR001');
+  it('confirmApprove quita la fila aprobada del array', () => {
+    component.approvingRow = MOCK_CREDITS[0];
+    component.approveInstallmentsCount = 12;
+    component.confirmApprove();
+    expect(creditsSvc.approve).toHaveBeenCalledWith('CR001', {});
     expect(component.approvals.find((a) => a.id === 'CR001')).toBeUndefined();
-    expect(component.processingId).toBeNull();
   });
 
-  it('rechazar debería quitar la fila del array', () => {
-    (confirmSvc.confirm as jasmine.Spy).and.callFake((config: any) => config.accept());
-
-    component.onReject(MOCK_ROWS[1]);
-
-    expect(mockData.rejectCredit).toHaveBeenCalledWith(
-      'CR002',
-      'Decisión comercial',
-    );
-    expect(component.approvals.find((a) => a.id === 'CR002')).toBeUndefined();
+  it('confirmReject no envía si rejectReason menor a 5 chars', () => {
+    component.rejectingRow = MOCK_CREDITS[1];
+    component.rejectReason = 'abc';
+    component.confirmReject();
+    expect(creditsSvc.reject).not.toHaveBeenCalled();
   });
 
-  // ── Memory leak ────────────────────────────────────────────────────────────
-  it('debería desuscribirse en ngOnDestroy', () => {
+  it('desuscribe en ngOnDestroy', () => {
     const spy = spyOn(component['destroy$'], 'next').and.callThrough();
     fixture.destroy();
     expect(spy).toHaveBeenCalled();

@@ -51,7 +51,6 @@
     </div>
 
     @if (loading) {
-      <!-- TODO -> reemplazar por el .length del array -->
       <p-table
         [value]="[1, 2, 3, 4, 5]"
         styleClass="p-datatable-gridlines p-datatable-sm"
@@ -104,7 +103,7 @@
         <ng-template pTemplate="header">
           <tr>
             <th>Fecha</th>
-            <th>Cliente</th>
+            <th>Cliente / DNI</th>
             <th>Operación</th>
             <th class="text-right">Monto</th>
             <th>Vendedor</th>
@@ -115,12 +114,21 @@
         <ng-template pTemplate="body" let-app>
           <tr>
             <td>{{ app.createdAt | date: "short" }}</td>
-            <td class="font-medium">{{ app.clientName }}</td>
-            <td>{{ app.type }}</td>
-            <td class="text-right font-bold text-blue-600">
-              {{ app.amount | currency }}
+            <td class="font-medium">
+              {{ app.customerName }}
+              <span class="text-xs text-gray-400 ml-1">{{
+                app.customerDni
+              }}</span>
             </td>
-            <td class="text-sm text-gray-500">{{ app.createdBy }}</td>
+            <td>{{ app.type === "SALE" ? "Venta" : "Préstamo" }}</td>
+            <td class="text-right font-bold text-blue-600">
+              {{
+                app.totalAmount | currency: "ARS" : "symbol-narrow" : "1.0-2"
+              }}
+            </td>
+            <td class="text-sm text-gray-500">
+              {{ app.createdByName ?? "—" }}
+            </td>
             <td class="text-center">
               <p-tag value="PENDIENTE" severity="warning" [rounded]="true" />
             </td>
@@ -162,12 +170,29 @@
   <div class="flex flex-col gap-4 py-2">
     <div class="rounded-lg bg-gray-50 border border-gray-200 p-3">
       <p class="text-sm font-medium text-gray-700">
-        Operación #{{ approvingRow?.id }} · {{ approvingRow?.clientName }} ·
-        {{ approvingRow?.type }}
+        {{ approvingRow?.customerName }} · {{ approvingRow?.customerDni }} ·
+        {{ approvingRow?.type === "SALE" ? "Venta" : "Préstamo" }}
       </p>
       <p class="text-base font-bold text-green-600 mt-1">
-        Monto: {{ approvingRow?.amount | currency }}
+        Monto:
+        {{
+          approvingRow?.totalAmount
+            | currency: "ARS" : "symbol-narrow" : "1.0-2"
+        }}
       </p>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">
+        Cantidad de cuotas (puede ajustarse)
+      </label>
+      <input
+        type="number"
+        [(ngModel)]="approveInstallmentsCount"
+        min="1"
+        max="120"
+        class="w-full rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm text-gray-700 outline-none focus:border-blue-500"
+      />
     </div>
 
     <div class="flex flex-col gap-3">
@@ -192,20 +217,14 @@
         </label>
       </div>
     </div>
-
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Nota (opcional)</label>
-      <textarea
-        [(ngModel)]="approveNote"
-        rows="3"
-        class="w-full resize-none rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm text-gray-700 outline-none focus:border-blue-500"
-        placeholder="Documentación verificada..."
-      ></textarea>
-    </div>
   </div>
   <ng-template pTemplate="footer">
     <div class="grid grid-cols-2 gap-3 w-full">
-      <button type="button" class="cancel-btn w-full" (click)="showApproveDialog = false">
+      <button
+        type="button"
+        class="cancel-btn w-full"
+        (click)="showApproveDialog = false"
+      >
         Cancelar
       </button>
       <p-button
@@ -229,42 +248,46 @@
 >
   <div class="flex flex-col gap-4 py-2">
     <p class="text-sm font-medium text-gray-700">
-      Operación #{{ rejectingRow?.id }} · {{ rejectingRow?.clientName }}
+      {{ rejectingRow?.customerName }} · {{ rejectingRow?.customerDni }}
     </p>
 
-    <div class="flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 p-3">
+    <div
+      class="flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 p-3"
+    >
       <i class="pi pi-exclamation-triangle text-red-500 mt-0.5"></i>
       <p class="text-sm font-semibold text-red-700">
         ADVERTENCIA: Esta acción es irreversible y no se podrá deshacer.
       </p>
     </div>
 
-    <div class="flex flex-col gap-1 field-dark-border">
-      <label class="text-sm font-medium text-gray-700">
-        Motivo de rechazo (obligatorio)
-      </label>
-      <p-dropdown
-        [options]="REJECT_REASONS"
-        [(ngModel)]="rejectReason"
-        placeholder="Selecciona un motivo..."
-        styleClass="w-full h-11 rounded-xl flex items-center bg-gray-50"
-        appendTo="body"
-      />
-    </div>
-
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Especifica el motivo</label>
+      <label class="text-sm font-medium text-gray-700">
+        Motivo de rechazo (obligatorio, mín. 5 caracteres)
+      </label>
       <textarea
-        [(ngModel)]="rejectDetail"
-        rows="3"
+        [(ngModel)]="rejectReason"
+        rows="4"
+        maxlength="500"
         class="w-full resize-none rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm text-gray-700 outline-none focus:border-blue-500"
-        placeholder="Detallar razón del rechazo..."
+        placeholder="Describe el motivo del rechazo..."
       ></textarea>
+      <div class="flex justify-between text-xs text-gray-400 mt-1">
+        <span
+          [class.text-red-500]="rejectCharCount() < 5 && rejectCharCount() > 0"
+        >
+          Mínimo 5 caracteres
+        </span>
+        <span>{{ rejectCharCount() }}/500</span>
+      </div>
     </div>
   </div>
   <ng-template pTemplate="footer">
     <div class="grid grid-cols-2 gap-3 w-full">
-      <button type="button" class="cancel-btn w-full" (click)="showRejectDialog = false">
+      <button
+        type="button"
+        class="cancel-btn w-full"
+        (click)="showRejectDialog = false"
+      >
         Cancelar
       </button>
       <p-button
@@ -273,7 +296,7 @@
         styleClass="h-11 rounded-xl shadow-sm !bg-red-600 !border-red-600 hover:!bg-red-700 !text-white w-full"
         (onClick)="confirmReject()"
         [loading]="processingReject"
-        [disabled]="!rejectReason"
+        [disabled]="rejectCharCount() < 5"
       />
     </div>
   </ng-template>

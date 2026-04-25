@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-// PrimeNG — en Standalone cada componente importa solo lo que usa
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
@@ -22,10 +21,8 @@ import { BadgeModule } from 'primeng/badge';
 import { CardModule } from 'primeng/card';
 import { DropdownModule } from 'primeng/dropdown';
 import { DateService } from '../../../core/services/date.service';
-import {
-  MockDataService,
-  PendingApproval,
-} from '../../../mocks/mock-data.service';
+import { Credit, CreditType } from '../../seller/models/credit.model';
+import { CreditsService } from '../../seller/operations/credits.service';
 
 @Component({
   selector: 'approvals',
@@ -55,46 +52,41 @@ import {
   styleUrl: './approvals.component.scss',
 })
 export class ApprovalsComponent implements OnInit, OnDestroy {
-  readonly REJECT_REASONS = [
-    'Cliente con mora activa',
-    'Monto excede capacidad de pago',
-    'Documentación insuficiente',
-    'Decisión comercial',
-    'Otro',
-  ];
-
-  approvals: PendingApproval[] = [];
+  approvals: Credit[] = [];
   loading = true;
   processingId: string | null = null;
 
   showApproveDialog = false;
-  approvingRow: PendingApproval | null = null;
+  approvingRow: Credit | null = null;
   approveCheckDoc = false;
   approveCheckClient = false;
   approveNote = '';
+  approveInstallmentsCount: number | null = null;
   processingApprove = false;
 
   showRejectDialog = false;
-  rejectingRow: PendingApproval | null = null;
+  rejectingRow: Credit | null = null;
   rejectReason = '';
-  rejectDetail = '';
   processingReject = false;
 
   searchTerm = '';
-  filterType: string | null = null;
+  filterType: CreditType | null = null;
 
   readonly TYPE_OPTIONS = [
-    { label: 'Venta', value: 'VENTA' },
-    { label: 'Préstamo', value: 'PRÉSTAMO' },
+    { label: 'Venta', value: 'SALE' as CreditType },
+    { label: 'Préstamo', value: 'LOAN' as CreditType },
   ];
 
-  get filteredApprovals(): PendingApproval[] {
+  /**
+   * Devuelve las aprobaciones filtradas según el término de búsqueda y el tipo seleccionado.
+   */
+  get filteredApprovals(): Credit[] {
     return this.approvals.filter((a) => {
       const term = this.searchTerm.toLowerCase();
       const matchSearch =
         !term ||
-        a.clientName.toLowerCase().includes(term) ||
-        a.createdBy.toLowerCase().includes(term);
+        a.customerName.toLowerCase().includes(term) ||
+        (a.createdByName ?? '').toLowerCase().includes(term);
       const matchType = !this.filterType || a.type === this.filterType;
       return matchSearch && matchType;
     });
@@ -103,7 +95,7 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private data: MockDataService,
+    private credits: CreditsService,
     private msg: MessageService,
     public dateService: DateService,
   ) {}
@@ -118,20 +110,19 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Carga las aprobaciones pendientes desde el servicio.
-   * Maneja el estado de carga y errores.
+   * Recarga la lista de aprobaciones pendientes. Se puede llamar después de aprobar o rechazar para actualizar la vista, o usar el botón de recarga manual.
    */
   refresh(): void {
     this.loadApprovals();
   }
 
   /**
-   * Carga las aprobaciones pendientes desde el servicio. Establece el estado de carga mientras se realiza la petición y actualiza la lista de aprobaciones al recibir la respuesta. En caso de error, simplemente desactiva el estado de carga.
+   * Carga las aprobaciones pendientes desde el servicio. Mientras se cargan, se muestra un indicador de carga. Si ocurre un error, se oculta el indicador y se mantiene la lista anterior (si la hay).
    */
   private loadApprovals(): void {
     this.loading = true;
-    this.data
-      .getPendingApprovals()
+    this.credits
+      .list({ status: 'PENDING_APPROVAL' })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data) => {
@@ -145,21 +136,22 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Maneja la aprobación de una solicitud. Muestra un confirm dialog y, si se acepta, llama al servicio para aprobar. Mientras se procesa, bloquea los botones para evitar acciones duplicadas.
+   * Abre el diálogo de aprobación para la fila seleccionada.
    * @param row
    * @returns
    */
-  onApprove(row: PendingApproval): void {
+  onApprove(row: Credit): void {
     if (this.processingId) return;
     this.approvingRow = row;
     this.approveCheckDoc = false;
     this.approveCheckClient = false;
     this.approveNote = '';
+    this.approveInstallmentsCount = row.installmentsCount;
     this.showApproveDialog = true;
   }
 
   /**
-   * Confirma la aprobación de una solicitud. Verifica que se hayan marcado las casillas de verificación y luego llama al servicio para aprobar la solicitud. Mientras se procesa, bloquea los botones para evitar acciones duplicadas. Al finalizar, muestra un mensaje de éxito o error según corresponda.
+   * Confirma la aprobación de la fila seleccionada.
    * @returns
    */
   confirmApprove(): void {
@@ -167,8 +159,14 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
     this.processingApprove = true;
     const row = this.approvingRow;
 
-    this.data
-      .approveCredit(row.id)
+    const payload =
+      this.approveInstallmentsCount !== null &&
+      this.approveInstallmentsCount !== row.installmentsCount
+        ? { installmentsCount: this.approveInstallmentsCount }
+        : {};
+
+    this.credits
+      .approve(row.id, payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -179,44 +177,44 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
           this.msg.add({
             severity: 'success',
             summary: 'Aprobado',
-            detail: `Crédito de ${row.clientName} aprobado. Se generó el cronograma de cuotas.`,
+            detail: `Crédito de ${row.customerName} aprobado. Se generó el cronograma de cuotas.`,
             life: 4000,
           });
         },
-        error: () => {
+        error: (err: { status?: number; message?: string }) => {
           this.processingApprove = false;
+          const is409 = err?.status === 409;
           this.msg.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudo aprobar. Intentá nuevamente.',
+            severity: is409 ? 'warn' : 'error',
+            summary: is409 ? 'Advertencia' : 'Error',
+            detail: err?.message ?? 'No se pudo aprobar. Intentá nuevamente.',
           });
         },
       });
   }
 
   /**
-   *  Maneja el rechazo de una solicitud. Abre un diálogo para seleccionar el motivo de rechazo y, al confirmar, llama al servicio para rechazar. Mientras se procesa, bloquea los botones para evitar acciones duplicadas.
+   * Abre el diálogo de rechazo para la fila seleccionada.
    * @param row
    * @returns
    */
-  onReject(row: PendingApproval): void {
+  onReject(row: Credit): void {
     if (this.processingId) return;
     this.rejectingRow = row;
     this.rejectReason = '';
-    this.rejectDetail = '';
     this.showRejectDialog = true;
   }
 
   /**
-   * Confirma el rechazo de una solicitud. Verifica que se haya seleccionado un motivo de rechazo y luego llama al servicio para rechazar la solicitud. Mientras se procesa, bloquea los botones para evitar acciones duplicadas. Al finalizar, muestra un mensaje de información o error según corresponda.
+   * Confirma el rechazo de la fila seleccionada.
    * @returns
    */
   confirmReject(): void {
-    if (!this.rejectReason || !this.rejectingRow) return;
+    if (this.rejectReason.length < 5 || !this.rejectingRow) return;
     this.processingReject = true;
 
-    this.data
-      .rejectCredit(this.rejectingRow.id, this.rejectReason)
+    this.credits
+      .reject(this.rejectingRow.id, { rejectionReason: this.rejectReason })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
@@ -228,19 +226,28 @@ export class ApprovalsComponent implements OnInit, OnDestroy {
           this.msg.add({
             severity: 'info',
             summary: 'Rechazado',
-            detail: `${this.rejectingRow!.clientName} — ${this.rejectReason}`,
+            detail: `${this.rejectingRow!.customerName} — ${this.rejectReason}`,
             life: 4000,
           });
           this.rejectingRow = null;
         },
-        error: () => {
+        error: (err: { status?: number; message?: string }) => {
           this.processingReject = false;
+          const is409 = err?.status === 409;
           this.msg.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudo rechazar.',
+            severity: is409 ? 'warn' : 'error',
+            summary: is409 ? 'Advertencia' : 'Error',
+            detail: err?.message ?? 'No se pudo rechazar.',
           });
         },
       });
+  }
+
+  /**
+   * Devuelve el número de caracteres en el motivo de rechazo.
+   * @returns
+   */
+  rejectCharCount(): number {
+    return this.rejectReason.length;
   }
 }
