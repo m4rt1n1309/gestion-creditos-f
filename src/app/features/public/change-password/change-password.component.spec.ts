@@ -125,7 +125,7 @@ describe('MockAuthService.changePassword', () => {
     service.changePassword('old', 'new').subscribe(() => {
       expect(service.snapshot?.is_temp_password).toBeFalse();
       expect(routerSpy.navigate).toHaveBeenCalledWith([
-        AppRoutes.ADMIN_DASHBOARD,
+        AppRoutes.DASHBOARD,
       ]);
       done();
     });
