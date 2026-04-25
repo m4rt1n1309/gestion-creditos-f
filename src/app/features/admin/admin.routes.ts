@@ -101,5 +101,33 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () =>
       import('./config/config.component').then((c) => c.ConfigComponent),
   },
+  {
+    path: AppRoutes.ADMIN_COLLECTIONS_NEW,
+    loadComponent: () =>
+      import('./collections/collection-generate.component').then(
+        (c) => c.CollectionGenerateComponent,
+      ),
+  },
+  {
+    path: AppRoutes.ADMIN_COLLECTIONS_DETAIL,
+    loadComponent: () =>
+      import('./collections/admin-collection-detail.component').then(
+        (c) => c.AdminCollectionDetailComponent,
+      ),
+  },
+  {
+    path: AppRoutes.ADMIN_COLLECTIONS,
+    loadComponent: () =>
+      import('./collections/admin-collections.component').then(
+        (c) => c.AdminCollectionsComponent,
+      ),
+  },
+  {
+    path: AppRoutes.ADMIN_PAYMENTS,
+    loadComponent: () =>
+      import('./payments/admin-payments.component').then(
+        (c) => c.AdminPaymentsComponent,
+      ),
+  },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 ];
