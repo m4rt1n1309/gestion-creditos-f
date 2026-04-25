@@ -6,7 +6,7 @@ import { LoadingService } from '../services/loading.service';
 // Endpoints de polling o background que NO deben activar el spinner global.
 // Agregar paths relativos (sin base URL) según se necesite.
 // Ejemplo: '/api/cash-register/dashboard' si se usa con refresh automático.
-const SILENT_URLS: string[] = [];
+const SILENT_URLS: string[] = ['cash-register/dashboard'];
 
 export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
   const loading = inject(LoadingService);
