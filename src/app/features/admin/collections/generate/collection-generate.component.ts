@@ -7,18 +7,18 @@ import { CardModule } from 'primeng/card';
 import { DropdownModule } from 'primeng/dropdown';
 import { MessageModule } from 'primeng/message';
 import { ToastModule } from 'primeng/toast';
-import { AppError } from '../../../core/models/app-error';
-import { HeaderService } from '../../../core/services/header.service';
+import { AppError } from '../../../../core/models/app-error';
+import { HeaderService } from '../../../../core/services/header.service';
 import {
   CollectionGeneratePayload,
   CollectionsService,
-} from '../../collector/collections.service';
+} from '../../../collector/collections.service';
 import {
   COLLECTION_FILTER_LABELS,
   CollectionFilter,
-} from '../../collector/models/collection.model';
-import { User } from '../users/user.model';
-import { UsersService } from '../users/users.service';
+} from '../../../collector/models/collection.model';
+import { User } from '../../users/user.model';
+import { UsersService } from '../../users/users.service';
 
 @Component({
   selector: 'app-collection-generate',

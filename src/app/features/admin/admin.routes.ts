@@ -94,7 +94,9 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: AppRoutes.ADMIN_COMMISSIONS,
     loadComponent: () =>
-      import('./commissions/commissions.component').then((c) => c.CommissionsComponent),
+      import('./commissions/commissions.component').then(
+        (c) => c.CommissionsComponent,
+      ),
   },
   {
     path: AppRoutes.REPORTS,
@@ -109,7 +111,7 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: AppRoutes.ADMIN_COLLECTIONS_NEW,
     loadComponent: () =>
-      import('./collections/collection-generate.component').then(
+      import('./collections/generate/collection-generate.component').then(
         (c) => c.CollectionGenerateComponent,
       ),
   },
