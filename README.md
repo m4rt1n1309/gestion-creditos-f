@@ -23,40 +23,65 @@ Frontend de la plataforma de gestión de créditos y cobros, construida con Angu
 
 ### Admin (`/admin/*`)
 
-| Ruta                   | Descripción                                          |
-| ---------------------- | ---------------------------------------------------- |
-| `/admin/dashboard`     | KPIs y resumen de operaciones recientes              |
-| `/admin/operations`    | Listado y creación de operaciones                    |
-| `/admin/clients/:dni`  | Detalle de cliente (créditos, documentos, historial) |
-| `/admin/users`         | CRUD de usuarios y roles                             |
-| `/admin/approvals`     | Flujo de aprobación de créditos                      |
-| `/admin/delinquency`   | Seguimiento de mora                                  |
-| `/admin/cash-register` | Caja y movimientos de pago                           |
-| `/admin/sheet`         | Planilla de cobro (exportable a PDF)                 |
-| `/admin/reports`       | Reportes                                             |
-| `/admin/config`        | Configuración de empresa, tasas, notificaciones      |
+| Ruta                         | Descripción                                          |
+| ---------------------------- | ---------------------------------------------------- |
+| `/admin/dashboard`           | KPIs y resumen de operaciones recientes              |
+| `/admin/operations`          | Listado y creación de operaciones                    |
+| `/admin/clients/:dni`        | Detalle de cliente (créditos, documentos, historial) |
+| `/admin/users`               | CRUD de usuarios y roles                             |
+| `/admin/approvals`           | Flujo de aprobación de créditos                      |
+| `/admin/delinquency`         | Seguimiento de mora                                  |
+| `/admin/cash-register`       | Caja y movimientos de pago                           |
+| `/admin/sheet`               | Planilla de cobro (exportable a PDF)                 |
+| `/admin/collections`         | Planillas de cobro generadas                         |
+| `/admin/collections/new`     | Generar nueva planilla de cobro                      |
+| `/admin/collections/:id`     | Detalle de planilla de cobro                         |
+| `/admin/payments`            | Pagos recibidos                                      |
+| `/admin/commissions`         | Comisiones de vendedores y cobradores                |
+| `/admin/reports`             | Reportes                                             |
+| `/admin/config`              | Configuración de empresa, tasas, notificaciones      |
 
 ### Seller (`/seller/*`)
 
-| Ruta                  | Descripción                         |
-| --------------------- | ----------------------------------- |
-| `/seller/clients`     | Directorio de clientes con filtros  |
-| `/seller/clients/new` | Alta de nuevo cliente               |
-| `/seller/clients/:id` | Detalle y edición de cliente        |
-| `/seller/operations`  | Listado de operaciones del vendedor |
+| Ruta                        | Descripción                         |
+| --------------------------- | ----------------------------------- |
+| `/seller/clients`           | Directorio de clientes con filtros  |
+| `/seller/clients/new`       | Alta de nuevo cliente               |
+| `/seller/clients/:dni`      | Detalle y edición de cliente        |
+| `/seller/operations`        | Listado de operaciones del vendedor |
+| `/seller/operations/new`    | Crear nueva operación               |
+| `/seller/operations/:id`    | Detalle de operación                |
+| `/seller/products`          | Catálogo de productos               |
+| `/seller/products/new`      | Crear producto (solo ADMIN)         |
+| `/seller/products/:id`      | Detalle de producto                 |
+| `/seller/products/:id/edit` | Editar producto (solo ADMIN)        |
+| `/seller/commissions`       | Comisiones del vendedor             |
 
 ### Collector (`/collector/*`)
 
-| Ruta               | Descripción            |
-| ------------------ | ---------------------- |
-| `/collector/route` | Ruta de cobro asignada |
+| Ruta                       | Descripción                         |
+| -------------------------- | ----------------------------------- |
+| `/collector/route`         | Ruta de cobro asignada              |
+| `/collector/route/:sheetId`| Detalle de planilla de cobro        |
+| `/collector/payments`      | Pagos registrados por el cobrador   |
+| `/collector/commissions`   | Comisiones del cobrador             |
+
+### Portal cliente (`/portal/*`)
+
+| Ruta                    | Descripción                        |
+| ----------------------- | ---------------------------------- |
+| `/portal/login`         | Acceso del cliente (sin auth admin)|
+| `/portal/dashboard`     | Resumen de cuenta del cliente      |
+| `/portal/credits`       | Listado de créditos del cliente    |
+| `/portal/credits/:id`   | Detalle de crédito                 |
 
 ### Público
 
 | Ruta               | Descripción                |
 | ------------------ | -------------------------- |
-| `/login`           | Autenticación              |
+| `/login`           | Autenticación admin/roles  |
 | `/forgot-password` | Recuperación de contraseña |
+| `/change-password` | Cambio de contraseña (auth requerida) |
 
 ---
 
@@ -71,10 +96,11 @@ src/app/
 │   ├── models/            # AuthUser, ApiResponse<T>, UserRole
 │   └── services/          # DateService, HeaderService, LoadingService
 ├── features/
-│   ├── admin/             # Dashboard, aprobaciones, caja, usuarios, config
-│   ├── seller/            # Clientes, modelos Customer
-│   ├── collector/         # Ruta de cobro
-│   └── public/            # Login, recuperación de contraseña
+│   ├── admin/             # Dashboard, aprobaciones, caja, usuarios, colecciones, pagos, comisiones, config
+│   ├── seller/            # Clientes, operaciones, productos, comisiones
+│   ├── collector/         # Ruta de cobro, pagos, comisiones
+│   ├── portal/            # Portal cliente (login, dashboard, créditos)
+│   └── public/            # Login admin, recuperación/cambio de contraseña
 ├── shared/
 │   ├── components/        # TempPasswordDialog
 │   ├── layout/            # Header, Sidebar
@@ -106,6 +132,7 @@ src/app/
 | `SELLER`           | `/seller/*`                  |
 | `COLLECTOR`        | `/collector/*`               |
 | `SELLER_COLLECTOR` | `/seller/*` + `/collector/*` |
+| `CASHIER`          | Por definir                  |
 
 ---
 
