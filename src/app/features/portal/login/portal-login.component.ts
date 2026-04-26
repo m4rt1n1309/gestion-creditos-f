@@ -3,6 +3,8 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { AppRoutes } from '../../../shared/models/enums/routes.enum';
@@ -17,6 +19,8 @@ import { PortalAuthService } from '../auth/portal-auth.service';
     ButtonModule,
     InputTextModule,
     PasswordModule,
+    IconFieldModule,
+    InputIconModule,
   ],
   templateUrl: './portal-login.component.html',
 })

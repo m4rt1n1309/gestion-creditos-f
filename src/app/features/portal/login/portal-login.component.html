@@ -1,65 +1,116 @@
-<div class="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-  <div class="w-full max-w-md bg-white rounded-xl shadow-md p-8">
-    <div class="text-center mb-8">
-      <h1 class="text-2xl font-bold text-blue-700">FinFlow</h1>
-      <p class="text-gray-500 mt-1 text-sm">Portal del Cliente</p>
+<div class="min-h-screen flex">
+  <div
+    class="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 flex-col items-center justify-center px-12 text-white"
+  >
+    <h1 class="text-3xl font-bold mb-4">SisCreditos</h1>
+    <h2 class="text-2xl font-semibold mb-3">Tu portal financiero</h2>
+    <p class="text-blue-100 text-center text-sm mb-10">
+      Gestioná tus créditos, consultá tus cuotas y realizá pagos desde cualquier
+      lugar.
+    </p>
+    <div class="flex gap-8 text-center">
+      <div>
+        <p class="text-2xl font-bold">$2.4M+</p>
+        <p class="text-blue-200 text-xs mt-1">En créditos</p>
+      </div>
+      <div>
+        <p class="text-2xl font-bold">1.200+</p>
+        <p class="text-blue-200 text-xs mt-1">Clientes activos</p>
+      </div>
+      <div>
+        <p class="text-2xl font-bold">98%</p>
+        <p class="text-blue-200 text-xs mt-1">Satisfacción</p>
+      </div>
     </div>
+  </div>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="flex flex-col gap-5">
-        <div class="flex flex-col gap-1">
-          <label for="dni" class="text-sm font-medium text-gray-700">DNI</label>
-          <input
-            id="dni"
-            pInputText
-            formControlName="dni"
-            placeholder="Tu número de documento"
-            class="w-full"
-            [class.ng-invalid]="submitted && form.controls['dni'].invalid"
-            [class.ng-dirty]="submitted"
-          />
+  <div class="w-full md:w-1/2 flex items-center justify-center px-8 bg-white">
+    <div class="w-full max-w-sm">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Iniciar sesión</h2>
+      <p class="text-gray-500 text-sm mb-6">Ingresá con tu DNI y contraseña</p>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
+        <div class="flex flex-col gap-1.5">
+          <label for="dni" class="text-sm font-semibold text-gray-700"
+            >DNI / CUIL</label
+          >
+          <p-iconField iconPosition="left">
+            <p-inputIcon styleClass="pi pi-id-card text-gray-400 z-10" />
+            <input
+              id="dni"
+              pInputText
+              formControlName="dni"
+              placeholder="Tu número de documento"
+              class="w-full h-11 pl-10 rounded-xl"
+              [class.ng-invalid]="submitted && form.controls['dni'].invalid"
+              [class.ng-dirty]="submitted && form.controls['dni'].invalid"
+            />
+          </p-iconField>
           @if (submitted && form.controls["dni"].hasError("required")) {
-            <small class="text-red-500">El DNI es requerido.</small>
+            <small class="text-red-500 text-xs flex items-center gap-1">
+              <i class="pi pi-exclamation-circle text-xs"></i> El DNI es
+              requerido.
+            </small>
           }
         </div>
 
-        <div class="flex flex-col gap-1">
-          <label for="password" class="text-sm font-medium text-gray-700"
+        <div class="flex flex-col gap-1.5">
+          <label for="password" class="text-sm font-semibold text-gray-700"
             >Contraseña</label
           >
-          <p-password
-            id="password"
-            formControlName="password"
-            placeholder="Tu contraseña"
-            [feedback]="false"
-            [toggleMask]="true"
-            styleClass="w-full"
-            inputStyleClass="w-full"
-            [class.ng-invalid]="submitted && form.controls['password'].invalid"
-            [class.ng-dirty]="submitted"
-          />
+          <p-iconField iconPosition="left">
+            <p-inputIcon styleClass="pi pi-lock text-gray-400 z-10" />
+            <p-password
+              id="password"
+              formControlName="password"
+              placeholder="Tu contraseña"
+              [feedback]="false"
+              [toggleMask]="true"
+              styleClass="w-full"
+              inputStyleClass="w-full h-11 pl-10"
+              [class.ng-invalid]="
+                submitted && form.controls['password'].invalid
+              "
+              [class.ng-dirty]="submitted && form.controls['password'].invalid"
+            />
+          </p-iconField>
           @if (submitted && form.controls["password"].hasError("required")) {
-            <small class="text-red-500">La contraseña es requerida.</small>
+            <small class="text-red-500 text-xs flex items-center gap-1">
+              <i class="pi pi-exclamation-circle text-xs"></i> La contraseña es
+              requerida.
+            </small>
           }
         </div>
 
         @if (errorMessage) {
           <div
-            class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm"
+            class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm flex items-center gap-2"
           >
-            <i class="pi pi-exclamation-circle mr-2"></i>{{ errorMessage }}
+            <i class="pi pi-exclamation-circle"></i>{{ errorMessage }}
           </div>
         }
 
-        <button
-          pButton
-          type="submit"
-          label="Ingresar"
-          icon="pi pi-sign-in"
-          class="w-full"
-          [loading]="loading"
-        ></button>
-      </div>
-    </form>
+        <div class="pt-1">
+          <p-button
+            type="submit"
+            label="Ingresar"
+            icon="pi pi-sign-in"
+            styleClass="w-full justify-center py-2.5"
+            [loading]="loading"
+          />
+        </div>
+
+        <p
+          class="text-center text-sm text-gray-500 pt-2 border-t border-gray-100"
+        >
+          ¿Tenés problemas para ingresar?
+          <a
+            href="mailto:soporte@siscreditos.com"
+            class="text-blue-600 hover:underline font-medium"
+            >Contactanos</a
+          >
+        </p>
+      </form>
+    </div>
   </div>
 </div>
