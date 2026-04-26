@@ -28,6 +28,8 @@ export interface AccountSummary {
   pendingCount: number;
   overdueCount: number;
   statusIndicator: 'GREEN' | 'YELLOW' | 'RED';
+  totalPaidAmount: number;
+  pendingPenaltyAmount: number;
   upcomingInstallments: UpcomingInstallment[];
 }
 
@@ -44,6 +46,8 @@ export interface PortalCredit {
   paidInstallments: number;
   nextDueDate: string | null;
   nextDueAmount: number | null;
+  pendingPenalty: number;
+  hasOverdue: boolean;
 }
 
 export interface PortalInstallment {
