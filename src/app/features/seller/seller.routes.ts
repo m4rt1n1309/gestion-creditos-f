@@ -85,5 +85,12 @@ export const SELLER_ROUTES: Routes = [
         (c) => c.ProductDetailComponent,
       ),
   },
+  {
+    path: 'commissions',
+    loadComponent: () =>
+      import('./commissions/seller-commissions.component').then(
+        (c) => c.SellerCommissionsComponent,
+      ),
+  },
   { path: '', redirectTo: 'operations', pathMatch: 'full' },
 ];

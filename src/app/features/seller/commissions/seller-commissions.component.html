@@ -1,0 +1,147 @@
+<p-toast />
+
+<div class="p-6 space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Mis comisiones</h1>
+      <p class="text-sm text-gray-500">
+        Comisiones generadas por tus ventas y liquidaciones recibidas.
+      </p>
+    </div>
+    <p-button
+      icon="pi pi-refresh"
+      severity="secondary"
+      [outlined]="true"
+      [loading]="loading"
+      (onClick)="loadCommissions()"
+    />
+  </div>
+
+  <p-card styleClass="shadow-sm">
+    <div class="flex flex-wrap gap-3 mb-4 items-center">
+      <p-dropdown
+        [options]="statusOptions"
+        [(ngModel)]="filterStatus"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Todos los estados"
+        [showClear]="!!filterStatus"
+        styleClass="w-44"
+        appendTo="body"
+        (onChange)="onFilterChange()"
+      />
+    </div>
+
+    @if (loading) {
+      <app-loading-state />
+    } @else if (error) {
+      <app-error-state />
+    } @else if (commissions.length === 0) {
+      <p class="text-sm text-gray-400 text-center py-10">
+        Sin comisiones registradas.
+      </p>
+    } @else {
+      <p-table
+        [value]="commissions"
+        [paginator]="true"
+        [rows]="20"
+        styleClass="p-datatable-sm p-datatable-hoverable-rows"
+        responsiveLayout="scroll"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Semana</th>
+            <th>Cliente</th>
+            <th>Crédito</th>
+            <th class="text-right">Comisión</th>
+            <th class="text-center">Estado</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-c>
+          <tr>
+            <td class="text-sm text-gray-500">
+              {{ formatDate(c.weekStart) }} — {{ formatDate(c.weekEnd) }}
+            </td>
+            <td class="font-medium">{{ c.customerName }}</td>
+            <td>
+              <span class="text-xs text-gray-500">{{
+                creditTypeLabel(c.creditType)
+              }}</span>
+              <span class="ml-1 font-mono text-sm">{{
+                formatCurrency(c.creditAmount)
+              }}</span>
+            </td>
+            <td class="text-right font-semibold text-blue-600 font-mono">
+              {{ formatCurrency(c.amount) }}
+            </td>
+            <td class="text-center">
+              <p-tag
+                [value]="statusLabel(c.status)"
+                [severity]="statusSeverity(c.status)"
+              />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+
+  <p-card styleClass="shadow-sm">
+    <div class="mb-4">
+      <h2 class="text-base font-semibold text-gray-800">Mis liquidaciones</h2>
+      <p class="text-xs text-gray-400">
+        Pagos recibidos por tus comisiones acumuladas.
+      </p>
+    </div>
+
+    @if (loadingLiquidations) {
+      <app-loading-state />
+    } @else if (liquidations.length === 0) {
+      <p class="text-sm text-gray-400 text-center py-10">
+        Sin liquidaciones registradas.
+      </p>
+    } @else {
+      <p-table
+        [value]="liquidations"
+        [paginator]="true"
+        [rows]="10"
+        styleClass="p-datatable-sm"
+        responsiveLayout="scroll"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Período</th>
+            <th class="text-right">Comisiones</th>
+            <th class="text-right">Sueldo</th>
+            <th class="text-right">Total recibido</th>
+            <th>Método</th>
+            <th>Fecha</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-liq>
+          <tr>
+            <td class="text-sm text-gray-500">
+              {{ formatDate(liq.weekStart) }} — {{ formatDate(liq.weekEnd) }}
+            </td>
+            <td class="text-right font-mono">
+              {{ formatCurrency(liq.commissionsTotal) }}
+            </td>
+            <td class="text-right font-mono">
+              {{ formatCurrency(liq.salaryAmount) }}
+            </td>
+            <td class="text-right font-semibold text-green-600 font-mono">
+              {{ formatCurrency(liq.totalPaid) }}
+            </td>
+            <td>
+              <p-tag
+                [value]="paymentMethodLabel(liq.paymentMethod)"
+                severity="secondary"
+              />
+            </td>
+            <td class="text-sm text-gray-500">{{ formatDate(liq.paidAt) }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+</div>
