@@ -1,7 +1,7 @@
 # Issue Log — SisCreditos · Auditoría QA Cypress
 
 Fecha: 2026-04-26  
-Revisor: Claude Code (QA Automation)  
+Revisor: DG (QA Automation)  
 Scope: Análisis de código fuente para escritura de pruebas E2E
 
 ---
