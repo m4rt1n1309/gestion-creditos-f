@@ -64,6 +64,5 @@ export class NotificationsConfigComponent {
   ];
 
   save(): void {
-    console.log('Guardando configuración de notificaciones');
   }
 }
