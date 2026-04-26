@@ -43,3 +43,15 @@ export interface CreateForm {
   maxAmount: number | null;
   ratePercent: number | null;
 }
+
+export interface InterestRateRaw {
+  id: string;
+  payment_frequency: string;
+  installments_count: number;
+  min_amount: number;
+  max_amount: number | null;
+  rate: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
