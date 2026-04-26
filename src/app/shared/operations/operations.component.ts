@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { CurrencyArsPipe } from '../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -17,6 +18,7 @@ import { TagModule } from 'primeng/tag';
   selector: 'operations',
   standalone: true,
   imports: [
+    CurrencyArsPipe,
     CommonModule,
     FormsModule,
     RouterLink,

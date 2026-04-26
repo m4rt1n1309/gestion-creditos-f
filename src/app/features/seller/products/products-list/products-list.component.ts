@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { CurrencyArsPipe } from '../../../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -31,6 +32,7 @@ const LOW_STOCK_THRESHOLD = 5;
   selector: 'app-products-list',
   standalone: true,
   imports: [
+    CurrencyArsPipe,
     CommonModule,
     FormsModule,
     TableModule,

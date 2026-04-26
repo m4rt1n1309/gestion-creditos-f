@@ -125,6 +125,14 @@ export class MockAuthService extends AuthServiceBase {
     return of(undefined);
   }
 
+  clearSession(): void {
+    if (isBrowser) {
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem(this.USER_KEY);
+    }
+    this._user$.next(null);
+  }
+
   changePassword(
     _currentPassword: string,
     _newPassword: string,

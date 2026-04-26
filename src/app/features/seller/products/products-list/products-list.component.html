@@ -61,7 +61,7 @@
           <td [pTooltip]="product.description" tooltipPosition="top">
             {{ truncateDescription(product.description) }}
           </td>
-          <td>{{ product.currentPrice | currency: "ARS" : "$" : "1.2-2" }}</td>
+          <td>{{ product.currentPrice | currencyArs: 2 }}</td>
           <td>
             @if (product.availableStock === 0) {
               <p-tag value="Sin stock" severity="danger" />

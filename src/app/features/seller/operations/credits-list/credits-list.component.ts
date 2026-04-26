@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { CurrencyArsPipe } from '../../../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -26,6 +27,7 @@ import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
   selector: 'app-credits-list',
   standalone: true,
   imports: [
+    CurrencyArsPipe,
     CommonModule,
     FormsModule,
     TableModule,

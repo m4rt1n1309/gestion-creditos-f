@@ -119,6 +119,10 @@ export class AuthService extends AuthServiceBase {
     );
   }
 
+  clearSession(): void {
+    this.clear();
+  }
+
   /**
    * Cambia la contraseña del usuario actual.
    * @param currentPassword

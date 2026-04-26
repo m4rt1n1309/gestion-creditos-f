@@ -1,4 +1,3 @@
-import { CurrencyPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -12,6 +11,7 @@ import { ToastModule } from 'primeng/toast';
 import { Subject } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
 import { AppError } from '../../../core/models/app-error';
+import { FormatService } from '../../../core/services/format.service';
 import { HeaderService } from '../../../core/services/header.service';
 import { ErrorStateComponent } from '../../../shared/states/error-state/error-state.component';
 import { LoadingStateComponent } from '../../../shared/states/loading-state/loading-state.component';
@@ -26,7 +26,6 @@ import {
   selector: 'app-seller-commissions',
   standalone: true,
   imports: [
-    CurrencyPipe,
     FormsModule,
     ButtonModule,
     CardModule,
@@ -45,6 +44,7 @@ export class SellerCommissionsComponent implements OnInit, OnDestroy {
   private readonly service = inject(CommissionsService);
   private readonly header = inject(HeaderService);
   private destroy$ = new Subject<void>();
+  readonly format = inject(FormatService);
 
   commissions: Commission[] = [];
   loading = true;
@@ -165,17 +165,8 @@ export class SellerCommissionsComponent implements OnInit, OnDestroy {
     return pm === 'CASH' ? 'Efectivo' : 'Transferencia';
   }
 
-  /**
-   * Formatea un valor numérico como una moneda.
-   * @param value
-   * @returns
-   */
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      maximumFractionDigits: 0,
-    }).format(value);
+    return this.format.currency(value);
   }
 
   /**

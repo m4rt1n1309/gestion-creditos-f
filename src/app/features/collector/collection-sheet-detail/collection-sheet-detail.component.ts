@@ -1,5 +1,6 @@
-import { CurrencyPipe, DatePipe, Location } from '@angular/common';
+import { DatePipe, Location } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { CurrencyArsPipe } from '../../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -35,7 +36,7 @@ interface SheetItemWithState extends CollectionSheetItem {
   selector: 'app-collection-sheet-detail',
   standalone: true,
   imports: [
-    CurrencyPipe,
+    CurrencyArsPipe,
     DatePipe,
     FormsModule,
     ButtonModule,

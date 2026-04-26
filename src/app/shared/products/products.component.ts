@@ -19,6 +19,8 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 
+import { FormatService } from '../../core/services/format.service';
+
 export interface Product {
   id: number;
   code: string;
@@ -113,7 +115,7 @@ export class ProductsComponent {
   submitted = false;
   form: FormGroup;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private fmt: FormatService) {
     this.form = this.buildForm();
   }
 
@@ -141,8 +143,7 @@ export class ProductsComponent {
     const compra = this.form.get('precioCompra')?.value ?? 0;
     const venta = this.form.get('precioVenta')?.value ?? 0;
     if (!compra || compra === 0) return '--%';
-    const pct = (((venta - compra) / compra) * 100).toFixed(1);
-    return `${pct}%`;
+    return this.fmt.percent((venta - compra) / compra, 1);
   }
 
   /**
@@ -174,7 +175,7 @@ export class ProductsComponent {
    * @returns
    */
   formatPrice(price: number): string {
-    return `$${price.toLocaleString('es-AR')}`;
+    return this.fmt.currency(price);
   }
 
   /**

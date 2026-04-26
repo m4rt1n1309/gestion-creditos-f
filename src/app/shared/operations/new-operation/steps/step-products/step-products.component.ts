@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { CurrencyArsPipe } from '../../../../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
@@ -13,6 +14,7 @@ import { OperationFormService, Product } from '../../operation-form.service';
   selector: 'app-step-products',
   standalone: true,
   imports: [
+    CurrencyArsPipe,
     FormsModule,
     DecimalPipe,
     InputTextModule,

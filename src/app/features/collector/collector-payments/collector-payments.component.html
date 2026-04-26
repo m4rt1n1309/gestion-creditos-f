@@ -65,7 +65,7 @@
               <td>Cuota {{ p.installmentNumber }}</td>
               <td class="text-right font-semibold text-blue-600">
                 {{
-                  p.amountReceived | currency: "ARS" : "symbol-narrow" : "1.0-2"
+                  p.amountReceived | currencyArs: 2
                 }}
               </td>
               <td>

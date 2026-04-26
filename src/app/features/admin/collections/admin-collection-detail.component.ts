@@ -1,5 +1,6 @@
-import { CurrencyPipe, DatePipe, Location } from '@angular/common';
+import { DatePipe, Location } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { CurrencyArsPipe } from '../../../core/pipes/currency-ars.pipe';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -20,7 +21,7 @@ import { AppRoutes } from '../../../shared/models/enums/routes.enum';
   selector: 'app-admin-collection-detail',
   standalone: true,
   imports: [
-    CurrencyPipe,
+    CurrencyArsPipe,
     DatePipe,
     ButtonModule,
     TagModule,

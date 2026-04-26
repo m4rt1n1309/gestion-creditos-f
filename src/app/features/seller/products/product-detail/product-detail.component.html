@@ -168,7 +168,7 @@
         <div>
           <span class="text-sm text-gray-500">Precio</span>
           <p class="font-medium text-lg">
-            {{ product.currentPrice | currency: "ARS" : "$" : "1.2-2" }}
+            {{ product.currentPrice | currencyArs: 2 }}
           </p>
         </div>
 

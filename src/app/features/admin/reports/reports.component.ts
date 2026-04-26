@@ -1,4 +1,3 @@
-import { CurrencyPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -10,6 +9,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Subject } from 'rxjs';
 import { finalize, takeUntil } from 'rxjs/operators';
 import { AppError } from '../../../core/models/app-error';
+import { FormatService } from '../../../core/services/format.service';
 import { HeaderService } from '../../../core/services/header.service';
 import { ErrorStateComponent } from '../../../shared/states/error-state/error-state.component';
 import { LoadingStateComponent } from '../../../shared/states/loading-state/loading-state.component';
@@ -27,7 +27,6 @@ import { ReportsService } from './reports.service';
   selector: 'app-reports',
   standalone: true,
   imports: [
-    CurrencyPipe,
     FormsModule,
     ButtonModule,
     CardModule,
@@ -43,6 +42,7 @@ import { ReportsService } from './reports.service';
 export class ReportsComponent implements OnInit, OnDestroy {
   private readonly service = inject(ReportsService);
   private readonly header = inject(HeaderService);
+  readonly format = inject(FormatService);
   private destroy$ = new Subject<void>();
 
   activeTab: ReportTab = 'collection';
@@ -359,36 +359,15 @@ export class ReportsComponent implements OnInit, OnDestroy {
     return d.toISOString().split('T')[0];
   }
 
-  /**
-   * Formatea un valor numérico como moneda.
-   * @param v
-   * @returns
-   */
   formatCurrency(v: number): string {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      maximumFractionDigits: 0,
-    }).format(v);
+    return this.format.currency(v);
   }
 
-  /**
-   * Formatea una fecha en formato DD/MM/YYYY.
-   * @param iso
-   * @returns
-   */
   formatDate(iso: string): string {
-    if (!iso) return '—';
-    const [y, m, d] = iso.split('T')[0].split('-');
-    return `${d}/${m}/${y}`;
+    return this.format.shortDate(iso);
   }
 
-  /**
-   * Formatea una tasa de interés.
-   * @param rate
-   * @returns
-   */
   formatRate(rate: number | null): string {
-    return rate == null ? '—' : `${rate.toFixed(2)}%`;
+    return rate == null ? '—' : this.format.number(rate, 2) + '%';
   }
 }

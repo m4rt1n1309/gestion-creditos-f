@@ -1,5 +1,6 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { CurrencyArsPipe } from '../../../../core/pipes/currency-ars.pipe';
 import {
   FormBuilder,
   FormGroup,
@@ -35,6 +36,7 @@ const LOW_STOCK_THRESHOLD = 5;
   standalone: true,
   providers: [MessageService, ConfirmationService],
   imports: [
+    CurrencyArsPipe,
     CommonModule,
     ReactiveFormsModule,
     ButtonModule,

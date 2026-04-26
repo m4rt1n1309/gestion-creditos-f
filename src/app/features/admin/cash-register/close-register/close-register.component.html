@@ -27,21 +27,21 @@
       <div class="kpi kpi--income">
         <p class="kpi__label">Total Ingresos</p>
         <p class="kpi__value">
-          {{ data.totalIncome | currency: "$" : "symbol" : "1.0-0" }}
+          {{ data.totalIncome | currencyArs }}
         </p>
         <p class="kpi__sub">{{ data.incomeTransactions }} transacciones</p>
       </div>
       <div class="kpi kpi--expenses">
         <p class="kpi__label">Total Egresos</p>
         <p class="kpi__value">
-          {{ data.totalExpenses | currency: "$" : "symbol" : "1.0-0" }}
+          {{ data.totalExpenses | currencyArs }}
         </p>
         <p class="kpi__sub">{{ data.expenseTransactions }} transacciones</p>
       </div>
       <div class="kpi kpi--balance">
         <p class="kpi__label">Saldo Esperado</p>
         <p class="kpi__value">
-          {{ data.expectedBalance | currency: "$" : "symbol" : "1.0-0" }}
+          {{ data.expectedBalance | currencyArs }}
         </p>
         <p class="kpi__sub">Sistema calculado</p>
       </div>
@@ -60,7 +60,7 @@
               {{ item.label }}
             </span>
             <span class="breakdown-item__amount">{{
-              item.amount | currency: "$" : "symbol" : "1.0-0"
+              item.amount | currencyArs
             }}</span>
           </li>
         }
@@ -95,7 +95,7 @@
         ></i>
         <div>
           <p class="difference-box__amount">
-            {{ difference | currency: "$" : "symbol" : "1.0-0" }} ·
+            {{ difference | currencyArs }} ·
             {{ isExact ? "Sin descuadre" : "Descuadre detectado" }}
           </p>
           <p class="difference-box__label">

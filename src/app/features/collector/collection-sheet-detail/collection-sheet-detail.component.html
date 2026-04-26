@@ -82,7 +82,7 @@
                   >
                     {{
                       item.plannedAmount
-                        | currency: "ARS" : "symbol-narrow" : "1.0-2"
+                        | currencyArs: 2
                     }}
                   </span>
                 }
@@ -96,7 +96,7 @@
                   tooltipPosition="left"
                 >
                   {{
-                    item.amountDue | currency: "ARS" : "symbol-narrow" : "1.0-2"
+                    item.amountDue | currencyArs: 2
                   }}
                 </span>
               </div>
@@ -106,7 +106,7 @@
                   Mora:
                   {{
                     item.penaltyAmount
-                      | currency: "ARS" : "symbol-narrow" : "1.0-2"
+                      | currencyArs: 2
                   }}
                 </p>
               }
@@ -115,7 +115,7 @@
                   Pagado:
                   {{
                     item.amountPaid
-                      | currency: "ARS" : "symbol-narrow" : "1.0-2"
+                      | currencyArs: 2
                   }}
                 </p>
               }
@@ -158,7 +158,7 @@
           <span class="font-bold text-blue-600">
             {{
               availableBalance(dialogItem)
-                | currency: "ARS" : "symbol-narrow" : "1.0-2"
+                | currencyArs: 2
             }}
           </span>
         </p>

@@ -1,5 +1,6 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { CurrencyArsPipe } from '../../../../core/pipes/currency-ars.pipe';
 import {
   FormArray,
   FormBuilder,
@@ -34,6 +35,7 @@ import { CreditsService } from '../credits.service';
   standalone: true,
   providers: [MessageService],
   imports: [
+    CurrencyArsPipe,
     CommonModule,
     ReactiveFormsModule,
     ButtonModule,

@@ -83,7 +83,7 @@
               </td>
               <td class="text-right font-semibold text-blue-600">
                 {{
-                  p.amountReceived | currency: "ARS" : "symbol-narrow" : "1.0-2"
+                  p.amountReceived | currencyArs: 2
                 }}
               </td>
               <td>
@@ -159,7 +159,7 @@
           <p class="font-semibold">
             {{
               selectedPayment.amountDue
-                | currency: "ARS" : "symbol-narrow" : "1.0-2"
+                | currencyArs: 2
             }}
           </p>
         </div>
@@ -168,7 +168,7 @@
           <p class="font-bold text-blue-600">
             {{
               selectedPayment.amountReceived
-                | currency: "ARS" : "symbol-narrow" : "1.0-2"
+                | currencyArs: 2
             }}
           </p>
         </div>

@@ -1,4 +1,3 @@
-import { CurrencyPipe } from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -6,6 +5,7 @@ import {
   OnChanges,
   Output,
 } from '@angular/core';
+import { CurrencyArsPipe } from '../../../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -27,7 +27,7 @@ export interface CloseRegisterData {
   selector: 'app-close-register',
   standalone: true,
   imports: [
-    CurrencyPipe,
+    CurrencyArsPipe,
     FormsModule,
     DialogModule,
     ButtonModule,

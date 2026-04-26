@@ -14,6 +14,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, finalize, map, takeUntil } from 'rxjs/operators';
 import { AppError } from '../../../core/models/app-error';
+import { FormatService } from '../../../core/services/format.service';
 import { HeaderService } from '../../../core/services/header.service';
 import { ErrorStateComponent } from '../../../shared/states/error-state/error-state.component';
 import { LoadingStateComponent } from '../../../shared/states/loading-state/loading-state.component';
@@ -56,6 +57,7 @@ export class SheetComponent implements OnInit, OnDestroy {
   private readonly usersService = inject(UsersService);
   private readonly header = inject(HeaderService);
   private readonly msg = inject(MessageService);
+  readonly format = inject(FormatService);
   private destroy$ = new Subject<void>();
 
   collectorOptions: { label: string; value: string }[] = [];
@@ -440,16 +442,7 @@ export class SheetComponent implements OnInit, OnDestroy {
     return `${d}/${m}/${y}`;
   }
 
-  /**
-   * Formatea un valor numérico como moneda en el formato de Argentina (ARS).
-   * @param value
-   * @returns
-   */
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      maximumFractionDigits: 0,
-    }).format(value);
+    return this.format.currency(value);
   }
 }

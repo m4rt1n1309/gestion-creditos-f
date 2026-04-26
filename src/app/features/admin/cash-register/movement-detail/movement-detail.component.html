@@ -45,7 +45,7 @@
         <p class="amount-hero__label">Monto del movimiento</p>
         <p class="amount-hero__value">
           {{ movement.type === "INGRESO" ? "+" : "-"
-          }}{{ movement.amount | currency: "$" : "symbol" : "1.0-0" }}
+          }}{{ movement.amount | currencyArs }}
         </p>
         <p class="amount-hero__concept">
           {{ movement.concept

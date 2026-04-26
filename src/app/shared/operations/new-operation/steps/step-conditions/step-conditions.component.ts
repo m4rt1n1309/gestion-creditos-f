@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
+import { CurrencyArsPipe } from '../../../../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
-import { CurrencyPipe } from '@angular/common';
 import { CalendarModule } from 'primeng/calendar';
 import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -10,8 +10,8 @@ import { OperationFormService } from '../../operation-form.service';
   selector: 'app-step-conditions',
   standalone: true,
   imports: [
+    CurrencyArsPipe,
     FormsModule,
-    CurrencyPipe,
     InputNumberModule,
     CalendarModule,
     DropdownModule,

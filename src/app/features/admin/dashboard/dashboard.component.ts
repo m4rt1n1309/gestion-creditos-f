@@ -1,5 +1,5 @@
-import { CurrencyPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { CurrencyArsPipe } from '../../../core/pipes/currency-ars.pipe';
 import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -9,6 +9,7 @@ import { Subject, forkJoin } from 'rxjs';
 import { catchError, of, takeUntil } from 'rxjs';
 import { MockAuthService } from '../../../core/auth/mock-auth.service';
 import { DateService } from '../../../core/services/date.service';
+import { FormatService } from '../../../core/services/format.service';
 import { CashRegisterService } from '../cash-register/cash-register.service';
 import { KpiCard } from '../models/interface/kpi-card';
 import { RecentOperation } from '../models/interface/recent-operation';
@@ -25,15 +26,6 @@ const STATUS_LABEL: Record<string, string> = {
   SETTLED: 'Liquidado',
   REJECTED: 'Rechazado',
 };
-
-/**
- * Formatea un número como moneda en pesos argentinos.
- * @param n
- * @returns
- */
-function formatARS(n: number): string {
-  return `$${n.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
-}
 
 /**
  * Convierte un crédito a una operación reciente.
@@ -56,7 +48,7 @@ function creditToOp(credit: Credit): RecentOperation {
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CurrencyPipe,
+    CurrencyArsPipe,
     TableModule,
     TagModule,
     SkeletonModule,
@@ -72,6 +64,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private readonly reportsSvc = inject(ReportsService);
   private readonly creditsSvc = inject(CreditsService);
   private readonly dateService = inject(DateService);
+  private readonly fmt = inject(FormatService);
 
   userName = '';
   today = '';
@@ -129,7 +122,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.kpis = [
           {
             label: 'Cartera Activa',
-            value: portfolio ? formatARS(portfolio.activePendingBalance) : '–',
+            value: portfolio ? this.fmt.currency(portfolio.activePendingBalance) : '–',
             trend: 'Cartera actual',
             trendUp: true,
             icon: 'pi pi-dollar text-blue-600',
@@ -137,7 +130,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           },
           {
             label: 'Créditos Activos',
-            value: portfolio ? activeCount.toLocaleString('es-AR') : '–',
+            value: portfolio ? this.fmt.number(activeCount) : '–',
             trend: 'Créditos activos',
             trendUp: true,
             icon: 'pi pi-file text-green-600',
@@ -146,7 +139,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           {
             label: 'En Mora',
             value: overdue
-              ? overdue.summary.overdueInstallments.toLocaleString('es-AR')
+              ? this.fmt.number(overdue.summary.overdueInstallments)
               : '–',
             trend: 'Cuotas en mora',
             trendUp: false,
@@ -155,7 +148,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           },
           {
             label: 'Cobrado Hoy',
-            value: cashReg ? formatARS(cashReg.totalCollected) : '–',
+            value: cashReg ? this.fmt.currency(cashReg.totalCollected) : '–',
             trend: 'Datos de hoy',
             trendUp: true,
             icon: 'pi pi-wallet text-purple-600',
@@ -225,7 +218,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: (ctx: any) => ` $${ctx.parsed.y.toLocaleString('es-AR')}`,
+            label: (ctx: any) => ` ${this.fmt.currency(ctx.parsed.y)}`,
           },
         },
       },

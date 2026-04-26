@@ -1,4 +1,3 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -15,6 +14,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { Subject, interval } from 'rxjs';
 import { finalize, switchMap, takeUntil } from 'rxjs/operators';
 import { AppError } from '../../../core/models/app-error';
+import { FormatService } from '../../../core/services/format.service';
 import { HeaderService } from '../../../core/services/header.service';
 import { ErrorStateComponent } from '../../../shared/states/error-state/error-state.component';
 import { LoadingStateComponent } from '../../../shared/states/loading-state/loading-state.component';
@@ -31,8 +31,6 @@ import { CashRegisterService } from './cash-register.service';
   selector: 'app-cash-register',
   standalone: true,
   imports: [
-    CurrencyPipe,
-    DatePipe,
     FormsModule,
     ButtonModule,
     CardModule,
@@ -54,6 +52,7 @@ export class CashRegisterComponent implements OnInit, OnDestroy {
   private readonly service = inject(CashRegisterService);
   private readonly header = inject(HeaderService);
   private readonly msg = inject(MessageService);
+  readonly format = inject(FormatService);
   private destroy$ = new Subject<void>();
 
   dashboard: CashRegisterDashboard | null = null;
@@ -271,17 +270,8 @@ export class CashRegisterComponent implements OnInit, OnDestroy {
     ] as 'success' | 'warning' | 'danger';
   }
 
-  /**
-   * Formatea un valor numérico como moneda.
-   * @param value
-   * @returns
-   */
   formatCurrency(value: number): string {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      maximumFractionDigits: 0,
-    }).format(value);
+    return this.format.currency(value);
   }
 
   /**

@@ -40,7 +40,7 @@
           </div>
           <div>
             <p class="text-3xl font-black text-amber-600 leading-none">
-              {{ stats.sinAplicar | currency: "$" : "symbol" : "1.0-0" }}
+              {{ stats.sinAplicar | currencyArs }}
             </p>
             <span class="text-sm text-gray-500 mt-1 block">Sin Aplicar</span>
           </div>
@@ -56,7 +56,7 @@
           </div>
           <div>
             <p class="text-3xl font-black text-orange-600 leading-none">
-              {{ stats.aplicada | currency: "$" : "symbol" : "1.0-0" }}
+              {{ stats.aplicada | currencyArs }}
             </p>
             <span class="text-sm text-gray-500 mt-1 block">Aplicado</span>
           </div>
@@ -200,7 +200,7 @@
               #{{ row.installmentNumber }}
             </td>
             <td class="text-right font-mono font-semibold text-gray-800">
-              {{ row.amount | currency: "$" : "symbol" : "1.0-0" }}
+              {{ row.amount | currencyArs }}
             </td>
             <td class="text-center">
               <span
@@ -218,7 +218,7 @@
               class="text-right font-mono font-bold"
               [class]="row.daysOverdue > 15 ? 'text-red-600' : 'text-amber-600'"
             >
-              {{ row.delinquencyAmount | currency: "$" : "symbol" : "1.0-0" }}
+              {{ row.delinquencyAmount | currencyArs }}
             </td>
 
             <td class="text-center">

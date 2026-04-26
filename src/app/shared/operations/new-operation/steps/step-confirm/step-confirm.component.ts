@@ -1,13 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DecimalPipe } from '@angular/common';
 import { CheckboxModule } from 'primeng/checkbox';
+import { CurrencyArsPipe } from '../../../../../core/pipes/currency-ars.pipe';
 import { OperationFormService } from '../../operation-form.service';
 
 @Component({
   selector: 'app-step-confirm',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, CheckboxModule],
+  imports: [CurrencyArsPipe, FormsModule, CheckboxModule],
   templateUrl: './step-confirm.component.html',
 })
 export class StepConfirmComponent {

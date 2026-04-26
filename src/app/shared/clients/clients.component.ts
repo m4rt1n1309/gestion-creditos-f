@@ -18,6 +18,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 
+import { FormatService } from '../../core/services/format.service';
 import { Client } from '../models/interface/client';
 import { AppRoutes } from '../models/enums/routes.enum';
 
@@ -99,6 +100,7 @@ export class ClientsComponent {
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private fmt: FormatService,
   ) {
     this.form = this.buildForm();
     this.editForm = this.buildEditForm(null);
@@ -113,7 +115,7 @@ export class ClientsComponent {
     const raw = (this.form.get('ingresos')?.value ?? '').replace(/[^0-9]/g, '');
     const num = parseInt(raw, 10);
     if (!num) return '';
-    return `$${Math.round(num * 0.5).toLocaleString('es-AR')} / mes`;
+    return `${this.fmt.currency(Math.round(num * 0.5))} / mes`;
   }
 
   /**
