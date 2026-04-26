@@ -58,6 +58,18 @@ export const NAV_CONFIG: NavItem[] = [
     testId: 'nav-aprobaciones',
   },
   {
+    label: 'Planillas de cobro',
+    icon: 'pi pi-calendar',
+    route: `/${AppRoutes.ADMIN}/${AppRoutes.ADMIN_COLLECTIONS}`,
+    requiredRoles: ['ADMIN'],
+  },
+  {
+    label: 'Cobros',
+    icon: 'pi pi-money-bill',
+    route: `/${AppRoutes.ADMIN}/${AppRoutes.ADMIN_PAYMENTS}`,
+    requiredRoles: ['ADMIN'],
+  },
+  {
     label: 'Mora y Canc.',
     icon: 'pi pi-exclamation-triangle',
     route: `/${AppRoutes.ADMIN}/${AppRoutes.DELINQUENCY}`,
@@ -73,6 +85,12 @@ export const NAV_CONFIG: NavItem[] = [
     label: 'Caja',
     icon: 'pi pi-wallet',
     route: `/${AppRoutes.ADMIN}/${AppRoutes.CASH_REGISTER}`,
+    requiredRoles: ['ADMIN'],
+  },
+  {
+    label: 'Liquidaciones',
+    icon: 'pi pi-money-bill',
+    route: `/${AppRoutes.ADMIN}/${AppRoutes.ADMIN_COMMISSIONS}`,
     requiredRoles: ['ADMIN'],
     dividerAfter: true,
   },
@@ -96,6 +114,13 @@ export const NAV_CONFIG: NavItem[] = [
   },
 
   {
+    label: 'Mis comisiones',
+    icon: 'pi pi-percentage',
+    route: AppRoutes.SELLER_COMMISSIONS,
+    requiredRoles: ['SELLER'],
+  },
+
+  {
     label: 'Cobranza en campo',
     requiredRoles: ['COLLECTOR'],
     isGroupLabel: true,
@@ -104,6 +129,18 @@ export const NAV_CONFIG: NavItem[] = [
     label: 'Mi Ruta',
     icon: 'pi pi-map',
     route: AppRoutes.ROUTE,
+    requiredRoles: ['COLLECTOR'],
+  },
+  {
+    label: 'Mis cobros',
+    icon: 'pi pi-dollar',
+    route: AppRoutes.COLLECTOR_PAYMENTS,
+    requiredRoles: ['COLLECTOR'],
+  },
+  {
+    label: 'Mis comisiones',
+    icon: 'pi pi-percentage',
+    route: AppRoutes.COLLECTOR_COMMISSIONS,
     requiredRoles: ['COLLECTOR'],
   },
 ];
