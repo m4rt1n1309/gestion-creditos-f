@@ -184,7 +184,11 @@
       <ng-template pTemplate="emptymessage">
         <tr>
           <td colspan="6" class="text-center text-gray-400 py-6">
-            Sin operaciones recientes.
+            @if (opsError) {
+              No se pudieron cargar las operaciones recientes.
+            } @else {
+              Sin operaciones recientes.
+            }
           </td>
         </tr>
       </ng-template>
