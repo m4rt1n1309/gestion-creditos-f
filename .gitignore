@@ -50,3 +50,8 @@ src/environments/environment.ts
 # Claude AI
 .claude
 CLAUDE.md
+
+# Cypress
+cypress/videos
+cypress/screenshots
+cypress/reports
