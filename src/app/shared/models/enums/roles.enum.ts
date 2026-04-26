@@ -1,0 +1,9 @@
+export enum Roles {
+  ADMIN = 'ADMIN',
+  SELLER = 'SELLER',
+  COLLECTOR = 'COLLECTOR',
+  SELLER_COLLECTOR = 'SELLER_COLLECTOR',
+  CASHIER = 'CASHIER',
+}
+
+export type UserRole = 'ADMIN' | 'SELLER' | 'COLLECTOR' | 'SELLER_COLLECTOR' | 'CASHIER';

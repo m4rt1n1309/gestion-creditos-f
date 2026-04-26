@@ -1,0 +1,99 @@
+<div class="p-4">
+  <div class="flex flex-wrap gap-3 mb-4 items-center justify-between">
+    <div class="flex flex-wrap gap-3 items-center">
+      <p-dropdown
+        [options]="statusOptions"
+        [(ngModel)]="selectedStatus"
+        (onChange)="applyFilters()"
+        placeholder="Estado"
+        [showClear]="true"
+        optionLabel="label"
+        optionValue="value"
+      />
+      <p-dropdown
+        [options]="typeOptions"
+        [(ngModel)]="selectedType"
+        (onChange)="applyFilters()"
+        placeholder="Tipo"
+        [showClear]="true"
+        optionLabel="label"
+        optionValue="value"
+      />
+    </div>
+    @if (canCreate) {
+      <p-button
+        label="Nueva operación"
+        icon="pi pi-plus"
+        (onClick)="navigateToCreate()"
+      />
+    }
+  </div>
+
+  @if (loading) {
+    <app-loading-state />
+  } @else if (error) {
+    <app-error-state />
+  } @else if (credits.length === 0) {
+    <app-empty-state />
+  } @else {
+    <p-table
+      [value]="credits"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      styleClass="p-datatable-sm"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Tipo</th>
+          <th>Cliente</th>
+          <th>Monto total</th>
+          <th>Cuotas</th>
+          <th>Estado</th>
+          <th>Fecha de alta</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-credit>
+        <tr class="cursor-pointer" (click)="navigateToDetail(credit.id)">
+          <td>
+            <p-tag
+              [value]="credit.type === 'SALE' ? 'Venta' : 'Préstamo'"
+              [severity]="credit.type === 'SALE' ? 'info' : 'secondary'"
+            />
+          </td>
+          <td>
+            <div>{{ credit.customerName }}</div>
+            <div class="text-xs text-gray-500">{{ credit.customerDni }}</div>
+          </td>
+          <td>
+            {{
+              credit.totalAmount | currency: "ARS" : "symbol-narrow" : "1.0-2"
+            }}
+          </td>
+          <td>
+            {{ credit.installmentsCount }} cuotas
+            {{ frequencyLabel(credit.paymentFrequency) }}s
+          </td>
+          <td>
+            <p-tag
+              [value]="statusLabel(credit.status)"
+              [severity]="statusSeverity(credit.status)"
+            />
+          </td>
+          <td>{{ credit.createdAt | date: "dd/MM/yyyy" }}</td>
+          <td>
+            <p-button
+              label="Ver"
+              icon="pi pi-eye"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              (onClick)="$event.stopPropagation(); navigateToDetail(credit.id)"
+            />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>

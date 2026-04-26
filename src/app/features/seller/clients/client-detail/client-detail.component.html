@@ -1,0 +1,314 @@
+<p-toast />
+<p-confirmDialog />
+<app-temp-password-dialog
+  [visible]="showTempPasswordDialog"
+  [password]="tempPassword"
+  (closed)="onTempPasswordClosed()"
+/>
+
+<div class="p-4">
+  <div class="mb-4">
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="goBack()"
+    />
+  </div>
+
+  @if (loading) {
+    <app-loading-state />
+  } @else if (error) {
+    <app-error-state />
+  } @else if (customer) {
+    <!-- ── READ-ONLY VIEW ── -->
+    @if (!editMode) {
+      <div class="bg-white rounded-lg shadow p-6 space-y-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div class="flex items-center gap-3">
+            <h2 class="text-xl font-semibold">{{ customer.fullName }}</h2>
+            <p-tag
+              [value]="customer.status === 'ACTIVE' ? 'Activo' : 'Inactivo'"
+              [severity]="customer.status === 'ACTIVE' ? 'success' : 'danger'"
+            />
+          </div>
+
+          <!-- Admin action buttons — NOT rendered for non-admin -->
+          @if (isAdmin) {
+            <div class="flex gap-2 flex-wrap">
+              <p-button
+                label="Editar"
+                icon="pi pi-pencil"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="enterEditMode()"
+              />
+              @if (customer.status === "ACTIVE") {
+                <p-button
+                  label="Desactivar"
+                  icon="pi pi-ban"
+                  severity="danger"
+                  [outlined]="true"
+                  (onClick)="confirmDeactivate()"
+                />
+              } @else {
+                <p-button
+                  label="Activar"
+                  icon="pi pi-check-circle"
+                  severity="secondary"
+                  [outlined]="true"
+                  (onClick)="confirmActivate()"
+                />
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Data fields -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <span class="text-sm text-gray-500">DNI</span>
+            <p class="font-medium">{{ customer.dni }}</p>
+          </div>
+
+          @if (customer.address != null) {
+            <div>
+              <span class="text-sm text-gray-500">Dirección</span>
+              <p class="font-medium">{{ customer.address }}</p>
+            </div>
+          }
+
+          @if (customer.phone) {
+            <div>
+              <span class="text-sm text-gray-500">Teléfono</span>
+              <p class="font-medium">{{ customer.phone }}</p>
+            </div>
+          }
+
+          @if (customer.email) {
+            <div>
+              <span class="text-sm text-gray-500">Email</span>
+              <p class="font-medium">{{ customer.email }}</p>
+            </div>
+          }
+
+          @if (customer.collectorName) {
+            <div>
+              <span class="text-sm text-gray-500">Cobrador asignado</span>
+              <p class="font-medium">{{ customer.collectorName }}</p>
+            </div>
+          }
+
+          <div>
+            <span class="text-sm text-gray-500">Fecha de alta</span>
+            <p class="font-medium">
+              {{ customer.createdAt | date: "dd/MM/yyyy HH:mm" }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Portal section — NOT rendered for non-admin -->
+        @if (isAdmin) {
+          <div class="border-t pt-4 space-y-3">
+            <h3 class="font-semibold text-gray-700">Portal del cliente</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div>
+                <span class="text-gray-500">Estado</span>
+                <p class="font-medium">
+                  {{ customer.portalEnabled ? "Habilitado" : "Deshabilitado" }}
+                </p>
+              </div>
+              @if (customer.portalEnabled) {
+                <div>
+                  <span class="text-gray-500">Contraseña temporal</span>
+                  <p class="font-medium">
+                    {{ customer.portalIsTempPassword ? "Sí" : "No" }}
+                  </p>
+                </div>
+                <div>
+                  <span class="text-gray-500">Intentos fallidos</span>
+                  <p class="font-medium">{{ customer.portalFailedAttempts }}</p>
+                </div>
+                @if (customer.portalLockedAt) {
+                  <div>
+                    <span class="text-gray-500">Bloqueado desde</span>
+                    <p class="font-medium text-red-600">
+                      {{ customer.portalLockedAt | date: "dd/MM/yyyy HH:mm" }}
+                    </p>
+                  </div>
+                }
+              }
+            </div>
+
+            <div class="flex gap-2 flex-wrap pt-1">
+              @if (!customer.portalEnabled) {
+                <p-button
+                  label="Habilitar portal"
+                  icon="pi pi-globe"
+                  severity="secondary"
+                  [outlined]="true"
+                  (onClick)="confirmEnablePortal()"
+                />
+              } @else {
+                <p-button
+                  label="Deshabilitar portal"
+                  icon="pi pi-eye-slash"
+                  severity="danger"
+                  [outlined]="true"
+                  (onClick)="confirmDisablePortal()"
+                />
+                <p-button
+                  label="Resetear contraseña"
+                  icon="pi pi-refresh"
+                  severity="secondary"
+                  [outlined]="true"
+                  (onClick)="confirmResetPortalPassword()"
+                />
+                @if (customer.portalLockedAt) {
+                  <p-button
+                    label="Desbloquear"
+                    icon="pi pi-lock-open"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="confirmUnlockPortal()"
+                  />
+                }
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── EDIT FORM (inline, swap on editMode) ── -->
+    @if (editMode && editForm) {
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Editar cliente</h3>
+
+        <form
+          [formGroup]="editForm"
+          (ngSubmit)="onEditSubmit()"
+          class="space-y-4"
+        >
+          <!-- DNI visible but disabled with tooltip -->
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-gray-500">
+              DNI
+              <span
+                class="ml-1 pi pi-info-circle text-xs cursor-help"
+                pTooltip="El DNI no puede modificarse"
+                tooltipPosition="right"
+              ></span>
+            </label>
+            <input
+              pInputText
+              [value]="customer.dni"
+              [disabled]="true"
+              class="opacity-60 cursor-not-allowed"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="editFullName" class="text-sm font-medium"
+              >Nombre completo *</label
+            >
+            <input
+              id="editFullName"
+              pInputText
+              formControlName="fullName"
+              [class.ng-invalid]="isEditInvalid('fullName')"
+              [class.ng-dirty]="isEditInvalid('fullName')"
+            />
+            @if (isEditInvalid("fullName")) {
+              <small class="text-red-500">{{ getEditError("fullName") }}</small>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="editAddress" class="text-sm font-medium"
+              >Dirección</label
+            >
+            <input
+              id="editAddress"
+              pInputText
+              formControlName="address"
+              [class.ng-invalid]="isEditInvalid('address')"
+              [class.ng-dirty]="isEditInvalid('address')"
+            />
+            @if (isEditInvalid("address")) {
+              <small class="text-red-500">{{ getEditError("address") }}</small>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="editPhone" class="text-sm font-medium">Teléfono</label>
+            <input id="editPhone" pInputText formControlName="phone" />
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="editEmail" class="text-sm font-medium">Email</label>
+            <input
+              id="editEmail"
+              pInputText
+              formControlName="email"
+              [class.ng-invalid]="isEditInvalid('email')"
+              [class.ng-dirty]="isEditInvalid('email')"
+            />
+            @if (isEditInvalid("email")) {
+              <small class="text-red-500">{{ getEditError("email") }}</small>
+            }
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label for="editCollector" class="text-sm font-medium"
+              >Cobrador asignado</label
+            >
+            <p-dropdown
+              inputId="editCollector"
+              formControlName="assignedCollectorId"
+              [options]="collectorOptions"
+              optionLabel="label"
+              optionValue="value"
+              [placeholder]="
+                collectorsLoading
+                  ? 'Cargando cobradores…'
+                  : collectorOptions.length === 0
+                    ? 'No hay cobradores activos'
+                    : 'Seleccionar cobrador'
+              "
+              [disabled]="collectorsLoading"
+              [showClear]="true"
+              [class.ng-invalid]="isEditInvalid('assignedCollectorId')"
+              [class.ng-dirty]="isEditInvalid('assignedCollectorId')"
+            />
+            @if (isEditInvalid("assignedCollectorId")) {
+              <small class="text-red-500">{{
+                getEditError("assignedCollectorId")
+              }}</small>
+            }
+          </div>
+
+          <div class="flex gap-3 pt-2">
+            <p-button
+              type="submit"
+              label="Guardar cambios"
+              icon="pi pi-check"
+              [loading]="saving"
+              [disabled]="editForm.invalid || saving"
+            />
+            <p-button
+              type="button"
+              label="Cancelar"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="cancelEdit()"
+            />
+          </div>
+        </form>
+      </div>
+    }
+  }
+</div>

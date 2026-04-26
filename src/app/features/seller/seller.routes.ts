@@ -1,0 +1,96 @@
+import { Routes } from '@angular/router';
+import { roleGuard } from '../../core/auth/role.guard';
+import { AppRoutes } from '../../shared/models/enums/routes.enum';
+
+export const SELLER_ROUTES: Routes = [
+  {
+    path: AppRoutes.OPERATIONS,
+    loadComponent: () =>
+      import('./operations/credits-list/credits-list.component').then(
+        (c) => c.CreditsListComponent,
+      ),
+  },
+  {
+    path: AppRoutes.OPERATIONS_NEW,
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN', 'SELLER', 'SELLER_COLLECTOR'] },
+    loadComponent: () =>
+      import('./operations/credit-create/credit-create.component').then(
+        (c) => c.CreditCreateComponent,
+      ),
+  },
+  {
+    path: AppRoutes.OPERATIONS_DETAIL,
+    loadComponent: () =>
+      import('./operations/credit-detail/credit-detail.component').then(
+        (c) => c.CreditDetailComponent,
+      ),
+  },
+  {
+    path: AppRoutes.CLIENTS,
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN', 'SELLER', 'COLLECTOR', 'SELLER_COLLECTOR'] },
+    loadComponent: () =>
+      import('./clients/clients-list/clients-list.component').then(
+        (c) => c.ClientsListComponent,
+      ),
+  },
+  {
+    path: AppRoutes.CLIENTS_NEW,
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN', 'SELLER', 'SELLER_COLLECTOR'] },
+    loadComponent: () =>
+      import('./clients/client-create/client-create.component').then(
+        (c) => c.ClientCreateComponent,
+      ),
+  },
+  {
+    path: AppRoutes.CLIENTS_DETAIL,
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN', 'SELLER', 'COLLECTOR', 'SELLER_COLLECTOR'] },
+    loadComponent: () =>
+      import('./clients/client-detail/client-detail.component').then(
+        (c) => c.ClientDetailComponent,
+      ),
+  },
+  {
+    path: AppRoutes.PRODUCTS,
+    loadComponent: () =>
+      import('./products/products-list/products-list.component').then(
+        (c) => c.ProductsListComponent,
+      ),
+  },
+  {
+    path: AppRoutes.PRODUCTS_NEW,
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN'] },
+    loadComponent: () =>
+      import('./products/product-create/product-create.component').then(
+        (c) => c.ProductCreateComponent,
+      ),
+  },
+  {
+    path: AppRoutes.PRODUCTS_EDIT,
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN'] },
+    loadComponent: () =>
+      import('./products/product-edit/product-edit.component').then(
+        (c) => c.ProductEditComponent,
+      ),
+  },
+  {
+    path: AppRoutes.PRODUCTS_DETAIL,
+    loadComponent: () =>
+      import('./products/product-detail/product-detail.component').then(
+        (c) => c.ProductDetailComponent,
+      ),
+  },
+  {
+    path: 'commissions',
+    loadComponent: () =>
+      import('./commissions/seller-commissions.component').then(
+        (c) => c.SellerCommissionsComponent,
+      ),
+  },
+  { path: '', redirectTo: 'operations', pathMatch: 'full' },
+];

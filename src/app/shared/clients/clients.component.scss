@@ -1,0 +1,43 @@
+.client-input {
+  width: 100%;
+  height: 2.75rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.9375rem;
+  border: 1.5px solid #d1d5db;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+
+  &:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  &--error {
+    border-color: #ef4444;
+
+    &:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+  }
+
+  &--readonly {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #16a34a;
+    font-weight: 600;
+    cursor: default;
+
+    &:focus {
+      border-color: #86efac;
+      box-shadow: none;
+    }
+  }
+}

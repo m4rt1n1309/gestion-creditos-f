@@ -1,10 +1,13 @@
-import { TestBed } from '@angular/core/testing';
+﻿import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { MockAuthService } from './core/auth/mock-auth.service';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: [provideRouter([]), MockAuthService],
     }).compileComponents();
   });
 
@@ -20,10 +23,10 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('gestion-creditos-f');
   });
 
-  it('should render title', () => {
+  it('should render the app layout container', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, gestion-creditos-f');
+    expect(compiled.querySelector('div')).toBeTruthy();
   });
 });

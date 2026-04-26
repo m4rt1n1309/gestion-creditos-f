@@ -1,27 +1,144 @@
-# GestionCreditosF
+# finFlow — Gestión de Créditos
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.21.
+Frontend de la plataforma de gestión de créditos y cobros, construida con Angular 18 (Standalone Components).
 
-## Development server
+---
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+## Stack
 
-## Code scaffolding
+| Tecnología          | Versión       |
+| ------------------- | ------------- |
+| Angular             | 18.2.x        |
+| TypeScript          | 5.5.2         |
+| Tailwind CSS        | 3.4.19        |
+| PrimeNG             | 17.18.15      |
+| RxJS                | 7.8.0         |
+| chart.js            | 4.5.1         |
+| date-fns            | 3.6.0         |
+| jsPDF + html2canvas | 4.2.1 / 1.4.1 |
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+---
 
-## Build
+## Módulos
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+### Admin (`/admin/*`)
 
-## Running unit tests
+| Ruta                   | Descripción                                          |
+| ---------------------- | ---------------------------------------------------- |
+| `/admin/dashboard`     | KPIs y resumen de operaciones recientes              |
+| `/admin/operations`    | Listado y creación de operaciones                    |
+| `/admin/clients/:dni`  | Detalle de cliente (créditos, documentos, historial) |
+| `/admin/users`         | CRUD de usuarios y roles                             |
+| `/admin/approvals`     | Flujo de aprobación de créditos                      |
+| `/admin/delinquency`   | Seguimiento de mora                                  |
+| `/admin/cash-register` | Caja y movimientos de pago                           |
+| `/admin/sheet`         | Planilla de cobro (exportable a PDF)                 |
+| `/admin/reports`       | Reportes                                             |
+| `/admin/config`        | Configuración de empresa, tasas, notificaciones      |
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+### Seller (`/seller/*`)
 
-## Running end-to-end tests
+| Ruta                  | Descripción                         |
+| --------------------- | ----------------------------------- |
+| `/seller/clients`     | Directorio de clientes con filtros  |
+| `/seller/clients/new` | Alta de nuevo cliente               |
+| `/seller/clients/:id` | Detalle y edición de cliente        |
+| `/seller/operations`  | Listado de operaciones del vendedor |
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+### Collector (`/collector/*`)
 
-## Further help
+| Ruta               | Descripción            |
+| ------------------ | ---------------------- |
+| `/collector/route` | Ruta de cobro asignada |
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+### Público
+
+| Ruta               | Descripción                |
+| ------------------ | -------------------------- |
+| `/login`           | Autenticación              |
+| `/forgot-password` | Recuperación de contraseña |
+
+---
+
+## Arquitectura
+
+```
+src/app/
+├── core/                  # Servicios singleton, auth, HTTP
+│   ├── auth/              # Guards (authGuard, roleGuard, noAuthGuard)
+│   ├── http/              # ApiHttpService (wrapper REST genérico)
+│   ├── interceptors/      # JWT, loading, error
+│   ├── models/            # AuthUser, ApiResponse<T>, UserRole
+│   └── services/          # DateService, HeaderService, LoadingService
+├── features/
+│   ├── admin/             # Dashboard, aprobaciones, caja, usuarios, config
+│   ├── seller/            # Clientes, modelos Customer
+│   ├── collector/         # Ruta de cobro
+│   └── public/            # Login, recuperación de contraseña
+├── shared/
+│   ├── components/        # TempPasswordDialog
+│   ├── layout/            # Header, Sidebar
+│   ├── clients/           # ClientDetailComponent (tabs: créditos, docs, historial)
+│   ├── operations/        # Wizard multi-paso (cliente → productos → condiciones → confirmación)
+│   ├── products/          # Catálogo de productos
+│   ├── states/            # LoadingState, EmptyState, ErrorState
+│   ├── models/            # Interfaces compartidas, enums (AppRoutes, UserRoleEnum)
+│   └── utils/             # nav-config y utilidades
+└── mocks/                 # MockAuthService, MockDataService
+```
+
+### Patrones clave
+
+- **Standalone Components** — sin NgModules
+- **Lazy loading** — cada feature route carga bajo demanda
+- **Signals** — estado reactivo moderno (Angular Signals + RxJS)
+- **Adapter pattern** — servicios convierten `snake_case` (backend) ↔ `camelCase` (frontend)
+- **Guard composition** — `authGuard` + `roleGuard` apilados por ruta
+- **SSR habilitado** — Express server (`server.ts`)
+
+---
+
+## Roles
+
+| Rol                | Acceso                       |
+| ------------------ | ---------------------------- |
+| `ADMIN`            | Todo                         |
+| `SELLER`           | `/seller/*`                  |
+| `COLLECTOR`        | `/collector/*`               |
+| `SELLER_COLLECTOR` | `/seller/*` + `/collector/*` |
+
+---
+
+## Desarrollo
+
+```bash
+# Instalar dependencias
+npm install
+
+# Servidor de desarrollo
+ng serve
+# → http://localhost:4200
+
+# Build producción
+ng build
+
+# Tests unitarios
+ng test
+
+# Tests e2e (Cypress)
+npx cypress open
+```
+
+---
+
+## Variables de entorno
+
+Configurar en `src/environments/environment.ts`:
+
+```ts
+export const environment = {
+  production: false,
+  apiBaseUrl: "http://localhost:3000",
+  tokenKey: "finflow_token",
+};
+```

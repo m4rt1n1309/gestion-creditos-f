@@ -1,0 +1,192 @@
+@if (loading) {
+  <div class="flex flex-col gap-6">
+    <p-skeleton height="9rem" borderRadius="1rem" />
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <p-skeleton height="5rem" borderRadius="0.75rem" />
+      }
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <p-skeleton height="12rem" borderRadius="0.75rem" />
+      <p-skeleton height="12rem" borderRadius="0.75rem" />
+    </div>
+  </div>
+} @else if (error) {
+  <div class="text-center py-12 text-red-500 text-sm">
+    <i class="pi pi-exclamation-triangle text-3xl mb-2 block"></i>
+    {{ error }}
+  </div>
+} @else if (summary) {
+  <div
+    class="rounded-2xl bg-gradient-to-r from-blue-700 to-blue-500 text-white p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6"
+  >
+    <div>
+      <p class="text-base font-medium opacity-90 mb-1">
+        Hola, {{ firstName }} 👋
+      </p>
+      <p class="text-4xl font-bold tracking-tight">
+        {{ summary.totalOwed | currency: "ARS" : "symbol" : "1.0-0" }}
+      </p>
+      <p class="text-sm opacity-75 mt-1">Saldo total de créditos</p>
+    </div>
+
+    @if (nextDue && nextDue.nextDueDate && nextDue.nextDueAmount) {
+      <div class="bg-blue-600/60 rounded-xl px-5 py-3 flex flex-col gap-0.5">
+        <p class="text-xs opacity-75">Próximo vencimiento</p>
+        <p class="text-2xl font-bold">
+          {{ nextDue.nextDueAmount | currency: "ARS" : "symbol" : "1.0-0" }}
+        </p>
+        <p class="text-xs opacity-75">
+          @if (daysUntil(nextDue.nextDueDate); as days) {
+            en {{ days }} día{{ days === 1 ? "" : "s" }} —
+          }
+          {{ nextDue.nextDueDate | date: "d MMM" : "" : "es" }}
+        </p>
+      </div>
+    }
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <p class="text-2xl font-bold text-gray-800">{{ activeCredits.length }}</p>
+      <p class="text-xs text-gray-500 mt-1">Créditos activos</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <p class="text-2xl font-bold text-gray-800">
+        {{ totalPaidInstallments }}/{{ totalInstallments }}
+      </p>
+      <p class="text-xs text-gray-500 mt-1">Cuotas pagadas (total)</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <p class="text-2xl font-bold text-green-600">
+        {{ summary.totalPaidAmount | currency: "ARS" : "symbol" : "1.0-0" }}
+      </p>
+      <p class="text-xs text-gray-500 mt-1">Total pagado</p>
+    </div>
+    <div
+      class="rounded-xl shadow-sm border p-4"
+      [class.bg-red-50]="summary.pendingPenaltyAmount > 0"
+      [class.border-red-100]="summary.pendingPenaltyAmount > 0"
+      [class.bg-white]="summary.pendingPenaltyAmount === 0"
+      [class.border-gray-100]="summary.pendingPenaltyAmount === 0"
+    >
+      <p
+        class="text-2xl font-bold"
+        [class.text-red-500]="summary.pendingPenaltyAmount > 0"
+        [class.text-gray-400]="summary.pendingPenaltyAmount === 0"
+      >
+        {{
+          summary.pendingPenaltyAmount | currency: "ARS" : "symbol" : "1.0-0"
+        }}
+      </p>
+      <p class="text-xs text-gray-500 mt-1">Mora pendiente</p>
+    </div>
+  </div>
+
+  @if (credits.length > 0) {
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      @for (credit of credits; track credit.id) {
+        <div
+          class="bg-white rounded-xl border shadow-sm p-5 flex flex-col gap-3"
+          [class.border-yellow-200]="credit.hasOverdue"
+          [class.bg-yellow-50]="credit.hasOverdue"
+          [class.border-gray-100]="!credit.hasOverdue"
+        >
+          <!-- Header -->
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="font-semibold text-gray-800 text-sm">
+                {{ creditLabel(credit) }}
+              </p>
+              <p class="text-xs text-gray-400">{{ creditRef(credit) }}</p>
+            </div>
+            <span
+              class="text-xs font-semibold px-2.5 py-1 rounded-full"
+              [class.bg-green-100]="!credit.hasOverdue"
+              [class.text-green-700]="!credit.hasOverdue"
+              [class.bg-orange-100]="credit.hasOverdue"
+              [class.text-orange-700]="credit.hasOverdue"
+            >
+              {{ credit.hasOverdue ? "En Mora" : "Al día" }}
+            </span>
+          </div>
+
+          <p class="text-3xl font-bold text-gray-800">
+            {{ credit.totalAmount | currency: "ARS" : "symbol" : "1.0-0" }}
+          </p>
+
+          @if (credit.pendingPenalty > 0) {
+            <div
+              class="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 text-sm text-orange-700"
+            >
+              <i class="pi pi-exclamation-triangle text-orange-500"></i>
+              Mora pendiente:
+              {{ credit.pendingPenalty | currency: "ARS" : "symbol" : "1.0-0" }}
+            </div>
+          }
+
+          <div class="grid grid-cols-3 gap-2 text-xs">
+            <div>
+              <p class="text-gray-400">Cuotas</p>
+              <p class="font-semibold text-gray-700">
+                {{ credit.paidInstallments }}/{{ credit.totalInstallments }}
+              </p>
+            </div>
+            @if (credit.nextDueDate) {
+              <div>
+                <p class="text-gray-400">Próx. vencimiento</p>
+                <p class="font-semibold text-gray-700">
+                  {{ credit.nextDueDate | date: "d MMM yyyy" : "" : "es" }}
+                </p>
+              </div>
+            } @else {
+              <div>
+                <p class="text-gray-400">Última cuota</p>
+                <p
+                  class="font-semibold"
+                  [class.text-red-500]="credit.hasOverdue"
+                  [class.text-gray-700]="!credit.hasOverdue"
+                >
+                  {{ credit.hasOverdue ? "Vencida" : "Pagada" }}
+                </p>
+              </div>
+            }
+            @if (credit.nextDueAmount) {
+              <div>
+                <p class="text-gray-400">Próx. cuota</p>
+                <p class="font-semibold text-gray-700">
+                  {{
+                    credit.nextDueAmount | currency: "ARS" : "symbol" : "1.0-0"
+                  }}
+                </p>
+              </div>
+            }
+          </div>
+
+          <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+            <div
+              class="h-1.5 rounded-full transition-all"
+              [class.bg-green-500]="!credit.hasOverdue"
+              [class.bg-red-500]="credit.hasOverdue"
+              [style.width.%]="progressPercent(credit)"
+            ></div>
+          </div>
+
+          <!-- CTA -->
+          <a
+            [routerLink]="['/portal/credits', credit.id]"
+            class="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium py-1"
+          >
+            <i class="pi pi-eye text-sm"></i>
+            Ver detalle
+          </a>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="text-center py-12 text-gray-400 text-sm">
+      <i class="pi pi-credit-card text-3xl mb-2 block"></i>
+      No tenés créditos registrados.
+    </div>
+  }
+}

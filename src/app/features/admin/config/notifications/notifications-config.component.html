@@ -1,0 +1,35 @@
+<div class="space-y-6">
+
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+    <h2 class="text-base font-semibold text-gray-800">Preferencias de Notificaciones</h2>
+    <p class="text-sm text-gray-400">Activá o desactivá las notificaciones del sistema según tus preferencias.</p>
+
+    <div class="divide-y divide-gray-100">
+      @for (setting of settings; track setting.id) {
+        <div class="flex items-center justify-between py-4">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+              <i [class]="setting.icon + ' text-blue-500 text-sm'"></i>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-800">{{ setting.label }}</p>
+              <p class="text-xs text-gray-400 mt-0.5">{{ setting.description }}</p>
+            </div>
+          </div>
+          <p-inputSwitch [(ngModel)]="setting.enabled" />
+        </div>
+      }
+    </div>
+  </div>
+
+  <div>
+    <p-button
+      label="Guardar cambios"
+      icon="pi pi-save"
+      iconPos="left"
+      styleClass="h-11 px-5 rounded-xl !bg-blue-500 !border-blue-500 hover:!bg-blue-600"
+      (onClick)="save()"
+    />
+  </div>
+
+</div>

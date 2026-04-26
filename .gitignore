@@ -40,3 +40,13 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# package-lock.json
+package-lock.json
+
+# Environment files
+src/environments/environment.ts
+
+# Claude AI
+.claude
+CLAUDE.md

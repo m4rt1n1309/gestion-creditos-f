@@ -1,0 +1,138 @@
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { ApiHttpService } from '../../../core/http/api-http.service';
+import { environment } from '../../../../environments/environment';
+import { PortalCustomer, PortalLoginPayload } from '../models/portal.models';
+import { LoginResponseRaw } from '../models/interface/login.interface';
+
+const isBrowser = typeof localStorage !== 'undefined';
+
+@Injectable({ providedIn: 'root' })
+export class PortalAuthService {
+  private readonly api = inject(ApiHttpService);
+  private readonly TOKEN_KEY = environment.portalTokenKey;
+  private readonly CUSTOMER_KEY = 'sgcf_portal_customer';
+
+  private _customer$ = new BehaviorSubject<PortalCustomer | null>(null);
+  readonly currentCustomer$ = this._customer$.asObservable();
+
+  constructor() {
+    this._bootstrap();
+  }
+
+  /**
+   * Devuelve el cliente actualmente autenticado o null si no hay ninguno. Este valor se inicializa al cargar el servicio leyendo el token del localStorage y no se actualiza automáticamente si el token cambia fuera de este servicio. Para reactividad, subscribirse a currentCustomer$.
+   */
+  get snapshot(): PortalCustomer | null {
+    return this._customer$.value;
+  }
+
+  /**
+   * Verifica si el usuario está autenticado. Esto se determina por la presencia de un cliente en el estado actual. No verifica la validez del token ni su expiración, por lo que es posible que retorne true para un token expirado hasta que se intente usar o se recargue la página.
+   * @returns
+   */
+  isAuthenticated(): boolean {
+    return !!this._customer$.value;
+  }
+
+  /**
+   * Inicia sesión con las credenciales proporcionadas. Si la autenticación es exitosa, almacena el token JWT y la información del cliente en localStorage, y actualiza el estado del cliente en el servicio. El token se espera que contenga las reclamaciones necesarias para reconstruir el objeto PortalCustomer si es necesario. El método retorna un Observable que emite void al completar, o un error si la autenticación falla.
+   * @param payload
+   * @returns
+   */
+  login(payload: PortalLoginPayload): Observable<void> {
+    return this.api.post<LoginResponseRaw>('auth/portal/login', payload).pipe(
+      tap((res) => {
+        const customer: PortalCustomer = {
+          id: res.customer.id,
+          fullName: res.customer.full_name,
+          dni: res.customer.dni,
+          portalIsTempPassword: res.customer.portal_is_temp_password,
+        };
+        if (isBrowser) {
+          localStorage.setItem(this.TOKEN_KEY, res.token);
+          localStorage.setItem(this.CUSTOMER_KEY, JSON.stringify(customer));
+        }
+        this._customer$.next(customer);
+      }),
+      map(() => undefined),
+    );
+  }
+
+  /**
+   * Cierra la sesión del usuario. Elimina el token JWT y la información del cliente del localStorage, y actualiza el estado del cliente en el servicio. Retorna un Observable que emite void al completar. Si la llamada a la API de logout falla, el método aún limpiará el estado local para asegurar que el usuario quede desconectado en la interfaz, aunque idealmente se debería manejar el error para informar al usuario.
+   * @returns
+   */
+  logout(): Observable<void> {
+    return this.api.post<null>('auth/portal/logout').pipe(
+      tap({
+        next: () => this._clearSession(),
+        error: () => this._clearSession(),
+      }),
+      map(() => undefined),
+    );
+  }
+
+  /**
+   * Limpia la sesión del usuario.
+   */
+  private _clearSession(): void {
+    if (isBrowser) {
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem(this.CUSTOMER_KEY);
+    }
+    this._customer$.next(null);
+  }
+
+  /**
+   * Inicializa el servicio de autenticación.
+   * @returns
+   */
+  private _bootstrap(): void {
+    if (!isBrowser) return;
+
+    const token = localStorage.getItem(this.TOKEN_KEY);
+    if (!token) return;
+
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) throw new Error('invalid jwt');
+      const payload = JSON.parse(
+        atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')),
+      );
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        this._clearSession();
+        return;
+      }
+    } catch {
+      this._clearSession();
+      return;
+    }
+
+    const stored = localStorage.getItem(this.CUSTOMER_KEY);
+    if (stored) {
+      try {
+        this._customer$.next(JSON.parse(stored) as PortalCustomer);
+      } catch {
+        this._clearSession();
+      }
+    } else {
+      try {
+        const parts = token.split('.');
+        const payload = JSON.parse(
+          atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')),
+        );
+        const customer: PortalCustomer = {
+          id: payload.sub ?? '',
+          fullName: payload.full_name ?? payload.name ?? '',
+          dni: payload.dni ?? '',
+          portalIsTempPassword: payload.portal_is_temp_password ?? false,
+        };
+        this._customer$.next(customer);
+      } catch {
+        this._clearSession();
+      }
+    }
+  }
+}

@@ -1,0 +1,120 @@
+<div class="tab-content">
+  <div class="hist-filter-bar">
+    <span class="hist-period-label">Período:</span>
+    <p-calendar
+      [(ngModel)]="periodoDesde"
+      dateFormat="dd/mm/yy"
+      [showIcon]="true"
+      styleClass="hist-calendar"
+    />
+    <span class="hist-dash">—</span>
+    <p-calendar
+      [(ngModel)]="periodoHasta"
+      dateFormat="dd/mm/yy"
+      [showIcon]="true"
+      styleClass="hist-calendar"
+    />
+    <p-dropdown
+      [options]="eventoOptions"
+      [(ngModel)]="selectedEvento"
+      optionLabel="label"
+      optionValue="value"
+      styleClass="hist-evento-select"
+    />
+  </div>
+
+  <div class="hist-kpi-row">
+    <div class="hist-kpi-card kpi-green">
+      <div class="kpi-icon-wrap kpi-icon-green">
+        <i class="pi pi-arrow-up-right"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value"
+          >${{ totalJugado.toLocaleString("es-AR") }}</span
+        >
+        <span class="kpi-label">Total jugado</span>
+      </div>
+    </div>
+    <div class="hist-kpi-card kpi-blue">
+      <div class="kpi-icon-wrap kpi-icon-blue">
+        <i class="pi pi-calendar"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value kpi-blue-val">{{ ultimoPago }}</span>
+        <span class="kpi-label">Último pago</span>
+      </div>
+    </div>
+    <div class="hist-kpi-card kpi-red">
+      <div class="kpi-icon-wrap kpi-icon-red">
+        <i class="pi pi-exclamation-triangle"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value kpi-red-val">{{ diasMora }} días</span>
+        <span class="kpi-label">Días en mora</span>
+      </div>
+    </div>
+    <div class="hist-kpi-card kpi-gray">
+      <div class="kpi-icon-wrap kpi-icon-gray">
+        <i class="pi pi-list"></i>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ movimientos }}</span>
+        <span class="kpi-label">Movimientos</span>
+      </div>
+    </div>
+  </div>
+
+  <p-table
+    [value]="filteredHistorial"
+    styleClass="hist-table p-datatable-sm"
+    [tableStyle]="{ 'min-width': '600px' }"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Fecha</th>
+        <th>Evento</th>
+        <th>Crédito</th>
+        <th>Monto</th>
+        <th>Usuario</th>
+        <th>Estado</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-ev>
+      <tr>
+        <td>
+          <div class="hist-fecha">{{ ev.fecha }}</div>
+          <div class="hist-hora">{{ ev.hora }}</div>
+        </td>
+        <td>
+          <span class="hist-evento-wrap" [ngClass]="eventoClass(ev.evento)">
+            <i [class]="eventoIcon(ev.evento)"></i>
+            {{ ev.evento }}
+          </span>
+        </td>
+        <td>
+          <span class="hist-credito-link">{{ ev.creditoId }}</span>
+        </td>
+        <td>
+          @if (ev.monto !== null) {
+            <span
+              [ngClass]="ev.evento === 'Mora aplicada' ? 'hist-monto-mora' : ''"
+            >
+              ${{ ev.monto.toLocaleString("es-AR") }}
+            </span>
+          } @else {
+            <span class="hist-monto-empty">—</span>
+          }
+        </td>
+        <td>{{ ev.usuario }}</td>
+        <td>
+          <span
+            class="hist-estado-badge"
+            [ngClass]="estadoBadgeClass(ev.estado)"
+          >
+            {{ ev.estado }}
+          </span>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

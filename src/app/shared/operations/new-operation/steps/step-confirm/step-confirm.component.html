@@ -1,0 +1,172 @@
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+  <div class="border border-gray-200 rounded-2xl p-6 bg-white shadow-sm">
+    <h3 class="text-base font-bold text-gray-900 mb-6">
+      Resumen de la Operación
+    </h3>
+
+    <div class="mb-5 pb-5 border-b border-gray-100">
+      <span
+        class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 block"
+        >Cliente</span
+      >
+      <div class="flex items-center gap-3">
+        <div
+          class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm"
+        >
+          {{ initials(form.selectedClient()?.name) }}
+        </div>
+        <div>
+          <p class="font-bold text-gray-900 text-sm">
+            {{ form.selectedClient()?.name || "No seleccionado" }}
+          </p>
+          <p class="text-xs text-gray-500">
+            CC {{ form.selectedClient()?.dni }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-5 pb-5 border-b border-gray-100">
+      <span
+        class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 block"
+        >Producto</span
+      >
+      <p class="text-sm font-semibold text-gray-800">
+        {{
+          form.selectedType() === "VENTA"
+            ? "Venta a Crédito - " +
+              form.selectedProducts().length +
+              " producto(s)"
+            : "Préstamo Express - Crédito Personal"
+        }}
+      </p>
+    </div>
+
+    <div>
+      <span
+        class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-4 block"
+        >Condiciones Financieras</span
+      >
+      <div class="space-y-3">
+        <div class="flex justify-between items-center text-sm">
+          <span class="text-gray-500">Monto del crédito</span>
+          <span class="font-bold text-gray-900"
+            >${{ form.capital() | number: "1.0-0" }}</span
+          >
+        </div>
+        <div class="flex justify-between items-center text-sm">
+          <span class="text-gray-500">Plazo</span>
+          <span class="font-bold text-gray-900">
+            {{ form.installmentsCount() }} cuotas
+            {{
+              form.selectedType() === "PRESTAMO"
+                ? form.selectedFrequency().label.split(" ")[0].toLowerCase() +
+                  "es"
+                : ""
+            }}
+          </span>
+        </div>
+        <div class="flex justify-between items-center text-sm">
+          <span class="text-gray-500">Tasa de interés</span>
+          <span class="font-bold text-gray-900">
+            {{
+              form.selectedType() === "PRESTAMO"
+                ? form.loanInterest() + "% mensual"
+                : form.interestRate() + "% fijo"
+            }}
+          </span>
+        </div>
+        <div class="flex justify-between items-center text-sm pt-1">
+          <span class="text-gray-500">Cuota estimada</span>
+          <span class="font-bold text-blue-600 text-base"
+            >${{ form.installmentValue() | number: "1.0-0" }}</span
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-4">
+    <div class="border border-gray-200 rounded-2xl p-6 bg-white shadow-sm">
+      <h3 class="text-base font-bold text-gray-900 mb-6">
+        Declaraciones y Autorizaciones
+      </h3>
+      <div class="flex flex-col gap-5">
+        <div class="flex items-start gap-3">
+          <p-checkbox
+            [ngModel]="form.checks().identity"
+            (ngModelChange)="updateCheck('identity', $event)"
+            [binary]="true"
+            inputId="chk1"
+            class="mt-0.5"
+          />
+          <label
+            for="chk1"
+            class="text-sm text-gray-700 leading-snug cursor-pointer select-none"
+          >
+            Confirmo que la información del cliente es correcta y he verificado
+            su identidad.
+          </label>
+        </div>
+        <div class="flex items-start gap-3">
+          <p-checkbox
+            [ngModel]="form.checks().conditions"
+            (ngModelChange)="updateCheck('conditions', $event)"
+            [binary]="true"
+            inputId="chk2"
+            class="mt-0.5"
+          />
+          <label
+            for="chk2"
+            class="text-sm text-gray-700 leading-snug cursor-pointer select-none"
+          >
+            El cliente ha sido informado de las condiciones financieras y ha
+            dado su consentimiento.
+          </label>
+        </div>
+        <div class="flex items-start gap-3">
+          <p-checkbox
+            [ngModel]="form.checks().disbursement"
+            (ngModelChange)="updateCheck('disbursement', $event)"
+            [binary]="true"
+            inputId="chk3"
+            class="mt-0.5"
+          />
+          <label
+            for="chk3"
+            class="text-sm text-gray-700 leading-snug cursor-pointer select-none"
+          >
+            Autorizo el desembolso inmediato al finalizar la aprobación del
+            crédito.
+          </label>
+        </div>
+        <div class="flex items-start gap-3">
+          <p-checkbox
+            [ngModel]="form.checks().capacity"
+            (ngModelChange)="updateCheck('capacity', $event)"
+            [binary]="true"
+            inputId="chk4"
+            class="mt-0.5"
+          />
+          <label
+            for="chk4"
+            class="text-sm text-gray-700 leading-snug cursor-pointer select-none"
+          >
+            He revisado el plan de pagos y confirmo que las cuotas están dentro
+            de la capacidad del cliente.
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="bg-yellow-50 border border-yellow-200/80 rounded-xl p-4 flex gap-3 shadow-sm"
+    >
+      <i class="pi pi-exclamation-triangle text-yellow-600 mt-0.5"></i>
+      <p class="text-sm text-yellow-800 font-medium leading-relaxed">
+        Esta operación será enviada a revisión del supervisor antes de ser
+        desembolsada. El cliente será notificado por correo y SMS.
+      </p>
+    </div>
+  </div>
+</div>

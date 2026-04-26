@@ -1,1 +1,142 @@
-/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "primeng/resources/themes/lara-light-blue/theme.css";
+@import "primeng/resources/primeng.css";
+@import "primeicons/primeicons.css";
+
+:root {
+  --primary-color: #3b82f6;
+  --primary-dark-color: #2563eb;
+  --primary-darker-color: #1d4ed8;
+  --primary-color-text: #ffffff;
+}
+
+.p-button.p-button-primary,
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not(.p-button-secondary):not(
+    .p-button-success
+  ):not(.p-button-info):not(.p-button-warning):not(.p-button-help):not(.p-button-danger) {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+
+  &:hover {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+  }
+
+  &:active {
+    background: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+  }
+}
+
+.p-button.p-button-primary,
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not(.p-button-secondary):not(
+    .p-button-success
+  ):not(.p-button-info):not(.p-button-warning):not(.p-button-help):not(.p-button-danger):not(.p-dialog-header-icon) {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+.p-checkbox .p-checkbox-box {
+  border: 2px solid #cbd5e1 !important;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+}
+
+.p-checkbox:not(.p-disabled):hover .p-checkbox-box {
+  border-color: #94a3b8 !important;
+}
+
+.p-checkbox.p-highlight .p-checkbox-box {
+  border-color: #4f46e5 !important;
+  background-color: #4f46e5 !important;
+}
+
+.p-inputtext {
+  background-color: #f9fafb !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.75rem !important;
+
+  &:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+
+  &[readonly] {
+    background-color: #f3f4f6 !important;
+    color: #6b7280 !important;
+    cursor: default;
+  }
+}
+
+.p-dropdown {
+  background-color: #f9fafb !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.75rem !important;
+
+  .p-dropdown-label.p-inputtext {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  &:focus-within {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+}
+
+.cancel-btn {
+  height: 2.75rem;
+  padding: 0 1.25rem;
+  border-radius: 0.75rem;
+  border: 1.5px solid #d1d5db;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  &--danger {
+    border-color: #fca5a5;
+    color: #ef4444;
+
+    &:hover {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+  }
+}
+
+.movement-detail-dialog .p-dialog-content {
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+
+    &:hover {
+      background: #94a3b8;
+    }
+  }
+}

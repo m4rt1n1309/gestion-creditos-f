@@ -1,0 +1,487 @@
+<div class="p-6">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800">Gestión de Clientes</h1>
+    <div class="flex flex-wrap items-center gap-3">
+      <p-button
+        label="Nuevo Cliente"
+        icon="pi pi-plus"
+        severity="primary"
+        styleClass="h-11 px-5 rounded-xl shadow-sm"
+        (onClick)="showCreateModal = true"
+      />
+      <p-dropdown
+        [options]="filterOptions"
+        [(ngModel)]="selectedFilter"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Todos"
+        styleClass="w-full md:w-44 h-11 rounded-xl border-gray-200 flex items-center"
+      />
+      <p-iconField iconPosition="left">
+        <p-inputIcon styleClass="pi pi-search text-gray-400 z-10" />
+        <input
+          pInputText
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Buscar cliente..."
+          class="w-full md:w-64 h-11 pl-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all"
+        />
+      </p-iconField>
+    </div>
+  </div>
+
+  <p-table
+    [value]="filteredClients"
+    styleClass="p-datatable-sm"
+    [tableStyle]="{ 'min-width': '50rem' }"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th class="text-xs font-semibold text-gray-500 uppercase">DNI</th>
+        <th class="text-xs font-semibold text-gray-500 uppercase">Nombre</th>
+        <th class="text-xs font-semibold text-gray-500 uppercase">Teléfono</th>
+        <th class="text-xs font-semibold text-gray-500 uppercase">Créditos</th>
+        <th class="text-xs font-semibold text-gray-500 uppercase">Riesgo</th>
+        <th class="text-xs font-semibold text-gray-500 uppercase">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-client>
+      <tr class="border-b border-gray-100">
+        <td>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-700">{{ client.dni }}</span>
+            <span
+              class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white text-xs font-semibold"
+              [style.background-color]="client.avatarColor"
+              >{{ client.initials }}</span
+            >
+          </div>
+        </td>
+        <td class="text-sm font-medium text-gray-800">{{ client.name }}</td>
+        <td class="text-sm text-gray-600">{{ client.phone }}</td>
+        <td class="text-sm text-gray-700">{{ client.credits }}</td>
+        <td>
+          <p-tag
+            [value]="getRiskLabel(client.risk)"
+            [severity]="getRiskSeverity(client.risk)"
+          ></p-tag>
+        </td>
+        <td>
+          <div class="flex items-center gap-2">
+            <button
+              pButton
+              label="Ver"
+              class="p-button-outlined p-button-sm p-button-secondary"
+              style="
+                padding: 0.25rem 0.75rem;
+                font-size: 0.8rem;
+                background: #dbeafe;
+                color: #2563eb;
+              "
+              (click)="openView(client)"
+            ></button>
+            <button
+              pButton
+              label="Editar"
+              class="p-button-outlined p-button-sm p-button-secondary"
+              style="
+                padding: 0.25rem 0.75rem;
+                font-size: 0.8rem;
+                background: #dbeafe;
+                color: #006432;
+              "
+              (click)="openEdit(client)"
+            ></button>
+            @if (client.credits > 0) {
+              <button
+                pButton
+                label="Créditos"
+                class="p-button-outlined p-button-sm p-button-secondary"
+                style="
+                  padding: 0.25rem 0.75rem;
+                  font-size: 0.8rem;
+                  background: #f7ffcc;
+                  color: #202400;
+                "
+                (click)="openCredits(client)"
+              ></button>
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [(visible)]="showViewModal"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '420px' }"
+  styleClass="rounded-2xl overflow-hidden"
+>
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-2">
+      <i class="pi pi-user text-blue-500 text-lg"></i>
+      <span class="font-semibold text-gray-800 text-base">Ver Cliente</span>
+    </div>
+  </ng-template>
+  @if (selectedClient) {
+    <div class="flex flex-col gap-3 py-2">
+      <div class="flex items-center gap-3 mb-2">
+        <span
+          class="inline-flex items-center justify-center w-12 h-12 rounded-full text-white text-lg font-semibold"
+          [style.background-color]="selectedClient.avatarColor"
+          >{{ selectedClient.initials }}</span
+        >
+        <div>
+          <p class="font-semibold text-gray-800">{{ selectedClient.name }}</p>
+          <p class="text-sm text-gray-500">DNI: {{ selectedClient.dni }}</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <p class="text-xs text-gray-500 font-medium">Teléfono</p>
+          <p class="text-sm text-gray-800">{{ selectedClient.phone }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 font-medium">Créditos activos</p>
+          <p class="text-sm text-gray-800">{{ selectedClient.credits }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500 font-medium">Riesgo</p>
+          <p-tag
+            [value]="getRiskLabel(selectedClient.risk)"
+            [severity]="getRiskSeverity(selectedClient.risk)"
+          ></p-tag>
+        </div>
+      </div>
+    </div>
+  }
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end pt-2">
+      <button type="button" class="cancel-btn" (click)="showViewModal = false">
+        Cerrar
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="showEditModal"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '480px' }"
+  styleClass="rounded-2xl overflow-hidden"
+>
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-2">
+      <i class="pi pi-pencil text-blue-500 text-lg"></i>
+      <span class="font-semibold text-gray-800 text-base">Editar Cliente</span>
+    </div>
+  </ng-template>
+  <form [formGroup]="editForm" class="flex flex-col gap-4 py-2">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Nombre</label>
+        <input pInputText formControlName="nombre" class="client-input" />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Apellido</label>
+        <input pInputText formControlName="apellido" class="client-input" />
+      </div>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Teléfono</label>
+      <input pInputText formControlName="phone" class="client-input" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Riesgo</label>
+      <p-dropdown
+        [options]="riskOptions"
+        formControlName="risk"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full"
+      />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Estado</label>
+      <div class="flex gap-4">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            formControlName="estado"
+            [value]="true"
+            class="accent-blue-500"
+          />
+          <span class="text-sm text-gray-700">Activo</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input
+            type="radio"
+            formControlName="estado"
+            [value]="false"
+            class="accent-blue-500"
+          />
+          <span class="text-sm text-gray-700">Inactivo</span>
+        </label>
+      </div>
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-3 pt-2">
+      <button type="button" class="cancel-btn" (click)="showEditModal = false">
+        Cancelar
+      </button>
+      <p-button
+        label="Guardar Cambios"
+        icon="pi pi-save"
+        severity="primary"
+        styleClass="h-11 px-5 rounded-xl"
+        [disabled]="editForm.invalid"
+        (onClick)="saveEdit()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="showCreditsModal"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '480px' }"
+  styleClass="rounded-2xl overflow-hidden"
+>
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-2">
+      <i class="pi pi-credit-card text-blue-500 text-lg"></i>
+      <span class="font-semibold text-gray-800 text-base">Créditos</span>
+      @if (selectedClient) {
+        <span class="text-gray-500 text-sm">— {{ selectedClient.name }}</span>
+      }
+    </div>
+  </ng-template>
+  @if (selectedClient) {
+    <div class="py-2 text-center text-gray-500 text-sm">
+      <i class="pi pi-info-circle text-2xl text-blue-300 mb-2 block"></i>
+      Cliente tiene
+      <strong class="text-gray-800">{{ selectedClient.credits }}</strong>
+      crédito(s) activo(s).
+      <br />
+      <span class="text-xs mt-1 block">Detalle de créditos próximamente.</span>
+    </div>
+  }
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end pt-2">
+      <button
+        type="button"
+        class="cancel-btn"
+        (click)="showCreditsModal = false"
+      >
+        Cerrar
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="showCreateModal"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '480px' }"
+  styleClass="rounded-2xl overflow-hidden"
+  headerStyleClass="border-b border-gray-100 bg-white"
+>
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-2">
+      <i class="pi pi-user text-blue-500 text-lg"></i>
+      <span class="font-semibold text-gray-800 text-base">Crear Cliente</span>
+    </div>
+  </ng-template>
+
+  <form [formGroup]="form" class="flex flex-col gap-4 py-2">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Nombres</label>
+        <input
+          pInputText
+          formControlName="nombres"
+          placeholder="María"
+          [class]="
+            'client-input' +
+            (isInvalid('nombres') ? ' client-input--error' : '')
+          "
+        />
+        @if (isInvalid("nombres")) {
+          <span class="text-xs text-red-500">{{ getError("nombres") }}</span>
+        }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700">Apellidos</label>
+        <input
+          pInputText
+          formControlName="apellidos"
+          placeholder="Garcia López"
+          [class]="
+            'client-input' +
+            (isInvalid('apellidos') ? ' client-input--error' : '')
+          "
+        />
+        @if (isInvalid("apellidos")) {
+          <span class="text-xs text-red-500">{{ getError("apellidos") }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700"
+        >Número de Cédula / DUI</label
+      >
+      <input
+        pInputText
+        formControlName="dni"
+        placeholder="1023456789"
+        [class]="
+          'client-input' + (isInvalid('dni') ? ' client-input--error' : '')
+        "
+      />
+      @if (isInvalid("dni")) {
+        <span class="text-xs text-red-500">{{ getError("dni") }}</span>
+      }
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700"
+          >Teléfono Principal</label
+        >
+        <input
+          pInputText
+          formControlName="telefonoPrincipal"
+          placeholder="300-123-4567"
+          [class]="
+            'client-input' +
+            (isInvalid('telefonoPrincipal') ? ' client-input--error' : '')
+          "
+        />
+        @if (isInvalid("telefonoPrincipal")) {
+          <span class="text-xs text-red-500">{{
+            getError("telefonoPrincipal")
+          }}</span>
+        }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700"
+          >Teléfono Alterno</label
+        >
+        <input
+          pInputText
+          formControlName="telefonoAlterno"
+          placeholder="311-987-6543"
+          [class]="
+            'client-input' +
+            (isInvalid('telefonoAlterno') ? ' client-input--error' : '')
+          "
+        />
+        @if (isInvalid("telefonoAlterno")) {
+          <span class="text-xs text-red-500">{{
+            getError("telefonoAlterno")
+          }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700"
+        >Correo Electrónico</label
+      >
+      <input
+        pInputText
+        formControlName="email"
+        placeholder="m.garcia@email.com"
+        [class]="
+          'client-input' + (isInvalid('email') ? ' client-input--error' : '')
+        "
+      />
+      @if (isInvalid("email")) {
+        <span class="text-xs text-red-500">{{ getError("email") }}</span>
+      }
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Dirección</label>
+      <input
+        pInputText
+        formControlName="direccion"
+        placeholder="Calle 5 #23-10, Sector Norte"
+        [class]="
+          'client-input' +
+          (isInvalid('direccion') ? ' client-input--error' : '')
+        "
+      />
+      @if (isInvalid("direccion")) {
+        <span class="text-xs text-red-500">{{ getError("direccion") }}</span>
+      }
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700"
+          >Ingresos Mensuales</label
+        >
+        <input
+          pInputText
+          formControlName="ingresos"
+          placeholder="$4.800.000"
+          [class]="
+            'client-input' +
+            (isInvalid('ingresos') ? ' client-input--error' : '')
+          "
+        />
+        @if (isInvalid("ingresos")) {
+          <span class="text-xs text-red-500">{{ getError("ingresos") }}</span>
+        }
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-gray-700"
+          >Capacidad de Pago</label
+        >
+        <input
+          pInputText
+          [value]="abilityToPay"
+          readonly
+          class="client-input client-input--readonly"
+        />
+      </div>
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-3 pt-2">
+      <button type="button" class="cancel-btn" (click)="cancelCreate()">
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="cancel-btn cancel-btn--danger"
+        (click)="form.reset()"
+        title="Borrar campos"
+      >
+        <i class="pi pi-trash mr-1"></i>Borrar
+      </button>
+      <p-button
+        label="Crear Cliente"
+        icon="pi pi-user"
+        severity="primary"
+        styleClass="h-11 px-5 rounded-xl"
+        [disabled]="form.invalid"
+        (onClick)="createClient()"
+      />
+    </div>
+  </ng-template>
+</p-dialog>

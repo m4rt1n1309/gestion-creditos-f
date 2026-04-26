@@ -1,0 +1,138 @@
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <div class="flex flex-col gap-4">
+    <div class="flex justify-between items-center">
+      <h2 class="text-base font-bold text-gray-800">Buscar Cliente</h2>
+      <span
+        class="bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1 rounded-full"
+      >
+        {{ form.clients.length }} clientes
+      </span>
+    </div>
+
+    <p-iconField iconPosition="left">
+      <p-inputIcon styleClass="pi pi-search text-gray-400 z-10" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar por nombre, cédula o teléfono..."
+        [ngModel]="form.searchClient()"
+        (ngModelChange)="form.searchClient.set($event)"
+        class="w-full h-11 pl-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 shadow-sm"
+      />
+    </p-iconField>
+
+    <div
+      class="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col h-[380px] overflow-y-auto"
+    >
+      @for (client of form.clients; track client.id) {
+        <div
+          class="flex items-center justify-between p-4 border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50"
+          [class.bg-blue-50]="form.selectedClient()?.id === client.id"
+          (click)="form.selectedClient.set(client)"
+        >
+          <div class="flex items-center gap-4">
+            <div
+              class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 transition-colors"
+              [class.bg-blue-600]="form.selectedClient()?.id === client.id"
+              [class.bg-slate-500]="form.selectedClient()?.id !== client.id"
+            >
+              {{ initials(client.name) }}
+            </div>
+            <div class="flex flex-col">
+              <span
+                class="text-sm font-bold"
+                [class.text-blue-900]="form.selectedClient()?.id === client.id"
+                [class.text-gray-900]="form.selectedClient()?.id !== client.id"
+              >
+                {{ client.name }}
+              </span>
+              <span class="text-xs text-gray-500 mt-0.5"
+                >CC {{ client.dni }} · Tel: {{ client.phone }}</span
+              >
+            </div>
+          </div>
+
+          @if (form.selectedClient()?.id === client.id) {
+            <i
+              class="pi pi-check-circle text-blue-600 text-xl animate-fadein"
+            ></i>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-4">
+    <h2 class="text-base font-bold text-gray-800">Cliente Seleccionado</h2>
+
+    @if (form.selectedClient(); as client) {
+      <div
+        class="border border-gray-200 rounded-xl p-6 shadow-sm bg-white h-[380px] animate-fadein"
+      >
+        <div class="flex items-center gap-4 mb-6">
+          <div
+            class="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-md shrink-0"
+          >
+            {{ initials(client.name) }}
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 leading-tight">
+              {{ client.name }}
+            </h3>
+            <p class="text-sm text-gray-500 mb-1.5">CC {{ client.dni }}</p>
+            <span
+              class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider"
+            >
+              Cliente activo
+            </span>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div
+            class="flex justify-between items-center py-2.5 border-b border-gray-50"
+          >
+            <span class="text-sm text-gray-500">Teléfono</span>
+            <span class="text-sm font-semibold text-gray-900">{{
+              client.phone
+            }}</span>
+          </div>
+          <div
+            class="flex justify-between items-center py-2.5 border-b border-gray-50"
+          >
+            <span class="text-sm text-gray-500">Correo</span>
+            <span class="text-sm font-semibold text-gray-900"
+              >cliente&#64;email.com</span
+            >
+          </div>
+          <div
+            class="flex justify-between items-center py-2.5 border-b border-gray-50"
+          >
+            <span class="text-sm text-gray-500">Créditos anteriores</span>
+            <span class="text-sm font-semibold text-green-600"
+              >3 créditos · sin mora</span
+            >
+          </div>
+          <div class="flex justify-between items-center py-2.5">
+            <span class="text-sm text-gray-500">Capacidad de pago</span>
+            <span class="text-sm font-bold text-gray-900">$2,400 / mes</span>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div
+        class="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center h-[380px] bg-gray-50/50 animate-fadein"
+      >
+        <div
+          class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100 mb-4"
+        >
+          <i class="pi pi-user text-gray-400 text-2xl"></i>
+        </div>
+        <p class="text-gray-600 font-semibold">Ningún cliente seleccionado</p>
+        <p class="text-sm text-gray-400 mt-1 max-w-[250px]">
+          Buscá y seleccioná un cliente de la lista para ver sus detalles.
+        </p>
+      </div>
+    }
+  </div>
+</div>

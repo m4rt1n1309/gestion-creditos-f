@@ -1,0 +1,398 @@
+<p-toast />
+
+<div class="p-6 space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Caja del día</h1>
+      @if (closedToday) {
+        <span
+          class="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full mt-1"
+        >
+          <i class="pi pi-lock text-xs"></i> Caja cerrada hoy
+        </span>
+      }
+    </div>
+    <div class="flex gap-2">
+      <p-button
+        icon="pi pi-refresh"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="loadingDashboard"
+        (onClick)="loadDashboard()"
+      />
+      @if (!closedToday) {
+        <p-button
+          label="Cerrar caja del día"
+          icon="pi pi-lock"
+          severity="danger"
+          (onClick)="openCloseDialog()"
+          [disabled]="!dashboard"
+        />
+      }
+    </div>
+  </div>
+
+  @if (loadingDashboard && !dashboard) {
+    <app-loading-state />
+  } @else if (errorDashboard && !dashboard) {
+    <app-error-state />
+  } @else if (dashboard) {
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div
+        class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-1"
+      >
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">
+          Efectivo
+        </p>
+        <p class="text-lg font-bold text-gray-800 font-mono">
+          {{ formatCurrency(dashboard.cashAmount) }}
+        </p>
+      </div>
+      <div
+        class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-1"
+      >
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">
+          Transferencia
+        </p>
+        <p class="text-lg font-bold text-gray-800 font-mono">
+          {{ formatCurrency(dashboard.transferAmount) }}
+        </p>
+      </div>
+      <div
+        class="bg-green-50 border border-green-200 rounded-2xl shadow-sm p-4 space-y-1 md:col-span-1 lg:col-span-2"
+      >
+        <p class="text-xs font-medium text-green-600 uppercase tracking-wide">
+          Total recaudado
+        </p>
+        <p class="text-2xl font-extrabold text-green-700 font-mono">
+          {{ formatCurrency(dashboard.totalCollected) }}
+        </p>
+      </div>
+      <div
+        class="bg-red-50 border border-red-200 rounded-2xl shadow-sm p-4 space-y-1"
+      >
+        <p class="text-xs font-medium text-red-500 uppercase tracking-wide">
+          Egresos
+        </p>
+        <p class="text-lg font-bold text-red-600 font-mono">
+          {{ formatCurrency(dashboard.totalEgreses) }}
+        </p>
+      </div>
+      <div
+        class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-1"
+      >
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">
+          Cobros
+        </p>
+        <p class="text-sm font-bold text-gray-800">
+          <span class="text-green-600"
+            >{{ dashboard.approvedCount }} aprobados</span
+          >
+          &nbsp;·&nbsp;
+          <span class="text-orange-500"
+            >{{ dashboard.pendingCount }} pendientes</span
+          >
+        </p>
+      </div>
+    </div>
+  }
+
+  <!-- History -->
+  <p-card styleClass="shadow-sm">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-base font-semibold text-gray-800">
+        Historial de cierres
+      </h2>
+    </div>
+
+    <div class="flex flex-wrap gap-3 mb-4 items-end">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-gray-400 uppercase tracking-wide"
+          >Desde</label
+        >
+        <input
+          type="date"
+          [(ngModel)]="filterDateFrom"
+          class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-gray-400 uppercase tracking-wide"
+          >Hasta</label
+        >
+        <input
+          type="date"
+          [(ngModel)]="filterDateTo"
+          class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <p-button
+        label="Filtrar"
+        icon="pi pi-search"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="applyFilters()"
+      />
+      @if (filterDateFrom || filterDateTo) {
+        <p-button
+          label="Limpiar"
+          icon="pi pi-times"
+          severity="secondary"
+          [text]="true"
+          (onClick)="clearFilters()"
+        />
+      }
+    </div>
+
+    @if (loadingHistory) {
+      <app-loading-state />
+    } @else if (errorHistory) {
+      <app-error-state />
+    } @else if (history.length === 0) {
+      <p class="text-sm text-gray-400 text-center py-10">
+        Sin cierres registrados.
+      </p>
+    } @else {
+      <p-table
+        [value]="history"
+        [paginator]="true"
+        [rows]="15"
+        styleClass="p-datatable-sm p-datatable-hoverable-rows"
+        responsiveLayout="scroll"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Fecha</th>
+            <th class="text-right">Total recaudado</th>
+            <th class="text-right">Efectivo</th>
+            <th class="text-right">Transferencia</th>
+            <th class="text-right">Declarado</th>
+            <th class="text-right">Diferencia</th>
+            <th class="text-center">Estado</th>
+            <th>Cerrado por</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-reg>
+          <tr class="cursor-pointer" (click)="openDetail(reg)">
+            <td class="font-medium">{{ formatDate(reg.registerDate) }}</td>
+            <td class="text-right font-mono font-semibold text-blue-600">
+              {{ formatCurrency(reg.totalCollected) }}
+            </td>
+            <td class="text-right font-mono">
+              {{ formatCurrency(reg.cashAmount) }}
+            </td>
+            <td class="text-right font-mono">
+              {{ formatCurrency(reg.transferAmount) }}
+            </td>
+            <td class="text-right font-mono">
+              {{ formatCurrency(reg.declaredCash) }}
+            </td>
+            <td
+              class="text-right font-mono font-semibold"
+              [class]="reg.difference >= 0 ? 'text-green-600' : 'text-red-500'"
+            >
+              {{ formatCurrency(reg.difference) }}
+            </td>
+            <td class="text-center">
+              <p-tag
+                [value]="differenceLabel(reg.differenceStatus)"
+                [severity]="differenceSeverity(reg.differenceStatus)"
+              />
+            </td>
+            <td class="text-sm text-gray-600">{{ reg.closedByName }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+</div>
+
+<!-- Dialog: Cerrar caja -->
+<p-dialog
+  [(visible)]="showCloseDialog"
+  [modal]="true"
+  [style]="{ width: '460px' }"
+  header="Cierre de caja del día"
+  [closable]="!closing"
+>
+  @if (dashboard) {
+    <div class="space-y-4">
+      <div
+        class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-sm text-blue-700"
+      >
+        <i class="pi pi-info-circle mr-1.5"></i>
+        Sistema registra
+        <strong>{{ formatCurrency(dashboard.cashAmount) }}</strong> en efectivo.
+        Ingresá el monto físico que tenés en caja.
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-medium text-gray-500 uppercase tracking-wide"
+          >Efectivo físico contado (ARS)</label
+        >
+        <p-inputNumber
+          [(ngModel)]="declaredCash"
+          mode="currency"
+          currency="ARS"
+          locale="es-AR"
+          [min]="0"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-medium text-gray-500 uppercase tracking-wide"
+          >Observaciones (opcional)</label
+        >
+        <textarea
+          pInputTextarea
+          [(ngModel)]="observations"
+          rows="3"
+          maxlength="500"
+          placeholder="Novedades, faltantes, aclaraciones..."
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+        ></textarea>
+        <span class="text-xs text-gray-400 text-right"
+          >{{ observations.length }}/500</span
+        >
+      </div>
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="closing"
+      (onClick)="showCloseDialog = false"
+    />
+    <p-button
+      label="Cerrar caja"
+      icon="pi pi-lock"
+      severity="danger"
+      [loading]="closing"
+      [disabled]="declaredCash == null"
+      (onClick)="confirmClose()"
+    />
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog: Detail -->
+<p-dialog
+  [(visible)]="showDetailDialog"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  header="Detalle de cierre"
+>
+  @if (selectedRegister) {
+    <div class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">
+            Fecha
+          </p>
+          <p class="font-semibold">
+            {{ formatDate(selectedRegister.registerDate) }}
+          </p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">
+            Cerrado por
+          </p>
+          <p class="font-semibold">{{ selectedRegister.closedByName }}</p>
+        </div>
+        <div class="bg-green-50 rounded-xl p-3">
+          <p class="text-xs text-green-600 uppercase tracking-wide mb-1">
+            Total recaudado
+          </p>
+          <p class="font-bold text-green-700 font-mono">
+            {{ formatCurrency(selectedRegister.totalCollected) }}
+          </p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">
+            Efectivo sistema
+          </p>
+          <p class="font-semibold font-mono">
+            {{ formatCurrency(selectedRegister.cashAmount) }}
+          </p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">
+            Transferencia
+          </p>
+          <p class="font-semibold font-mono">
+            {{ formatCurrency(selectedRegister.transferAmount) }}
+          </p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">
+            Efectivo declarado
+          </p>
+          <p class="font-semibold font-mono">
+            {{ formatCurrency(selectedRegister.declaredCash) }}
+          </p>
+        </div>
+        <div
+          class="col-span-2 rounded-xl p-3 border-2"
+          [class]="
+            selectedRegister.difference >= 0
+              ? 'bg-green-50 border-green-200'
+              : 'bg-red-50 border-red-200'
+          "
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p
+                class="text-xs uppercase tracking-wide mb-1"
+                [class]="
+                  selectedRegister.difference >= 0
+                    ? 'text-green-600'
+                    : 'text-red-500'
+                "
+              >
+                Diferencia
+              </p>
+              <p
+                class="font-bold text-xl font-mono"
+                [class]="
+                  selectedRegister.difference >= 0
+                    ? 'text-green-700'
+                    : 'text-red-600'
+                "
+              >
+                {{ formatCurrency(selectedRegister.difference) }}
+              </p>
+            </div>
+            <p-tag
+              [value]="differenceLabel(selectedRegister.differenceStatus)"
+              [severity]="differenceSeverity(selectedRegister.differenceStatus)"
+              styleClass="text-sm"
+            />
+          </div>
+        </div>
+      </div>
+      @if (selectedRegister.observations) {
+        <div class="bg-yellow-50 rounded-xl p-3">
+          <p class="text-xs text-yellow-700 uppercase tracking-wide mb-1">
+            Observaciones
+          </p>
+          <p class="text-sm text-yellow-800">
+            {{ selectedRegister.observations }}
+          </p>
+        </div>
+      }
+    </div>
+  }
+
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cerrar"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="showDetailDialog = false"
+    />
+  </ng-template>
+</p-dialog>
