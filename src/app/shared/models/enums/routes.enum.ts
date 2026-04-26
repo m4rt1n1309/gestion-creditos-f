@@ -22,11 +22,26 @@ export enum AppRoutes {
   PRODUCTS_EDIT = 'products/:id/edit',
   REPORTS = 'reports',
   ROUTE = '/collector/route',
+  COLLECTOR_PAYMENTS = '/collector/payments',
   SELLER = 'seller',
   SHEET = 'sheet',
   USERS = 'users',
   USERS_DETAIL = 'users/:id',
   USERS_NEW = 'users/new',
+
+  // Admin collections, payments & commissions
+  ADMIN_COMMISSIONS = 'commissions',
+  ADMIN_COLLECTIONS = 'collections',
+  ADMIN_COLLECTIONS_NEW = 'collections/new',
+  ADMIN_COLLECTIONS_DETAIL = 'collections/:id',
+  ADMIN_PAYMENTS = 'payments',
+
+  // Portal cliente
+  PORTAL = 'portal',
+  PORTAL_LOGIN = '/portal/login',
+  PORTAL_DASHBOARD = '/portal/dashboard',
+  PORTAL_CREDITS = '/portal/credits',
+  PORTAL_CREDIT_DETAIL = '/portal/credits/:id',
 
   // Seller
   SELLER_OPERATIONS = 'seller/operations/new',
@@ -35,4 +50,6 @@ export enum AppRoutes {
   SELLER_PRODUCTS_NEW = 'seller/products/new',
   SELLER_PRODUCTS_DETAIL = 'seller/products/:id',
   SELLER_PRODUCTS_EDIT = 'seller/products/:id/edit',
+  SELLER_COMMISSIONS = '/seller/commissions',
+  COLLECTOR_COMMISSIONS = '/collector/commissions',
 }
