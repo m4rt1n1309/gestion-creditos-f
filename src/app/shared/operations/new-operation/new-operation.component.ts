@@ -75,7 +75,6 @@ export class NewOperationComponent implements OnInit {
   }
 
   finish() {
-    console.log('Operación guardada con éxito');
     this.onComplete.emit();
   }
 }
