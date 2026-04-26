@@ -1,4 +1,4 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+﻿import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MockAuthService, MOCK_USERS } from './mock-auth.service';
@@ -20,12 +20,12 @@ describe('MockAuthService', () => {
 
   afterEach(() => localStorage.clear());
 
-  it('debería iniciar sin usuario autenticado', () => {
+  it('deberÃ­a iniciar sin usuario autenticado', () => {
     expect(service.isAuthenticated()).toBeFalse();
     expect(service.snapshot).toBeNull();
   });
 
-  it('debería autenticar con DNI válido y persistir en localStorage', fakeAsync(() => {
+  it('deberÃ­a autenticar con DNI vÃ¡lido y persistir en localStorage', fakeAsync(() => {
     const admin = MOCK_USERS[0]; // dni: '12345678'
     let result: any;
 
@@ -42,7 +42,7 @@ describe('MockAuthService', () => {
     expect(localStorage.getItem('sgcf_token')).toBe(admin.token);
   }));
 
-  it('debería emitir error 401 con DNI inexistente', fakeAsync(() => {
+  it('deberÃ­a emitir error 401 con DNI inexistente', fakeAsync(() => {
     let error: any;
     (service as any)['NETWORK_LATENCY_MS'] = 0;
     service
@@ -55,7 +55,7 @@ describe('MockAuthService', () => {
     expect(service.isAuthenticated()).toBeFalse();
   }));
 
-  it('debería verificar roles correctamente con hasRole()', fakeAsync(() => {
+  it('deberÃ­a verificar roles correctamente con hasRole()', fakeAsync(() => {
     (service as any)['NETWORK_LATENCY_MS'] = 0;
     service.login({ dni: '87654321', password: 'x' }).subscribe(); // SELLER
     tick(0);
@@ -65,7 +65,7 @@ describe('MockAuthService', () => {
     expect(service.hasRole(Roles.COLLECTOR)).toBeFalse();
   }));
 
-  it('debería verificar hasAnyRole() con múltiples roles', fakeAsync(() => {
+  it('deberÃ­a verificar hasAnyRole() con mÃºltiples roles', fakeAsync(() => {
     (service as any)['NETWORK_LATENCY_MS'] = 0;
     service.login({ dni: '11223344', password: 'x' }).subscribe(); // COLLECTOR
     tick(0);
@@ -74,7 +74,7 @@ describe('MockAuthService', () => {
     expect(service.hasAnyRole([Roles.ADMIN, Roles.SELLER])).toBeFalse();
   }));
 
-  it('debería limpiar localStorage y emitir null al hacer logout', fakeAsync(() => {
+  it('deberÃ­a limpiar localStorage y emitir null al hacer logout', fakeAsync(() => {
     (service as any)['NETWORK_LATENCY_MS'] = 0;
     const navigateSpy = spyOn(router, 'navigate');
     service.login({ dni: '12345678', password: 'x' }).subscribe();
@@ -84,10 +84,10 @@ describe('MockAuthService', () => {
 
     expect(service.isAuthenticated()).toBeFalse();
     expect(localStorage.getItem('sgcf_token')).toBeNull();
-    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+    expect(navigateSpy).toHaveBeenCalledWith(['login']);
   }));
 
-  it('currentUser$ debería emitir el usuario tras login exitoso', fakeAsync(() => {
+  it('currentUser$ deberÃ­a emitir el usuario tras login exitoso', fakeAsync(() => {
     (service as any)['NETWORK_LATENCY_MS'] = 0;
     const emitted: any[] = [];
     service.currentUser$.subscribe((u) => emitted.push(u));
@@ -99,3 +99,4 @@ describe('MockAuthService', () => {
     expect(emitted[1]?.roles).toContain(Roles.ADMIN);
   }));
 });
+
