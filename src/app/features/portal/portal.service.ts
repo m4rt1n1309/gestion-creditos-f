@@ -6,8 +6,8 @@ import {
   AccountSummary,
   PortalCredit,
   PortalCreditDetail,
-  UpcomingInstallment,
   PortalInstallment,
+  UpcomingInstallment,
 } from './models/portal.models';
 
 @Injectable({ providedIn: 'root' })
@@ -62,6 +62,8 @@ function mapAccountSummary(raw: Record<string, unknown>): AccountSummary {
     pendingCount: raw['pending_count'] as number,
     overdueCount: raw['overdue_count'] as number,
     statusIndicator: raw['status_indicator'] as 'GREEN' | 'YELLOW' | 'RED',
+    totalPaidAmount: raw['total_paid_amount'] as number,
+    pendingPenaltyAmount: raw['pending_penalty_amount'] as number,
     upcomingInstallments: upcoming,
   };
 }
@@ -109,6 +111,8 @@ function mapPortalCredit(raw: Record<string, unknown>): PortalCredit {
     paidInstallments: raw['paid_installments'] as number,
     nextDueDate: (raw['next_due_date'] as string | null) ?? null,
     nextDueAmount: (raw['next_due_amount'] as number | null) ?? null,
+    pendingPenalty: raw['pending_penalty'] as number,
+    hasOverdue: raw['has_overdue'] as boolean,
   };
 }
 
