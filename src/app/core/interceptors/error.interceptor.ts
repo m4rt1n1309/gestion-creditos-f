@@ -30,9 +30,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       if (err?.status === 403) {
-        // "Debés cambiar tu contraseña antes de continuar." (is_temp_password)
-        // TODO (prompt-05): crear ruta /change-password y descomentar la navegación
-        // router.navigate([AppRoutes.CHANGE_PASSWORD]);
+        router.navigate([AppRoutes.CHANGE_PASSWORD]);
       }
 
       return throwError(() => err);
