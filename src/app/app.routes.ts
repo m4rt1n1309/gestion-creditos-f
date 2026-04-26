@@ -65,6 +65,14 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./features/portal/portal.routes').then((r) => r.PORTAL_ROUTES),
   },
+  {
+    path: AppRoutes.PROFILE,
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/profile/profile.component').then(
+        (c) => c.ProfileComponent,
+      ),
+  },
   { path: '', redirectTo: AppRoutes.LOGIN, pathMatch: 'full' },
   { path: '**', redirectTo: AppRoutes.LOGIN },
 ];

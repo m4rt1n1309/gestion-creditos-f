@@ -43,6 +43,9 @@ export enum AppRoutes {
   PORTAL_CREDITS = '/portal/credits',
   PORTAL_CREDIT_DETAIL = '/portal/credits/:id',
 
+  // Profile
+  PROFILE = 'profile',
+
   // Seller
   SELLER_OPERATIONS = 'seller/operations/new',
   SELLER_OPERATIONS_DETAIL = 'seller/operations/:id',
