@@ -151,7 +151,6 @@ export class ClientsComponent {
     const control = this.form.get(field);
     if (!control || !control.errors) return '';
     if (control.errors['required']) return 'Campo obligatorio';
-    if (control.errors['email']) return 'Email inválido';
     if (control.errors['minlength'])
       return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
     if (control.errors['pattern']) return 'Formato inválido';
@@ -297,7 +296,7 @@ export class ClientsComponent {
         [Validators.required, Validators.pattern(/^[\d\s\+\-]+$/)],
       ],
       telefonoAlterno: ['', [Validators.pattern(/^[\d\s\+\-]*$/)]],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.email]],
       direccion: ['', [Validators.required]],
       ingresos: ['', [Validators.required, Validators.pattern(/^[\$\d\.,]+$/)]],
     });
