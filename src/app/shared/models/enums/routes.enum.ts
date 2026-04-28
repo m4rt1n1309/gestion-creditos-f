@@ -29,6 +29,9 @@ export enum AppRoutes {
   USERS_DETAIL = 'users/:id',
   USERS_NEW = 'users/new',
 
+  // Admin expenses
+  ADMIN_EXPENSES = 'expenses',
+
   // Admin collections, payments & commissions
   ADMIN_COMMISSIONS = 'commissions',
   ADMIN_COLLECTIONS = 'collections',
