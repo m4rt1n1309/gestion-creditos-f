@@ -25,6 +25,10 @@ function toDashboard(r: CashRegisterDashboardRaw): CashRegisterDashboard {
     totalEgreses: r.total_egreses,
     approvedCount: r.approved_count,
     pendingCount: r.pending_count,
+    netBalance: r.net_balance ?? 0,
+    pendingAmount: r.pending_amount ?? 0,
+    downPaymentsTotal: r.down_payments_total ?? 0,
+    downPaymentsCount: r.down_payments_count ?? 0,
   };
 }
 
@@ -72,6 +76,8 @@ export class CashRegisterService {
     const params: Record<string, string> = {};
     if (filters?.dateFrom) params['date_from'] = filters.dateFrom;
     if (filters?.dateTo) params['date_to'] = filters.dateTo;
+    if (filters?.differenceStatus)
+      params['difference_status'] = filters.differenceStatus;
     return this.api
       .get<CashRegisterRaw[]>('cash-register', params)
       .pipe(map((items) => items.map(toCashRegister)));
@@ -98,6 +104,7 @@ export class CashRegisterService {
       declared_cash: payload.declaredCash,
     };
     if (payload.observations) body['observations'] = payload.observations;
+    if (payload.force) body['force'] = true;
     return this.api
       .post<CashRegisterRaw>('cash-register/close', body)
       .pipe(map(toCashRegister));

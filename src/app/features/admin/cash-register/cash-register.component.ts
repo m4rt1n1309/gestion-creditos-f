@@ -4,6 +4,7 @@ import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -35,6 +36,7 @@ import { CashRegisterService } from './cash-register.service';
     ButtonModule,
     CardModule,
     DialogModule,
+    DropdownModule,
     InputNumberModule,
     InputTextareaModule,
     SkeletonModule,
@@ -66,11 +68,20 @@ export class CashRegisterComponent implements OnInit, OnDestroy {
 
   filterDateFrom: string | null = null;
   filterDateTo: string | null = null;
+  filterDifferenceStatus: DifferenceStatus | null = null;
+
+  readonly differenceStatusOptions = [
+    { label: 'Todos los estados', value: null },
+    { label: 'Exacta', value: 'EXACT' as DifferenceStatus },
+    { label: 'Sobrante', value: 'SURPLUS' as DifferenceStatus },
+    { label: 'Faltante', value: 'SHORTAGE' as DifferenceStatus },
+  ];
 
   showCloseDialog = false;
   declaredCash: number | null = null;
   observations = '';
   closing = false;
+  closePendingError: string | null = null;
 
   showDetailDialog = false;
   selectedRegister: CashRegister | null = null;
@@ -89,7 +100,7 @@ export class CashRegisterComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Inicia un polling que actualiza el dashboard cada minuto para mantener los datos frescos, especialmente si hay otras personas usando el sistema y cerrando cajas. El historial no se actualiza automáticamente para no interferir con la revisión de datos históricos, pero se puede actualizar manualmente con los filtros.
+   * Inicia el polling para actualizar el dashboard cada minuto. Se detiene automáticamente al destruir el componente.
    */
   private startPolling(): void {
     interval(60_000)
@@ -105,7 +116,7 @@ export class CashRegisterComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Carga los datos del dashboard, incluyendo el estado actual de la caja del día. Si la caja ya fue cerrada, se muestra un mensaje informativo. Cualquier error durante la carga se muestra en pantalla.
+   * Carga los datos del dashboard desde el servidor, mostrando estados de carga y error según corresponda.
    */
   loadDashboard(): void {
     this.loadingDashboard = true;
@@ -129,7 +140,7 @@ export class CashRegisterComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Carga el historial de cajas cerradas, aplicando los filtros de fecha si están establecidos. Mientras se cargan los datos, se muestra un indicador de carga. Si ocurre un error, se muestra un mensaje de error en pantalla.
+   * Carga el historial de registros de caja desde el servidor, mostrando estados de carga y error según corresponda.
    */
   loadHistory(): void {
     this.loadingHistory = true;
@@ -137,6 +148,8 @@ export class CashRegisterComponent implements OnInit, OnDestroy {
     const filters: CashRegisterFilters = {};
     if (this.filterDateFrom) filters.dateFrom = this.filterDateFrom;
     if (this.filterDateTo) filters.dateTo = this.filterDateTo;
+    if (this.filterDifferenceStatus)
+      filters.differenceStatus = this.filterDifferenceStatus;
     this.service
       .getAll(filters)
       .pipe(
@@ -156,26 +169,30 @@ export class CashRegisterComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Abre el diálogo para cerrar la caja del día. Se precarga el monto declarado con el total de efectivo registrado en el dashboard para facilitar el proceso. Al confirmar el cierre, se envía la información al servicio y se maneja la respuesta para actualizar la interfaz y mostrar mensajes informativos o de error según corresponda.
+   * Abre el diálogo para cerrar la caja.
    */
   openCloseDialog(): void {
     this.declaredCash = this.dashboard?.cashAmount ?? 0;
     this.observations = '';
+    this.closePendingError = null;
     this.showCloseDialog = true;
   }
 
   /**
-   * Confirma el cierre de la caja del día.
-   * @returns
+   * Confirma el cierre de la caja.
+   * @param force - Si es true, fuerza el cierre incluso si hay pendientes.
    */
-  confirmClose(): void {
+  confirmClose(force = false): void {
     if (this.declaredCash == null) return;
     const payload: CashRegisterClosePayload = {
       declaredCash: this.declaredCash,
     };
     if (this.observations.trim())
       payload.observations = this.observations.trim();
+    if (force) payload.force = true;
+
     this.closing = true;
+    this.closePendingError = null;
     this.service
       .close(payload)
       .pipe(
@@ -201,14 +218,21 @@ export class CashRegisterComponent implements OnInit, OnDestroy {
         },
         error: (err: AppError) => {
           if (err.status === 409) {
-            this.closedToday = true;
-            this.showCloseDialog = false;
-            this.msg.add({
-              severity: 'warn',
-              summary: 'Caja ya cerrada',
-              detail: err.message,
-              life: 5000,
-            });
+            const isPendingCredits =
+              err.message?.includes('pre-carga') ||
+              err.message?.includes('pendiente');
+            if (isPendingCredits) {
+              this.closePendingError = err.message;
+            } else {
+              this.closedToday = true;
+              this.showCloseDialog = false;
+              this.msg.add({
+                severity: 'warn',
+                summary: 'Caja ya cerrada',
+                detail: err.message,
+                life: 5000,
+              });
+            }
           } else {
             this.msg.add({
               severity: 'error',
@@ -222,8 +246,8 @@ export class CashRegisterComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Abre el diálogo de detalles para una caja cerrada específica.
-   * @param reg
+   * Abre el diálogo para ver los detalles de un registro de caja.
+   * @param reg - El registro de caja para el cual mostrar detalles.
    */
   openDetail(reg: CashRegister): void {
     this.selectedRegister = reg;
@@ -231,18 +255,19 @@ export class CashRegisterComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Aplica los filtros de fecha para actualizar el historial de cajas cerradas. Si se han establecido fechas de filtro, se cargarán los datos correspondientes a ese rango. Si no hay filtros, se cargará todo el historial disponible.
+   * Aplica los filtros seleccionados y recarga el historial de registros.
    */
   applyFilters(): void {
     this.loadHistory();
   }
 
   /**
-   * Limpia los filtros de fecha y recarga el historial completo de cajas cerradas. Esto permite al usuario volver a ver todo el historial sin restricciones de fecha después de haber aplicado algún filtro.
+   * Limpia los filtros y recarga el historial de registros sin ningún filtro aplicado.
    */
   clearFilters(): void {
     this.filterDateFrom = null;
     this.filterDateTo = null;
+    this.filterDifferenceStatus = null;
     this.loadHistory();
   }
 
@@ -252,30 +277,35 @@ export class CashRegisterComponent implements OnInit, OnDestroy {
    * @returns
    */
   differenceLabel(status: DifferenceStatus): string {
-    return { BALANCED: 'Cuadrada', SURPLUS: 'Sobrante', SHORTAGE: 'Faltante' }[
+    return { EXACT: 'Exacta', SURPLUS: 'Sobrante', SHORTAGE: 'Faltante' }[
       status
     ];
   }
 
   /**
-   * Devuelve el severidad correspondiente al estado de diferencia.
+   * Devuelve el severity correspondiente al estado de diferencia.
    * @param status
    * @returns
    */
   differenceSeverity(
     status: DifferenceStatus,
   ): 'success' | 'warning' | 'danger' {
-    return { BALANCED: 'success', SURPLUS: 'warning', SHORTAGE: 'danger' }[
+    return { EXACT: 'success', SURPLUS: 'warning', SHORTAGE: 'danger' }[
       status
     ] as 'success' | 'warning' | 'danger';
   }
 
+  /**
+   * Formatea un valor como moneda.
+   * @param value
+   * @returns
+   */
   formatCurrency(value: number): string {
     return this.format.currency(value);
   }
 
   /**
-   * Formatea una fecha en formato dd/mm/yyyy.
+   * Formatea una fecha en el formato dd/mm/yyyy.
    * @param iso
    * @returns
    */

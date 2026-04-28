@@ -1,4 +1,4 @@
-export type DifferenceStatus = 'BALANCED' | 'SURPLUS' | 'SHORTAGE';
+export type DifferenceStatus = 'EXACT' | 'SURPLUS' | 'SHORTAGE';
 
 export interface CashRegisterDashboard {
   date: string;
@@ -8,6 +8,10 @@ export interface CashRegisterDashboard {
   totalEgreses: number;
   approvedCount: number;
   pendingCount: number;
+  netBalance: number;
+  pendingAmount: number;
+  downPaymentsTotal: number;
+  downPaymentsCount: number;
 }
 
 export interface CashRegister {
@@ -27,11 +31,13 @@ export interface CashRegister {
 export interface CashRegisterFilters {
   dateFrom?: string;
   dateTo?: string;
+  differenceStatus?: DifferenceStatus;
 }
 
 export interface CashRegisterClosePayload {
   declaredCash: number;
   observations?: string;
+  force?: boolean;
 }
 
 export interface CashRegisterDashboardRaw {
@@ -42,6 +48,10 @@ export interface CashRegisterDashboardRaw {
   total_egreses: number;
   approved_count: number;
   pending_count: number;
+  net_balance: number;
+  pending_amount: number;
+  down_payments_total: number;
+  down_payments_count: number;
 }
 
 export interface CashRegisterRaw {
