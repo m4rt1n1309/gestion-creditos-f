@@ -5,12 +5,11 @@ import { ChartModule } from 'primeng/chart';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { Subject, forkJoin } from 'rxjs';
+import { Subject } from 'rxjs';
 import { catchError, of, takeUntil } from 'rxjs';
 import { MockAuthService } from '../../../core/auth/mock-auth.service';
 import { DateService } from '../../../core/services/date.service';
 import { FormatService } from '../../../core/services/format.service';
-import { CashRegisterService } from '../cash-register/cash-register.service';
 import { KpiCard } from '../models/interface/kpi-card';
 import { RecentOperation } from '../models/interface/recent-operation';
 import { ReportsService } from '../reports/reports.service';
@@ -60,7 +59,6 @@ function creditToOp(credit: Credit): RecentOperation {
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private readonly auth = inject(MockAuthService);
-  private readonly cashRegisterSvc = inject(CashRegisterService);
   private readonly reportsSvc = inject(ReportsService);
   private readonly creditsSvc = inject(CreditsService);
   private readonly dateService = inject(DateService);
@@ -95,52 +93,39 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Carga los KPIs para el dashboard. Realiza llamadas paralelas a los servicios de caja, cartera y morosidad, manejando errores individualmente para cada uno y actualizando el estado de carga y los datos de los KPIs en consecuencia.
+   * Carga los datos para las tarjetas KPI, obteniendo un resumen de los indicadores clave del sistema a través del servicio de reportes. Maneja el estado de carga y posibles errores, y formatea los valores para su presentación en la interfaz.
    */
   private loadKpis(): void {
     this.loadingKpis = true;
-
-    const cashRegister$ = this.cashRegisterSvc
-      .getDashboard()
-      .pipe(catchError(() => of(null)));
-    const portfolio$ = this.reportsSvc
-      .getPortfolioReport()
-      .pipe(catchError(() => of(null)));
-    const overdue$ = this.reportsSvc
-      .getOverdueReport()
-      .pipe(catchError(() => of(null)));
-
-    forkJoin([cashRegister$, portfolio$, overdue$])
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(([cashReg, portfolio, overdue]) => {
-        const activeCount = portfolio
-          ? portfolio.byStatusType
-              .filter((r) => r.status === 'ACTIVE')
-              .reduce((s, r) => s + r.count, 0)
-          : 0;
-
+    this.reportsSvc
+      .getSummaryReport()
+      .pipe(
+        catchError(() => of(null)),
+        takeUntil(this.destroy$),
+      )
+      .subscribe((summary) => {
         this.kpis = [
           {
             label: 'Cartera Activa',
-            value: portfolio ? this.fmt.currency(portfolio.activePendingBalance) : '–',
+            value: summary
+              ? this.fmt.currency(summary.activePortfolioBalance)
+              : '–',
             trend: 'Cartera actual',
             trendUp: true,
             icon: 'pi pi-dollar text-blue-600',
             iconBg: 'bg-blue-50',
           },
           {
-            label: 'Créditos Activos',
-            value: portfolio ? this.fmt.number(activeCount) : '–',
-            trend: 'Créditos activos',
-            trendUp: true,
+            label: 'Pend. Aprobación',
+            value: summary ? this.fmt.number(summary.pendingCreditsCount) : '–',
+            trend: 'Créditos pendientes',
+            trendUp: false,
             icon: 'pi pi-file text-green-600',
             iconBg: 'bg-green-50',
           },
           {
             label: 'En Mora',
-            value: overdue
-              ? this.fmt.number(overdue.summary.overdueInstallments)
-              : '–',
+            value: summary ? this.fmt.number(summary.overdueCount) : '–',
             trend: 'Cuotas en mora',
             trendUp: false,
             icon: 'pi pi-exclamation-triangle text-orange-500',
@@ -148,7 +133,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           },
           {
             label: 'Cobrado Hoy',
-            value: cashReg ? this.fmt.currency(cashReg.totalCollected) : '–',
+            value: summary ? this.fmt.currency(summary.todayCollected) : '–',
             trend: 'Datos de hoy',
             trendUp: true,
             icon: 'pi pi-wallet text-purple-600',
@@ -271,9 +256,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           },
         },
         tooltip: {
-          callbacks: {
-            label: (ctx: any) => ` ${ctx.label}: ${ctx.parsed}%`,
-          },
+          callbacks: { label: (ctx: any) => ` ${ctx.label}: ${ctx.parsed}%` },
         },
       },
     };
