@@ -84,7 +84,6 @@ export class ClientsComponent {
   showCreateModal: boolean = false;
   showEditModal: boolean = false;
   showViewModal: boolean = false;
-  showCreditsModal: boolean = false;
   submitted: boolean = false;
   selectedClient: Client | null = null;
 
