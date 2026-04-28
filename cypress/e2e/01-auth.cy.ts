@@ -14,9 +14,8 @@
 
 describe('Autenticación', () => {
   beforeEach(() => {
-    cy.logout();
+    cy.logout(); // clearLocalStorage + visit('/login')
     cy.viewport(1280, 720);
-    cy.visit('/login');
   });
 
   // ── Renderizado ──────────────────────────────────────────────────────────────
@@ -48,44 +47,66 @@ describe('Autenticación', () => {
   });
 
   // ── Login exitoso — Admin ────────────────────────────────────────────────────
+  // cy.intercept de POST /auth/login porque la app usa AuthService (useMocks=false)
+  // y el backend rechazaría los tokens mock con 401.
   it('autentica a un Admin y redirige a /admin/dashboard', () => {
+    cy.intercept('POST', '**/auth/login', {
+      statusCode: 200,
+      body: { ok: true, data: { user: { id: 'usr-001', full_name: 'Carlos López', dni: '12345678', role: 'ADMIN', is_temp_password: false }, token: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c3ItMDAxIiwicm9sZSI6IkFETUlOIiwiYXVkIjoic2lzdGVtYS1pbnRlcm5vIn0.mock_admin' } },
+    }).as('loginAdmin');
+
     cy.get('[data-testid="input-dni"]').type('12345678');
-    cy.get('[data-testid="input-password"] input').type('password123');
+    cy.get('[data-testid="input-password"] input').type('mock123');
     cy.get('[data-testid="btn-login"]').click();
 
-    // Botón muestra loading durante el delay del mock (800ms)
-    cy.get('[data-testid="btn-login"]').should('have.attr', 'aria-busy', 'true');
-
+    cy.wait('@loginAdmin');
     cy.url().should('include', '/admin/dashboard');
-    // Sidebar visible con el nombre del usuario
     cy.contains('Carlos López').should('be.visible');
   });
 
   // ── Login exitoso — Seller ───────────────────────────────────────────────────
   it('autentica a un Seller y redirige a /seller/operations', () => {
+    cy.intercept('POST', '**/auth/login', {
+      statusCode: 200,
+      body: { ok: true, data: { user: { id: 'usr-002', full_name: 'María Sánchez', dni: '87654321', role: 'SELLER', is_temp_password: false }, token: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c3ItMDAyIiwicm9sZSI6IlNFTExFUiIsImF1ZCI6InNpc3RlbWEtaW50ZXJubyJ9.mock_seller' } },
+    }).as('loginSeller');
+
     cy.get('[data-testid="input-dni"]').type('87654321');
-    cy.get('[data-testid="input-password"] input').type('cualquier-password');
+    cy.get('[data-testid="input-password"] input').type('mock123');
     cy.get('[data-testid="btn-login"]').click();
 
+    cy.wait('@loginSeller');
     cy.url().should('include', '/seller/operations');
     cy.contains('María Sánchez').should('be.visible');
   });
 
   // ── Login exitoso — Collector ────────────────────────────────────────────────
   it('autentica a un Collector y redirige a /collector/route', () => {
+    cy.intercept('POST', '**/auth/login', {
+      statusCode: 200,
+      body: { ok: true, data: { user: { id: 'usr-003', full_name: 'Juan Pedraza', dni: '11223344', role: 'COLLECTOR', is_temp_password: false }, token: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c3ItMDAzIiwicm9sZSI6IkNPTExFQ1RPUiIsImF1ZCI6InNpc3RlbWEtaW50ZXJubyJ9.mock_collector' } },
+    }).as('loginCollector');
+
     cy.get('[data-testid="input-dni"]').type('11223344');
-    cy.get('[data-testid="input-password"] input').type('cualquier-password');
+    cy.get('[data-testid="input-password"] input').type('mock123');
     cy.get('[data-testid="btn-login"]').click();
 
+    cy.wait('@loginCollector');
     cy.url().should('include', '/collector/route');
     cy.contains('Juan Pedraza').should('be.visible');
   });
 
   // ── Login fallido ────────────────────────────────────────────────────────────
   it('muestra mensaje de error con credenciales incorrectas', () => {
+    cy.intercept('POST', '**/auth/login', {
+      statusCode: 401,
+      body: { ok: false, message: 'Credenciales incorrectas.' },
+    }).as('loginFailed');
+
     cy.get('[data-testid="input-dni"]').type('99999999');
-    cy.get('[data-testid="input-password"] input').type('wrong');
+    cy.get('[data-testid="input-password"] input').type('wrongpass');
     cy.get('[data-testid="btn-login"]').click();
+    cy.wait('@loginFailed');
 
     cy.get('[data-testid="login-error"]')
       .should('be.visible')

@@ -26,7 +26,8 @@ describe('Sidebar y Guardias de Ruta', () => {
       cy.contains('aside span', 'Principal').should('be.visible');
       cy.contains('aside span', 'Gestión').should('be.visible');
       cy.contains('aside span', 'Administración').should('be.visible');
-      cy.contains('aside span', 'Sistema').should('be.visible');
+      // 'Sistema' puede estar debajo del fold del sidebar scrollable — scrollIntoView
+      cy.contains('aside span', 'Sistema').scrollIntoView().should('be.visible');
     });
 
     it('muestra items exclusivos de admin: Usuarios, Aprobaciones, Reportes, Configuración', () => {
