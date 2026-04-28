@@ -166,49 +166,29 @@ describe('CreditsService', () => {
       req.flush({ ok: true, data: mockSimulateRaw, message: '' });
     });
 
-    it('includes products array for SALE type', () => {
+    it('SALE sends total_amount (unit prices sum) without products array', () => {
       service
         .simulate({
           type: 'SALE',
+          totalAmount: 1000,
           installmentsCount: 3,
           paymentFrequency: 'MONTHLY',
-          products: [{ productId: 'prod-1', quantity: 2 }],
         })
         .subscribe();
 
       const req = httpMock.expectOne(`${BASE}/credits/simulate`);
-      expect(req.request.body['products']).toEqual([
-        { product_id: 'prod-1', quantity: 2 },
-      ]);
-      req.flush({ ok: true, data: mockSimulateRaw, message: '' });
-    });
-
-    it('SALE with items[] maps installmentContribution', () => {
-      let result: any;
-      service
-        .simulate({
-          type: 'SALE',
-          installmentsCount: 3,
-          paymentFrequency: 'MONTHLY',
-          products: [{ productId: 'prod-1', quantity: 2 }],
-        })
-        .subscribe((r) => (result = r));
-
-      const req = httpMock.expectOne(`${BASE}/credits/simulate`);
+      expect(req.request.body['total_amount']).toBe(1000);
+      expect(req.request.body['products']).toBeUndefined();
       req.flush({ ok: true, data: mockSimulateSaleRaw, message: '' });
-      expect(result.items).toBeTruthy();
-      expect(result.items.length).toBe(1);
-      expect(result.items[0].installmentContribution).toBe(350);
-      expect(result.items[0].productId).toBe('prod-1');
     });
 
     it('SALE without downPayment does not send down_payment field', () => {
       service
         .simulate({
           type: 'SALE',
+          totalAmount: 1000,
           installmentsCount: 3,
           paymentFrequency: 'MONTHLY',
-          products: [{ productId: 'prod-1', quantity: 2 }],
         })
         .subscribe();
 
@@ -221,9 +201,9 @@ describe('CreditsService', () => {
       service
         .simulate({
           type: 'SALE',
+          totalAmount: 1000,
           installmentsCount: 3,
           paymentFrequency: 'MONTHLY',
-          products: [{ productId: 'prod-1', quantity: 2 }],
           downPayment: 0,
         })
         .subscribe();
@@ -238,9 +218,9 @@ describe('CreditsService', () => {
       service
         .simulate({
           type: 'SALE',
+          totalAmount: 1000,
           installmentsCount: 3,
           paymentFrequency: 'MONTHLY',
-          products: [{ productId: 'prod-1', quantity: 2 }],
           downPayment: 200,
         })
         .subscribe((r) => (result = r));
@@ -306,23 +286,22 @@ describe('CreditsService', () => {
   });
 
   describe('create', () => {
-    it('sends SALE body with products array and no total_amount', () => {
+    it('sends SALE body with units array and no total_amount', () => {
       service
         .create({
           customerId: 'cust-1',
           type: 'SALE',
           installmentsCount: 3,
           paymentFrequency: 'MONTHLY',
-          products: [{ productId: 'prod-1', quantity: 1 }],
+          units: [{ unitId: 'unit-1' }],
         })
         .subscribe();
 
       const req = httpMock.expectOne(`${BASE}/credits`);
       expect(req.request.body['type']).toBe('SALE');
-      expect(req.request.body['products']).toEqual([
-        { product_id: 'prod-1', quantity: 1 },
-      ]);
+      expect(req.request.body['units']).toEqual([{ unit_id: 'unit-1' }]);
       expect(req.request.body['total_amount']).toBeUndefined();
+      expect(req.request.body['products']).toBeUndefined();
       req.flush({
         ok: true,
         data: { id: 'new-id', status: 'PENDING_APPROVAL' },
@@ -359,7 +338,7 @@ describe('CreditsService', () => {
           type: 'SALE',
           installmentsCount: 3,
           paymentFrequency: 'MONTHLY',
-          products: [{ productId: 'prod-1', quantity: 1 }],
+          units: [{ unitId: 'unit-1' }],
           downPayment: 500,
           downPaymentMethod: 'CASH',
         } as any)
@@ -378,7 +357,7 @@ describe('CreditsService', () => {
           type: 'SALE',
           installmentsCount: 3,
           paymentFrequency: 'MONTHLY',
-          products: [{ productId: 'prod-1', quantity: 1 }],
+          units: [{ unitId: 'unit-1' }],
         })
         .subscribe();
 

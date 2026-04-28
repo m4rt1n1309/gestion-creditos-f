@@ -43,12 +43,28 @@ export interface CreditProduct {
   historicalRate: number | null;
 }
 
+export interface CreditUnit {
+  id: string;
+  historicalPrice: number;
+  historicalRate: number | null;
+  unitId: string;
+  unitCode: string;
+  unitStatus: string;
+  variantId: string;
+  color: string | null;
+  size: string | null;
+  capacity: string | null;
+  productId: string;
+  productName: string;
+}
+
 export interface CreditDetail extends Credit {
   rejectionReason: string | null;
   notes: string | null;
   approvedBy: string | null;
   customerPhone: string | null;
   products?: CreditProduct[];
+  units?: CreditUnit[];
   installments: CreditInstallment[];
   downPayment: number;
   downPaymentMethod: string | null;
@@ -72,7 +88,6 @@ export interface SimulatePayload {
   totalAmount?: number;
   installmentsCount: number;
   paymentFrequency: PaymentFrequency;
-  products?: Array<{ productId: string; quantity: number }>;
   downPayment?: number;
 }
 
@@ -104,7 +119,7 @@ export interface SaleCreditPayload {
   type: 'SALE';
   installmentsCount: number;
   paymentFrequency: PaymentFrequency;
-  products: Array<{ productId: string; quantity: number }>;
+  units: Array<{ unitId: string }>;
   notes?: string;
   downPayment?: number;
   downPaymentMethod?: 'CASH' | 'TRANSFER';
@@ -161,12 +176,28 @@ export interface CreditProductRaw {
   historical_rate: number | null;
 }
 
+export interface CreditUnitRaw {
+  id: string;
+  historical_price: number;
+  historical_rate: number | null;
+  unit_id: string;
+  unit_code: string;
+  unit_status: string;
+  variant_id: string;
+  color: string | null;
+  size: string | null;
+  capacity: string | null;
+  product_id: string;
+  product_name: string;
+}
+
 export interface CreditDetailRaw extends CreditRaw {
   rejection_reason: string | null;
   notes: string | null;
   approved_by: string | null;
   customer_phone: string | null;
   products?: CreditProductRaw[];
+  units?: CreditUnitRaw[];
   installments: CreditInstallmentRaw[];
   down_payment: number;
   down_payment_method: string | null;
@@ -196,4 +227,12 @@ export interface EarlySettlementResult {
   creditId: string;
   settlementAmount: number;
   paymentMethod: string;
+}
+
+export interface CartUnit {
+  unitId: string;
+  unitCode: string;
+  productName: string;
+  variantLabel: string;
+  price: number;
 }

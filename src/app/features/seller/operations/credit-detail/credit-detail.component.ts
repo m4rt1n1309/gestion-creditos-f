@@ -22,6 +22,7 @@ import { LoadingStateComponent } from '../../../../shared/states/loading-state/l
 import {
   CreditDetail,
   CreditStatus,
+  CreditUnit,
   InstallmentStatus,
 } from '../../models/credit.model';
 import {
@@ -135,6 +136,16 @@ export class CreditDetailComponent implements OnInit {
 
   goBack(): void {
     this.location.back();
+  }
+
+  /**
+   * Devuelve la etiqueta correspondiente a la variante de la unidad.
+   * @param u
+   * @returns
+   */
+  variantLabel(u: CreditUnit): string {
+    const parts = [u.color, u.size, u.capacity].filter((s) => !!s);
+    return parts.length > 0 ? parts.join(' / ') : '—';
   }
 
   /**

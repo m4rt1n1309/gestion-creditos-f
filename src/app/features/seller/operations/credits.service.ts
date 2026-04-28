@@ -15,6 +15,8 @@ import {
   CreditProductRaw,
   CreditRaw,
   CreditStatus,
+  CreditUnit,
+  CreditUnitRaw,
   EarlySettlementPayload,
   EarlySettlementResult,
   RejectPayload,
@@ -81,6 +83,28 @@ function toProduct(raw: CreditProductRaw): CreditProduct {
 }
 
 /**
+ * Convierte un CreditUnitRaw (formato recibido de la API) a un CreditUnit (formato usado en la app).
+ * @param raw
+ * @returns
+ */
+function toCreditUnit(raw: CreditUnitRaw): CreditUnit {
+  return {
+    id: raw.id,
+    historicalPrice: raw.historical_price,
+    historicalRate: raw.historical_rate,
+    unitId: raw.unit_id,
+    unitCode: raw.unit_code,
+    unitStatus: raw.unit_status,
+    variantId: raw.variant_id,
+    color: raw.color,
+    size: raw.size,
+    capacity: raw.capacity,
+    productId: raw.product_id,
+    productName: raw.product_name,
+  };
+}
+
+/**
  * Convierte un CreditDetailRaw (formato recibido de la API) a un CreditDetail (formato usado en la app).
  * @param raw
  * @returns
@@ -93,6 +117,7 @@ function toCreditDetail(raw: CreditDetailRaw): CreditDetail {
     approvedBy: raw.approved_by,
     customerPhone: raw.customer_phone,
     products: raw.products?.map(toProduct),
+    units: raw.units?.map(toCreditUnit),
     installments: raw.installments.map(toInstallment),
     downPayment: raw.down_payment ?? 0,
     downPaymentMethod: raw.down_payment_method,
@@ -119,12 +144,6 @@ function toSimulateBody(p: SimulatePayload): Record<string, unknown> {
     payment_frequency: p.paymentFrequency,
   };
   if (p.totalAmount !== undefined) body['total_amount'] = p.totalAmount;
-  if (p.products) {
-    body['products'] = p.products.map((pr) => ({
-      product_id: pr.productId,
-      quantity: pr.quantity,
-    }));
-  }
   if (p.downPayment !== undefined && p.downPayment > 0) {
     body['down_payment'] = p.downPayment;
   }
@@ -177,10 +196,7 @@ function toCreateBody(p: CreditCreatePayload): Record<string, unknown> {
   };
   if (p.notes) body['notes'] = p.notes;
   if (p.type === 'SALE') {
-    body['products'] = p.products.map((pr) => ({
-      product_id: pr.productId,
-      quantity: pr.quantity,
-    }));
+    body['units'] = p.units.map((u) => ({ unit_id: u.unitId }));
     if (p.downPayment !== undefined && p.downPayment > 0) {
       body['down_payment'] = p.downPayment;
       if (p.downPaymentMethod)

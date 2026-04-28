@@ -132,79 +132,146 @@
 
     @if (isSale) {
       <div class="mb-6 p-4 bg-white border rounded">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="font-semibold">Productos</h3>
-          <p-button
-            label="Agregar producto"
-            icon="pi pi-plus"
-            size="small"
-            [outlined]="true"
-            type="button"
-            (onClick)="addProductRow()"
+        <h3 class="font-semibold mb-4">Selector de unidades</h3>
+
+        <div class="mb-3">
+          <label class="block text-sm font-medium mb-1">Producto</label>
+          <p-dropdown
+            [options]="productSelectorOptions"
+            [(ngModel)]="selectedProductId"
+            [ngModelOptions]="{ standalone: true }"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccionar producto"
+            [filter]="true"
+            filterBy="label"
+            [showClear]="true"
+            styleClass="w-full"
+            (onChange)="onProductSelected()"
           />
         </div>
 
-        @if (productRows.length === 0) {
-          <p class="text-sm text-gray-500">Agregue al menos un producto.</p>
-        }
-
-        <div formArrayName="products">
-          @for (row of productRows.controls; track $index; let i = $index) {
-            <div [formGroupName]="i" class="flex gap-3 items-start mb-3">
-              <div class="flex-1">
-                <p-dropdown
-                  formControlName="productId"
-                  [options]="productOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="Seleccionar producto"
-                  [filter]="true"
-                  filterBy="label"
-                  [showClear]="true"
-                  styleClass="w-full"
-                />
-                @if (isRowInvalid(i, "productId")) {
-                  <small class="text-red-500">Producto requerido.</small>
-                }
-              </div>
-              <div class="w-32">
-                <p-inputNumber
-                  formControlName="quantity"
-                  [min]="1"
-                  [max]="9999"
-                  [useGrouping]="false"
-                  placeholder="Cant."
-                  styleClass="w-full"
-                />
-                @if (isRowInvalid(i, "quantity")) {
-                  <small class="text-red-500">1–9999</small>
-                }
-              </div>
-              <p-button
-                icon="pi pi-trash"
-                severity="danger"
-                [outlined]="true"
-                size="small"
-                type="button"
-                [disabled]="productRows.length === 1"
-                (onClick)="removeProductRow(i)"
-              />
-            </div>
-          }
-        </div>
-
-        @if (saleTotal > 0) {
-          <div class="mt-3 pt-3 border-t text-right text-sm">
-            <span class="text-gray-500">Total de productos: </span>
-            <span class="font-semibold">{{ saleTotal | currencyArs: 2 }}</span>
+        @if (selectorVariants.length > 0 || loadingVariants) {
+          <div class="mb-3">
+            <label class="block text-sm font-medium mb-1">Variante</label>
+            <p-dropdown
+              [options]="variantSelectorOptions"
+              [(ngModel)]="selectedVariantId"
+              [ngModelOptions]="{ standalone: true }"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccionar variante"
+              [showClear]="true"
+              styleClass="w-full"
+              [disabled]="loadingVariants"
+              (onChange)="onVariantSelected()"
+            />
           </div>
         }
 
-        @if (productsError) {
+        @if (selectorUnits.length > 0 || loadingUnits) {
+          <div class="mb-3 flex gap-2 items-end">
+            <div class="flex-1">
+              <label class="block text-sm font-medium mb-1"
+                >Unidad (código)</label
+              >
+              <p-dropdown
+                [options]="unitSelectorOptions"
+                [(ngModel)]="selectedUnitId"
+                [ngModelOptions]="{ standalone: true }"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Seleccionar unidad"
+                [filter]="true"
+                filterBy="label"
+                [showClear]="true"
+                styleClass="w-full"
+                [disabled]="loadingUnits"
+              />
+            </div>
+            <p-button
+              label="Agregar"
+              icon="pi pi-plus"
+              type="button"
+              [disabled]="!selectedUnitId"
+              (onClick)="addToCart()"
+            />
+          </div>
+        }
+
+        @if (
+          selectorVariants.length === 0 && selectedProductId && !loadingVariants
+        ) {
+          <p class="text-sm text-amber-600 mb-3">
+            Este producto no tiene variantes activas.
+          </p>
+        }
+        @if (selectorUnits.length === 0 && selectedVariantId && !loadingUnits) {
+          <p class="text-sm text-amber-600 mb-3">
+            Esta variante no tiene unidades disponibles.
+          </p>
+        }
+
+        @if (cart.length > 0) {
+          <div class="mt-4 border rounded overflow-hidden">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="text-left px-3 py-2">Producto</th>
+                  <th class="text-left px-3 py-2">Variante</th>
+                  <th class="text-left px-3 py-2 font-mono">Código</th>
+                  <th class="text-right px-3 py-2">Precio</th>
+                  <th class="px-3 py-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of cart; track $index; let i = $index) {
+                  <tr class="border-t">
+                    <td class="px-3 py-2">{{ item.productName }}</td>
+                    <td class="px-3 py-2 text-gray-500">
+                      {{ item.variantLabel || "—" }}
+                    </td>
+                    <td class="px-3 py-2 font-mono font-semibold">
+                      {{ item.unitCode }}
+                    </td>
+                    <td class="px-3 py-2 text-right">
+                      {{ item.price | currencyArs: 2 }}
+                    </td>
+                    <td class="px-3 py-2 text-center">
+                      <p-button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [outlined]="true"
+                        size="small"
+                        type="button"
+                        (onClick)="removeFromCart(i)"
+                      />
+                    </td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot class="border-t bg-gray-50">
+                <tr>
+                  <td colspan="3" class="px-3 py-2 text-sm text-gray-500">
+                    Subtotal
+                  </td>
+                  <td class="px-3 py-2 text-right font-semibold">
+                    {{ cartTotal | currencyArs: 2 }}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        } @else {
+          <p class="text-sm text-gray-400 mt-2">Sin unidades en el carrito.</p>
+        }
+
+        @if (unitsError) {
           <div
             class="mt-3 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm"
           >
-            {{ productsError }}
+            {{ unitsError }}
           </div>
         }
       </div>
@@ -394,39 +461,6 @@
               </div>
             }
           </div>
-
-          @if (simulateResult.items && simulateResult.items.length > 0) {
-            <div class="border-t border-blue-200 pt-2">
-              <p class="text-xs font-semibold text-gray-600 mb-1">
-                Contribución por producto:
-              </p>
-              <table class="w-full text-xs">
-                <thead>
-                  <tr class="text-gray-500">
-                    <th class="text-left py-1">Producto</th>
-                    <th class="text-right py-1">Precio</th>
-                    <th class="text-right py-1">Cuota aportada</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (item of simulateResult.items; track item.productId) {
-                    <tr class="border-t border-blue-100">
-                      <td class="py-1">
-                        {{ item.productName }} x{{ item.quantity }}
-                      </td>
-                      <td class="text-right py-1">
-                        {{ item.lineTotal | currencyArs: 2 }}
-                      </td>
-                      <td class="text-right py-1 font-medium">
-                        {{ item.installmentContribution | currencyArs: 2 }}
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
-
           <div class="text-xs text-gray-500 italic">
             {{ simulateResult.note }}
           </div>

@@ -221,34 +221,32 @@
       </div>
     }
 
-    @if (
-      credit.type === "SALE" && credit.products && credit.products.length > 0
-    ) {
+    @if (credit.type === "SALE" && credit.units && credit.units.length > 0) {
       <div class="mb-6 p-4 bg-white border rounded">
-        <h3 class="font-semibold mb-3">Productos</h3>
-        <p-table [value]="credit.products" styleClass="p-datatable-sm">
+        <h3 class="font-semibold mb-3">Unidades</h3>
+        <p-table [value]="credit.units" styleClass="p-datatable-sm">
           <ng-template pTemplate="header">
             <tr>
               <th>Producto</th>
-              <th class="text-right">Cantidad</th>
+              <th>Variante</th>
+              <th>Código de unidad</th>
               <th class="text-right">Precio histórico</th>
-              <th class="text-right">Subtotal</th>
               <th class="text-right">Tasa aplicada</th>
             </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-p>
+          <ng-template pTemplate="body" let-u>
             <tr>
-              <td>{{ p.productName }}</td>
-              <td class="text-right">{{ p.quantity }}</td>
+              <td>{{ u.productName }}</td>
+              <td class="text-sm text-gray-600">
+                {{ variantLabel(u) }}
+              </td>
+              <td class="font-mono font-semibold">{{ u.unitCode }}</td>
               <td class="text-right">
-                {{ p.historicalPrice | currencyArs: 2 }}
+                {{ u.historicalPrice | currencyArs: 2 }}
               </td>
               <td class="text-right">
-                {{ p.historicalPrice * p.quantity | currencyArs: 2 }}
-              </td>
-              <td class="text-right">
-                @if (p.historicalRate !== null) {
-                  {{ (p.historicalRate * 100).toFixed(2) }}%
+                @if (u.historicalRate !== null) {
+                  {{ (u.historicalRate * 100).toFixed(2) }}%
                 } @else {
                   <span class="text-gray-400 text-xs">Pendiente</span>
                 }
