@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -18,9 +18,39 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 
+import { CustomersService } from '../../features/seller/clients/customers.service';
+import { Customer } from '../../features/seller/models/customer.model';
 import { FormatService } from '../../core/services/format.service';
 import { Client } from '../models/interface/client';
 import { AppRoutes } from '../models/enums/routes.enum';
+
+const AVATAR_COLORS = [
+  '#3B82F6',
+  '#10B981',
+  '#F59E0B',
+  '#EF4444',
+  '#8B5CF6',
+  '#EC4899',
+  '#14B8A6',
+  '#F97316',
+];
+
+function toClient(c: Customer): Client {
+  const parts = c.fullName.trim().split(/\s+/);
+  const initials = (
+    (parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')
+  ).toUpperCase();
+  const colorIdx = c.fullName.charCodeAt(0) % AVATAR_COLORS.length;
+  return {
+    dni: c.dni,
+    initials,
+    avatarColor: AVATAR_COLORS[colorIdx],
+    name: c.fullName,
+    phone: c.phone ?? '',
+    credits: 0,
+    risk: 'Al dia',
+  };
+}
 
 @Component({
   selector: 'app-clients',
@@ -41,36 +71,11 @@ import { AppRoutes } from '../models/enums/routes.enum';
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss',
 })
-export class ClientsComponent {
-  clients: Client[] = [
-    {
-      dni: '27.123.456',
-      initials: 'JP',
-      avatarColor: '#3B82F6',
-      name: 'Juan Pérez García',
-      phone: '+54 9 3865 1234562',
-      credits: 2,
-      risk: 'Mora leve',
-    },
-    {
-      dni: '28.654.321',
-      initials: 'ML',
-      avatarColor: '#10B981',
-      name: 'María López',
-      phone: '+54 9 3654 32111',
-      credits: 1,
-      risk: 'Al dia',
-    },
-    {
-      dni: '29.321.654',
-      initials: 'CR',
-      avatarColor: '#EF4444',
-      name: 'Carlos Ruiz',
-      phone: '+54 9 3214 56933',
-      credits: 3,
-      risk: 'Mora alta',
-    },
-  ];
+export class ClientsComponent implements OnInit {
+  private readonly customersService = inject(CustomersService);
+
+  clients: Client[] = [];
+  loading = false;
 
   filterOptions = [
     { label: 'Todos', value: null },
@@ -103,6 +108,26 @@ export class ClientsComponent {
   ) {
     this.form = this.buildForm();
     this.editForm = this.buildEditForm(null);
+  }
+
+  ngOnInit(): void {
+    this.loadClients();
+  }
+
+  /**
+   * Carga la lista de clientes activos desde el servicio de clientes, transformando los datos recibidos al formato utilizado en la interfaz y manejando el estado de carga para mostrar indicadores visuales mientras se obtienen los datos.
+   */
+  private loadClients(): void {
+    this.loading = true;
+    this.customersService.list({ status: 'ACTIVE' }).subscribe({
+      next: (customers) => {
+        this.clients = customers.map(toClient);
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      },
+    });
   }
 
   /**
@@ -255,10 +280,31 @@ export class ClientsComponent {
   createClient(): void {
     this.submitted = true;
     if (this.form.invalid) return;
-    // TODO: integrate with API
-    this.showCreateModal = false;
-    this.submitted = false;
-    this.form = this.buildForm();
+
+    const { nombres, apellidos, dni, telefonoPrincipal, email, direccion } =
+      this.form.value;
+    const cleanDni = String(dni).replace(/[^0-9]/g, '');
+    const cleanPhone = String(telefonoPrincipal).replace(/[^0-9]/g, '');
+
+    this.customersService
+      .create({
+        fullName: `${nombres} ${apellidos}`.trim(),
+        dni: cleanDni,
+        phone: cleanPhone || undefined,
+        email: email || undefined,
+        address: direccion || undefined,
+      })
+      .subscribe({
+        next: () => {
+          this.showCreateModal = false;
+          this.submitted = false;
+          this.form = this.buildForm();
+          this.loadClients();
+        },
+        error: (err) => {
+          console.error('Error al crear cliente', err);
+        },
+      });
   }
 
   /**
