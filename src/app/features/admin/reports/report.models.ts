@@ -78,12 +78,96 @@ export interface ReportDateRange {
   dateTo: string;
 }
 
+export interface SummaryReport {
+  reportDate: string;
+  todayCollected: number;
+  todayCash: number;
+  todayTransfer: number;
+  todayPaymentsCount: number;
+  todayDownPayments: number;
+  todayDownPaymentsCount: number;
+  todayTotal: number;
+  pendingPaymentsCount: number;
+  pendingCreditsCount: number;
+  activePortfolioBalance: number;
+  overdueCount: number;
+  overdueAmount: number;
+  upcoming7dCount: number;
+  upcoming7dAmount: number;
+}
+
+export interface UpcomingByDay {
+  dueDate: string;
+  count: number;
+  expectedAmount: number;
+}
+
+export interface UpcomingByCustomer {
+  customerId: string;
+  customerName: string;
+  phone: string | null;
+  assignedCollector: string | null;
+  installmentsCount: number;
+  expectedAmount: number;
+  nextDueDate: string;
+}
+
+export interface UpcomingReport {
+  days: number;
+  summary: { installmentsCount: number; expectedAmount: number };
+  byDay: UpcomingByDay[];
+  byCustomer: UpcomingByCustomer[];
+}
+
+export interface SummaryReportRaw {
+  report_date: string;
+  today_collected: number;
+  today_cash: number;
+  today_transfer: number;
+  today_payments_count: number;
+  today_down_payments: number;
+  today_down_payments_count: number;
+  today_total: number;
+  pending_payments_count: number;
+  pending_credits_count: number;
+  active_portfolio_balance: number;
+  overdue_count: number;
+  overdue_amount: number;
+  upcoming_7d_count: number;
+  upcoming_7d_amount: number;
+}
+
+export interface UpcomingByDayRaw {
+  due_date: string;
+  count: number;
+  expected_amount: number;
+}
+
+export interface UpcomingByCustomerRaw {
+  customer_id: string;
+  customer_name: string;
+  phone: string | null;
+  assigned_collector: string | null;
+  installments_count: number;
+  expected_amount: number;
+  next_due_date: string;
+}
+
+export interface UpcomingReportRaw {
+  days: number;
+  summary: { installments_count: number; expected_amount: number };
+  by_day: UpcomingByDayRaw[];
+  by_customer: UpcomingByCustomerRaw[];
+}
+
 export type ReportTab =
+  | 'summary'
   | 'collection'
   | 'portfolio'
   | 'overdue'
   | 'collectors'
-  | 'products';
+  | 'products'
+  | 'upcoming';
 
 export interface CollectionSummaryRaw {
   grand_total: number;
