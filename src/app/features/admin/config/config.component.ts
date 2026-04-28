@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { CompanyConfigComponent } from './company/company-config.component';
 import { ConfigTab, TabItem } from './models/system-config.model';
 import { NotificationsConfigComponent } from './notifications/notifications-config.component';
+import { ProductBrandsConfigComponent } from './product-brands/product-brands-config.component';
+import { ProductCategoriesConfigComponent } from './product-categories/product-categories-config.component';
 import { ProductRatesConfigComponent } from './product-rates/product-rates-config.component';
 import { InterestRatesConfigComponent } from './rates/interest-rates-config.component';
 import { SystemParamsConfigComponent } from './system-params/system-params-config.component';
@@ -17,6 +19,8 @@ import { UsersConfigComponent } from './users/users-config.component';
     SystemParamsConfigComponent,
     UsersConfigComponent,
     NotificationsConfigComponent,
+    ProductCategoriesConfigComponent,
+    ProductBrandsConfigComponent,
   ],
   templateUrl: './config.component.html',
   styleUrl: './config.component.scss',
@@ -27,14 +31,12 @@ export class ConfigComponent {
   tabs: TabItem[] = [
     { id: 'tasas', label: 'Tasas de interés', icon: 'pi pi-percentage' },
     { id: 'tasas-producto', label: 'Tasas por producto', icon: 'pi pi-tag' },
-    {
-      id: 'parametros',
-      label: 'Parámetros del sistema',
-      icon: 'pi pi-sliders-h',
-    },
+    { id: 'parametros', label: 'Parámetros del sistema', icon: 'pi pi-sliders-h' },
     { id: 'empresa', label: 'Empresa', icon: 'pi pi-building' },
     { id: 'usuarios', label: 'Usuarios', icon: 'pi pi-users' },
     { id: 'notificaciones', label: 'Notificaciones', icon: 'pi pi-bell' },
+    { id: 'categorias-producto', label: 'Categorías de productos', icon: 'pi pi-list' },
+    { id: 'marcas', label: 'Marcas', icon: 'pi pi-star' },
   ];
 
   /**
