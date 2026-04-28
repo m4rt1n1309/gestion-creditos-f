@@ -1,3 +1,4 @@
+<p-toast position="top-right" />
 <div class="flex flex-col h-full bg-gray-50/50">
   <div
     class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-4 shrink-0 shadow-sm"
@@ -62,6 +63,7 @@
                 severity="secondary"
                 routerLink="../"
                 styleClass="font-bold bg-gray-50 px-5 h-11 hover:bg-gray-100 transition-colors"
+                data-cy="btn-cancelar-wizard"
               />
             } @else {
               <p-button
@@ -71,6 +73,7 @@
                 severity="secondary"
                 (onClick)="prevStep()"
                 styleClass="font-bold bg-gray-50 px-5 h-11 hover:bg-gray-100 transition-colors"
+                data-cy="btn-anterior-wizard"
               />
             }
 
@@ -83,6 +86,7 @@
                 styleClass="rounded-xl px-6 h-11 shadow-sm"
                 [disabled]="!canNext"
                 (onClick)="nextStep()"
+                data-cy="btn-siguiente-wizard"
               />
             } @else {
               <p-button
@@ -90,8 +94,10 @@
                 icon="pi pi-check"
                 severity="success"
                 styleClass="rounded-xl px-6 h-11 shadow-md bg-green-500 border-green-500 hover:bg-green-600"
-                [disabled]="!isConfirmed"
+                [disabled]="!isConfirmed || submitting"
+                [loading]="submitting"
                 (onClick)="finish()"
+                data-cy="btn-enviar-aprobacion"
               />
             }
           </div>

@@ -5,6 +5,10 @@ export interface Client {
   name: string;
   dni: string;
   phone: string;
+  email: string;
+  previousCredits: number;
+  delinquency: 'sin mora' | 'mora leve' | 'mora alta';
+  paymentCapacity: number;
 }
 
 export interface Product {
@@ -31,9 +35,31 @@ export class OperationFormService {
       name: 'Juan Pérez García',
       dni: '27.123.456',
       phone: '381-555-1234',
+      email: 'j.perez@email.com',
+      previousCredits: 2,
+      delinquency: 'mora leve',
+      paymentCapacity: 18000,
     },
-    { id: 2, name: 'María López', dni: '28.654.321', phone: '381-555-9876' },
-    { id: 3, name: 'Carlos Ruiz', dni: '29.321.654', phone: '381-555-0000' },
+    {
+      id: 2,
+      name: 'María López',
+      dni: '28.654.321',
+      phone: '381-555-9876',
+      email: 'm.lopez@email.com',
+      previousCredits: 1,
+      delinquency: 'sin mora',
+      paymentCapacity: 24000,
+    },
+    {
+      id: 3,
+      name: 'Carlos Ruiz',
+      dni: '29.321.654',
+      phone: '381-555-0000',
+      email: 'c.ruiz@email.com',
+      previousCredits: 3,
+      delinquency: 'mora alta',
+      paymentCapacity: 12000,
+    },
   ];
 
   // Step 1 — Products
