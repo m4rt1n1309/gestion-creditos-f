@@ -18,6 +18,7 @@
         [ngModel]="form.searchClient()"
         (ngModelChange)="form.searchClient.set($event)"
         class="w-full h-11 pl-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 shadow-sm"
+        data-cy="input-buscar-cliente-wizard"
       />
     </p-iconField>
 
@@ -28,6 +29,7 @@
         <div
           class="flex items-center justify-between p-4 border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50"
           [class.bg-blue-50]="form.selectedClient()?.id === client.id"
+          [attr.data-cy]="'cliente-item-' + client.dni"
           (click)="form.selectedClient.set(client)"
         >
           <div class="flex items-center gap-4">
@@ -101,21 +103,17 @@
             class="flex justify-between items-center py-2.5 border-b border-gray-50"
           >
             <span class="text-sm text-gray-500">Correo</span>
-            <span class="text-sm font-semibold text-gray-900"
-              >cliente&#64;email.com</span
-            >
+            <span class="text-sm font-semibold text-gray-900">{{ client.email }}</span>
           </div>
           <div
             class="flex justify-between items-center py-2.5 border-b border-gray-50"
           >
             <span class="text-sm text-gray-500">Créditos anteriores</span>
-            <span class="text-sm font-semibold text-green-600"
-              >3 créditos · sin mora</span
-            >
+            <span class="text-sm font-semibold text-green-600">{{ client.previousCredits }} crédito(s) · {{ client.delinquency }}</span>
           </div>
           <div class="flex justify-between items-center py-2.5">
             <span class="text-sm text-gray-500">Capacidad de pago</span>
-            <span class="text-sm font-bold text-gray-900">$2,400 / mes</span>
+            <span class="text-sm font-bold text-gray-900">{{ client.paymentCapacity | currency:'ARS':'symbol':'1.0-0' }} / mes</span>
           </div>
         </div>
       </div>

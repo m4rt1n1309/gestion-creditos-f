@@ -7,6 +7,7 @@
         [ngModel]="form.selectedType()"
         (ngModelChange)="form.selectedType.set($event)"
         styleClass="w-full h-11 rounded-xl border-gray-200 flex items-center bg-white"
+        data-cy="dropdown-tipo-operacion"
       />
     </div>
     <div class="flex flex-col gap-2">
@@ -20,6 +21,7 @@
           [ngModel]="form.searchProduct()"
           (ngModelChange)="form.searchProduct.set($event)"
           class="w-full h-11 pl-10 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-blue-500"
+          data-cy="input-buscar-producto"
         />
       </p-iconField>
     </div>

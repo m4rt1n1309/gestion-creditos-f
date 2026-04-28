@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -10,6 +11,7 @@ import { OperationFormService } from '../../operation-form.service';
   selector: 'app-step-client',
   standalone: true,
   imports: [
+    CommonModule,
     FormsModule,
     InputTextModule,
     IconFieldModule,
