@@ -67,11 +67,17 @@ export class CreditCreateComponent implements OnInit {
   simulateError: string | null = null;
   submitError: string | null = null;
   productsError: string | null = null;
+  showExtraSection = false;
 
   readonly frequencyOptions = [
     { label: 'Semanal', value: 'WEEKLY' },
     { label: 'Quincenal', value: 'BIWEEKLY' },
     { label: 'Mensual', value: 'MONTHLY' },
+  ];
+
+  readonly paymentMethodOptions = [
+    { label: 'Efectivo', value: 'CASH' },
+    { label: 'Transferencia', value: 'TRANSFER' },
   ];
 
   /**
@@ -115,9 +121,22 @@ export class CreditCreateComponent implements OnInit {
     }));
   }
 
-  /**
-   * Convierte el estado del crédito a una etiqueta legible para mostrar en la interfaz.
-   */
+  get downPaymentValue(): number {
+    return this.form.get('downPayment')?.value ?? 0;
+  }
+
+  get prepaidInstallmentsValue(): number {
+    return this.form.get('prepaidInstallments')?.value ?? 0;
+  }
+
+  get downPaymentMethod(): string {
+    return this.form.get('downPaymentMethod')?.value ?? 'CASH';
+  }
+
+  get prepaidInstallmentsMethod(): string {
+    return this.form.get('prepaidInstallmentsMethod')?.value ?? 'CASH';
+  }
+
   get saleTotal(): number {
     if (!this.isSale) return 0;
     return this.productRows.controls.reduce((sum, row) => {
@@ -146,6 +165,7 @@ export class CreditCreateComponent implements OnInit {
     this.simulateError = null;
     this.submitError = null;
     this.productsError = null;
+    this.showExtraSection = false;
   }
 
   /**
@@ -192,6 +212,7 @@ export class CreditCreateComponent implements OnInit {
             products: (v.products as { productId: string; quantity: number }[])
               .filter((p) => p.productId && p.quantity)
               .map((p) => ({ productId: p.productId, quantity: p.quantity })),
+            ...(v.downPayment > 0 ? { downPayment: v.downPayment } : {}),
           }
         : {
             type: 'LOAN' as const,
@@ -226,19 +247,40 @@ export class CreditCreateComponent implements OnInit {
     let payload: CreditCreatePayload;
 
     if (v.type === 'SALE') {
-      payload = {
+      const salePayload: CreditCreatePayload = {
         customerId: v.customerId,
         type: 'SALE',
         installmentsCount: v.installmentsCount,
         paymentFrequency: v.paymentFrequency,
         products: (v.products as { productId: string; quantity: number }[]).map(
-          (p) => ({
-            productId: p.productId,
-            quantity: p.quantity,
-          }),
+          (p) => ({ productId: p.productId, quantity: p.quantity }),
         ),
         notes: v.notes || undefined,
       };
+      if (v.downPayment > 0) {
+        (salePayload as any).downPayment = v.downPayment;
+        (salePayload as any).downPaymentMethod = v.downPaymentMethod;
+        if (
+          v.downPaymentMethod === 'TRANSFER' &&
+          v.downPaymentTransferReference
+        ) {
+          (salePayload as any).downPaymentTransferReference =
+            v.downPaymentTransferReference;
+        }
+      }
+      if (v.prepaidInstallments > 0) {
+        (salePayload as any).prepaidInstallments = v.prepaidInstallments;
+        (salePayload as any).prepaidInstallmentsMethod =
+          v.prepaidInstallmentsMethod;
+        if (
+          v.prepaidInstallmentsMethod === 'TRANSFER' &&
+          v.prepaidInstallmentsTransferReference
+        ) {
+          (salePayload as any).prepaidInstallmentsTransferReference =
+            v.prepaidInstallmentsTransferReference;
+        }
+      }
+      payload = salePayload;
     } else {
       payload = {
         customerId: v.customerId,
@@ -323,6 +365,12 @@ export class CreditCreateComponent implements OnInit {
       notes: ['', Validators.maxLength(500)],
       totalAmount: [null],
       products: this.fb.array([]),
+      downPayment: [0, [Validators.min(0)]],
+      downPaymentMethod: ['CASH'],
+      downPaymentTransferReference: ['', Validators.maxLength(100)],
+      prepaidInstallments: [0, [Validators.min(0)]],
+      prepaidInstallmentsMethod: ['CASH'],
+      prepaidInstallmentsTransferReference: ['', Validators.maxLength(100)],
     });
     this.addProductRow();
   }

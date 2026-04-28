@@ -20,6 +20,7 @@ import {
   RejectPayload,
   SimulatePayload,
   SimulateResult,
+  SimulateResultItem,
 } from '../models/credit.model';
 
 /**
@@ -75,6 +76,7 @@ function toProduct(raw: CreditProductRaw): CreditProduct {
     historicalPrice: raw.historical_price,
     productId: raw.product_id,
     productName: raw.product_name,
+    historicalRate: raw.historical_rate,
   };
 }
 
@@ -92,6 +94,16 @@ function toCreditDetail(raw: CreditDetailRaw): CreditDetail {
     customerPhone: raw.customer_phone,
     products: raw.products?.map(toProduct),
     installments: raw.installments.map(toInstallment),
+    downPayment: raw.down_payment ?? 0,
+    downPaymentMethod: raw.down_payment_method,
+    downPaymentTransferReference: raw.down_payment_transfer_reference,
+    prepaidInstallments: raw.prepaid_installments ?? 0,
+    prepaidInstallmentsMethod: raw.prepaid_installments_method,
+    prepaidInstallmentsTransferReference:
+      raw.prepaid_installments_transfer_reference,
+    settledAt: raw.settled_at,
+    settlementAmount: raw.settlement_amount,
+    settlementType: raw.settlement_type,
   };
 }
 
@@ -113,7 +125,42 @@ function toSimulateBody(p: SimulatePayload): Record<string, unknown> {
       quantity: pr.quantity,
     }));
   }
+  if (p.downPayment !== undefined && p.downPayment > 0) {
+    body['down_payment'] = p.downPayment;
+  }
   return body;
+}
+
+function toSimulateResult(raw: Record<string, unknown>): SimulateResult {
+  const result: SimulateResult = {
+    type: raw['type'] as string,
+    paymentFrequency: raw['payment_frequency'] as string,
+    installmentsCount: raw['installments_count'] as number,
+    totalAmount: raw['total_amount'] as number,
+    installmentAmount: raw['installment_amount'] as number,
+    totalToReturn: raw['total_to_return'] as number,
+    note: (raw['note'] as string) ?? '',
+  };
+  if (Array.isArray(raw['items'])) {
+    result.items = (raw['items'] as Record<string, unknown>[]).map(
+      (item): SimulateResultItem => ({
+        productId: item['product_id'] as string,
+        productName: item['product_name'] as string,
+        quantity: item['quantity'] as number,
+        unitPrice: item['unit_price'] as number,
+        lineTotal: item['line_total'] as number,
+        rate: item['rate'] as number,
+        installmentContribution: item['installment_contribution'] as number,
+      }),
+    );
+  }
+  if (raw['down_payment'] !== undefined) {
+    result.downPayment = raw['down_payment'] as number;
+  }
+  if (raw['financed_amount'] !== undefined) {
+    result.financedAmount = raw['financed_amount'] as number;
+  }
+  return result;
 }
 
 /**
@@ -134,6 +181,22 @@ function toCreateBody(p: CreditCreatePayload): Record<string, unknown> {
       product_id: pr.productId,
       quantity: pr.quantity,
     }));
+    if (p.downPayment !== undefined && p.downPayment > 0) {
+      body['down_payment'] = p.downPayment;
+      if (p.downPaymentMethod)
+        body['down_payment_method'] = p.downPaymentMethod;
+      if (p.downPaymentTransferReference)
+        body['down_payment_transfer_reference'] =
+          p.downPaymentTransferReference;
+    }
+    if (p.prepaidInstallments !== undefined && p.prepaidInstallments > 0) {
+      body['prepaid_installments'] = p.prepaidInstallments;
+      if (p.prepaidInstallmentsMethod)
+        body['prepaid_installments_method'] = p.prepaidInstallmentsMethod;
+      if (p.prepaidInstallmentsTransferReference)
+        body['prepaid_installments_transfer_reference'] =
+          p.prepaidInstallmentsTransferReference;
+    }
   } else {
     body['total_amount'] = p.totalAmount;
   }
@@ -150,10 +213,11 @@ export class CreditsService {
    * @returns
    */
   simulate(payload: SimulatePayload): Observable<SimulateResult> {
-    return this.api.post<SimulateResult>(
-      'credits/simulate',
-      toSimulateBody(payload),
-    );
+    return this.api
+      .post<
+        Record<string, unknown>
+      >('credits/simulate', toSimulateBody(payload))
+      .pipe(map(toSimulateResult));
   }
 
   /**

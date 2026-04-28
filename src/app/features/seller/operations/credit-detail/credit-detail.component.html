@@ -139,6 +139,89 @@
     </div>
 
     @if (
+      credit.type === "SALE" &&
+      (credit.downPayment > 0 || credit.prepaidInstallments > 0)
+    ) {
+      <div class="mb-6 p-4 bg-white border rounded">
+        <h3 class="font-semibold mb-3">Condiciones iniciales</h3>
+        <div class="grid grid-cols-2 gap-4">
+          @if (credit.downPayment > 0) {
+            <div>
+              <div class="text-xs text-gray-500">Enganche</div>
+              <div class="font-semibold">
+                {{ credit.downPayment | currencyArs: 2 }}
+              </div>
+              @if (credit.downPaymentMethod) {
+                <div class="text-xs text-gray-400">
+                  {{
+                    credit.downPaymentMethod === "CASH"
+                      ? "Efectivo"
+                      : "Transferencia"
+                  }}
+                </div>
+              }
+              @if (credit.downPaymentTransferReference) {
+                <div class="text-xs text-gray-400">
+                  Ref: {{ credit.downPaymentTransferReference }}
+                </div>
+              }
+            </div>
+          }
+          @if (credit.prepaidInstallments > 0) {
+            <div>
+              <div class="text-xs text-gray-500">Cuotas adelantadas</div>
+              <div class="font-semibold">{{ credit.prepaidInstallments }}</div>
+              @if (credit.prepaidInstallmentsMethod) {
+                <div class="text-xs text-gray-400">
+                  {{
+                    credit.prepaidInstallmentsMethod === "CASH"
+                      ? "Efectivo"
+                      : "Transferencia"
+                  }}
+                </div>
+              }
+              @if (credit.prepaidInstallmentsTransferReference) {
+                <div class="text-xs text-gray-400">
+                  Ref: {{ credit.prepaidInstallmentsTransferReference }}
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (credit.settledAt) {
+      <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded">
+        <h3 class="font-semibold mb-3 text-green-800">
+          Cancelación anticipada
+        </h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <div class="text-xs text-green-700">Fecha</div>
+            <div class="font-semibold">
+              {{ credit.settledAt | date: "dd/MM/yyyy" }}
+            </div>
+          </div>
+          @if (credit.settlementAmount) {
+            <div>
+              <div class="text-xs text-green-700">Monto</div>
+              <div class="font-semibold">
+                {{ credit.settlementAmount | currencyArs: 2 }}
+              </div>
+            </div>
+          }
+          @if (credit.settlementType) {
+            <div>
+              <div class="text-xs text-green-700">Tipo</div>
+              <div class="font-semibold">{{ credit.settlementType }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (
       credit.type === "SALE" && credit.products && credit.products.length > 0
     ) {
       <div class="mb-6 p-4 bg-white border rounded">
@@ -150,6 +233,7 @@
               <th class="text-right">Cantidad</th>
               <th class="text-right">Precio histórico</th>
               <th class="text-right">Subtotal</th>
+              <th class="text-right">Tasa aplicada</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-p>
@@ -157,16 +241,17 @@
               <td>{{ p.productName }}</td>
               <td class="text-right">{{ p.quantity }}</td>
               <td class="text-right">
-                {{
-                  p.historicalPrice
-                    | currencyArs: 2
-                }}
+                {{ p.historicalPrice | currencyArs: 2 }}
               </td>
               <td class="text-right">
-                {{
-                  p.historicalPrice * p.quantity
-                    | currencyArs: 2
-                }}
+                {{ p.historicalPrice * p.quantity | currencyArs: 2 }}
+              </td>
+              <td class="text-right">
+                @if (p.historicalRate !== null) {
+                  {{ (p.historicalRate * 100).toFixed(2) }}%
+                } @else {
+                  <span class="text-gray-400 text-xs">Pendiente</span>
+                }
               </td>
             </tr>
           </ng-template>
@@ -198,17 +283,13 @@
               {{ inst.amountDue | currencyArs: 2 }}
             </td>
             <td class="text-right">
-              {{
-                inst.amountPaid | currencyArs: 2
-              }}
+              {{ inst.amountPaid | currencyArs: 2 }}
             </td>
             <td
               class="text-right"
               [class.text-red-600]="inst.penaltyAmount > 0"
             >
-              {{
-                inst.penaltyAmount | currencyArs: 2
-              }}
+              {{ inst.penaltyAmount | currencyArs: 2 }}
             </td>
             <td>
               <p-tag
@@ -521,10 +602,7 @@
   <div class="flex flex-col gap-4 py-2">
     <p class="text-sm text-gray-700">
       Cuota #{{ earlyPayInstallment?.installmentNumber }} —
-      {{
-        earlyPayInstallment?.amountDue
-          | currencyArs: 2
-      }}
+      {{ earlyPayInstallment?.amountDue | currencyArs: 2 }}
     </p>
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium text-gray-700">Método de pago</label>

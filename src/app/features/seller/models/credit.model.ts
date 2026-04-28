@@ -40,6 +40,7 @@ export interface CreditProduct {
   historicalPrice: number;
   productId: string;
   productName: string;
+  historicalRate: number | null;
 }
 
 export interface CreditDetail extends Credit {
@@ -49,6 +50,15 @@ export interface CreditDetail extends Credit {
   customerPhone: string | null;
   products?: CreditProduct[];
   installments: CreditInstallment[];
+  downPayment: number;
+  downPaymentMethod: string | null;
+  downPaymentTransferReference: string | null;
+  prepaidInstallments: number;
+  prepaidInstallmentsMethod: string | null;
+  prepaidInstallmentsTransferReference: string | null;
+  settledAt: string | null;
+  settlementAmount: number | null;
+  settlementType: string | null;
 }
 
 export interface CreditListFilters {
@@ -63,6 +73,17 @@ export interface SimulatePayload {
   installmentsCount: number;
   paymentFrequency: PaymentFrequency;
   products?: Array<{ productId: string; quantity: number }>;
+  downPayment?: number;
+}
+
+export interface SimulateResultItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+  rate: number;
+  installmentContribution: number;
 }
 
 export interface SimulateResult {
@@ -73,6 +94,9 @@ export interface SimulateResult {
   installmentAmount: number;
   totalToReturn: number;
   note: string;
+  items?: SimulateResultItem[];
+  downPayment?: number;
+  financedAmount?: number;
 }
 
 export interface SaleCreditPayload {
@@ -82,6 +106,12 @@ export interface SaleCreditPayload {
   paymentFrequency: PaymentFrequency;
   products: Array<{ productId: string; quantity: number }>;
   notes?: string;
+  downPayment?: number;
+  downPaymentMethod?: 'CASH' | 'TRANSFER';
+  downPaymentTransferReference?: string;
+  prepaidInstallments?: number;
+  prepaidInstallmentsMethod?: 'CASH' | 'TRANSFER';
+  prepaidInstallmentsTransferReference?: string;
 }
 
 export interface LoanCreditPayload {
@@ -128,6 +158,7 @@ export interface CreditProductRaw {
   historical_price: number;
   product_id: string;
   product_name: string;
+  historical_rate: number | null;
 }
 
 export interface CreditDetailRaw extends CreditRaw {
@@ -137,6 +168,15 @@ export interface CreditDetailRaw extends CreditRaw {
   customer_phone: string | null;
   products?: CreditProductRaw[];
   installments: CreditInstallmentRaw[];
+  down_payment: number;
+  down_payment_method: string | null;
+  down_payment_transfer_reference: string | null;
+  prepaid_installments: number;
+  prepaid_installments_method: string | null;
+  prepaid_installments_transfer_reference: string | null;
+  settled_at: string | null;
+  settlement_amount: number | null;
+  settlement_type: string | null;
 }
 
 export interface ApprovePayload {
