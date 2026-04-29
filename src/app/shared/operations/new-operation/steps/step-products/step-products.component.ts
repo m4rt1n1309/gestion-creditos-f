@@ -1,14 +1,15 @@
-import { Component, inject } from '@angular/core';
-import { CurrencyArsPipe } from '../../../../../core/pipes/currency-ars.pipe';
-import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
-import { OperationFormService, Product } from '../../operation-form.service';
+import { CurrencyArsPipe } from '../../../../../core/pipes/currency-ars.pipe';
+import { ProductOperation } from '../../../../models/interface/product';
+import { OperationFormService } from '../../operation-form.service';
 
 @Component({
   selector: 'app-step-products',
@@ -29,10 +30,10 @@ import { OperationFormService, Product } from '../../operation-form.service';
 export class StepProductsComponent {
   form = inject(OperationFormService);
 
-  addProduct(prod: Product) {
+  addProduct(prod: ProductOperation) {
     this.form.addProduct(prod);
   }
-  removeProduct(prod: Product) {
+  removeProduct(prod: ProductOperation) {
     this.form.removeProduct(prod);
   }
 }
