@@ -64,13 +64,15 @@ export interface CollectorReportRow {
 
 export interface ProductReportRow {
   id: string;
-  name: string;
-  currentPrice: number;
-  availableStock: number;
+  title: string;
+  description: string;
   status: 'ACTIVE' | 'INACTIVE';
+  minPrice: number;
+  maxPrice: number;
+  availableCount: number;
   timesSold: number;
-  totalUnitsSold: number;
   totalRevenue: number;
+  avgSellingPrice: number;
 }
 
 export interface ReportDateRange {
@@ -235,11 +237,13 @@ export interface CollectorReportRowRaw {
 
 export interface ProductReportRowRaw {
   id: string;
-  name: string;
-  current_price: number;
-  available_stock: number;
+  title: string;
+  description: string;
   status: string;
+  min_price: number;
+  max_price: number;
+  available_count: number;
   times_sold: number;
-  total_units_sold: number;
   total_revenue: number;
+  avg_selling_price: number;
 }

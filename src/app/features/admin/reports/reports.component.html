@@ -34,9 +34,7 @@
           </p>
           <p class="text-xs text-green-600">
             Cobros:
-            {{
-              formatCurrency(summaryReport.todayCollected)
-            }}
+            {{ formatCurrency(summaryReport.todayCollected) }}
             &nbsp;·&nbsp;Enganches:
             {{ formatCurrency(summaryReport.todayDownPayments) }}
           </p>
@@ -591,26 +589,34 @@
         >
           <ng-template pTemplate="header">
             <tr>
-              <th>Nombre</th>
-              <th class="text-right">Precio actual</th>
-              <th class="text-center">Stock</th>
+              <th>Título</th>
+              <th>Descripción</th>
+              <th class="text-right">Precio mín.</th>
+              <th class="text-right">Precio máx.</th>
+              <th class="text-center">Disponibles</th>
               <th class="text-center">Estado</th>
               <th class="text-center">Veces vendido</th>
-              <th class="text-center">Unidades vendidas</th>
+              <th class="text-right">Precio prom. venta</th>
               <th class="text-right">Ingresos generados</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-row>
             <tr>
-              <td class="font-medium">{{ row.name }}</td>
+              <td class="font-medium">{{ row.title }}</td>
+              <td class="text-sm text-gray-500">
+                {{ row.description || "—" }}
+              </td>
               <td class="text-right font-mono">
-                {{ formatCurrency(row.currentPrice) }}
+                {{ formatCurrency(row.minPrice) }}
+              </td>
+              <td class="text-right font-mono">
+                {{ formatCurrency(row.maxPrice) }}
               </td>
               <td class="text-center">
-                @if (row.availableStock === 0) {
+                @if (row.availableCount === 0) {
                   <p-tag value="Sin stock" severity="danger" />
                 } @else {
-                  {{ row.availableStock }}
+                  {{ row.availableCount }}
                 }
               </td>
               <td class="text-center">
@@ -620,7 +626,9 @@
                 />
               </td>
               <td class="text-center">{{ row.timesSold }}</td>
-              <td class="text-center">{{ row.totalUnitsSold }}</td>
+              <td class="text-right font-mono">
+                {{ formatCurrency(row.avgSellingPrice) }}
+              </td>
               <td class="text-right font-mono font-semibold text-blue-600">
                 {{ formatCurrency(row.totalRevenue) }}
               </td>

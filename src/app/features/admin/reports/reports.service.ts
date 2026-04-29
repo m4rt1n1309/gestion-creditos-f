@@ -169,13 +169,15 @@ function toCollectorRow(r: CollectorReportRowRaw): CollectorReportRow {
 function toProductRow(r: ProductReportRowRaw): ProductReportRow {
   return {
     id: r.id,
-    name: r.name,
-    currentPrice: r.current_price,
-    availableStock: r.available_stock,
+    title: r.title,
+    description: r.description,
     status: r.status as ProductReportRow['status'],
+    minPrice: r.min_price,
+    maxPrice: r.max_price,
+    availableCount: r.available_count,
     timesSold: r.times_sold,
-    totalUnitsSold: r.total_units_sold,
     totalRevenue: r.total_revenue,
+    avgSellingPrice: r.avg_selling_price,
   };
 }
 
