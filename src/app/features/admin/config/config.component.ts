@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CompanyConfigComponent } from './company/company-config.component';
-import { ConfigTab, TabItem } from './models/system-config.model';
+import { ConfigTab, TabItem } from './models/interfaces/system-config.model';
 import { NotificationsConfigComponent } from './notifications/notifications-config.component';
 import { ProductBrandsConfigComponent } from './product-brands/product-brands-config.component';
 import { ProductCategoriesConfigComponent } from './product-categories/product-categories-config.component';

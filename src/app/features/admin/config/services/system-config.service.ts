@@ -6,7 +6,7 @@ import {
   SystemConfigParam,
   SystemConfigParamRaw,
   SystemConfigUpdatePayload,
-} from '../models/system-config.model';
+} from '../models/interfaces/system-config.model';
 
 /**
  * Convierte un objeto SystemConfigParamRaw a SystemConfigParam.

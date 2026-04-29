@@ -16,7 +16,9 @@ export type ConfigTab =
   | 'tasas-producto'
   | 'parametros'
   | 'usuarios'
-  | 'notificaciones';
+  | 'notificaciones'
+  | 'categorias-producto'
+  | 'marcas';
 
 export interface TabItem {
   id: ConfigTab;
