@@ -6,6 +6,13 @@ import { ButtonModule } from 'primeng/button';
 import { StepsModule } from 'primeng/steps';
 import { ToastModule } from 'primeng/toast';
 import { TooltipModule } from 'primeng/tooltip';
+import { CreditsService } from '../../../features/seller/operations/credits.service';
+import {
+  CreditCreatePayload,
+  LoanCreditPayload,
+  PaymentFrequency,
+  SaleCreditPayload,
+} from '../../../features/seller/models/credit.model';
 import { OperationFormService } from './operation-form.service';
 import { StepClientComponent } from './steps/step-client/step-client.component';
 import { StepConditionsComponent } from './steps/step-conditions/step-conditions.component';
@@ -43,24 +50,27 @@ export class NewOperationComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private messageService: MessageService,
+    private creditsService: CreditsService,
   ) {}
 
   ngOnInit() {
-    const clientDni = this.route.snapshot.queryParamMap.get('clientDni');
-    if (clientDni) {
-      const match = this.form.clients.find((c) => c.dni === clientDni);
-      if (match) {
-        this.form.selectedClient.set(match);
-        this.activeIndex = 1;
-      }
-    }
-
     this.steps = [
       { label: 'Cliente' },
       { label: 'Tipo y Producto' },
       { label: 'Condiciones' },
       { label: 'Confirmación' },
     ];
+
+    const clientDni = this.route.snapshot.queryParamMap.get('clientDni');
+    this.form.loadData().subscribe(() => {
+      if (clientDni) {
+        const match = this.form.clients.find((c) => c.dni === clientDni);
+        if (match) {
+          this.form.selectedClient.set(match);
+          this.activeIndex = 1;
+        }
+      }
+    });
   }
 
   nextStep() {
@@ -79,20 +89,61 @@ export class NewOperationComponent implements OnInit {
     return this.form.isConfirmed();
   }
 
+  /**
+   * Finaliza la creación de la operación.
+   * @returns
+   */
   finish() {
+    const client = this.form.selectedClient();
+    if (!client) return;
+
     this.submitting = true;
-    // TODO: replace with real API call
-    setTimeout(() => {
-      this.submitting = false;
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Operación enviada',
-        detail: 'La operación fue enviada para aprobación correctamente.',
-        life: 3000,
-      });
-      this.onComplete.emit();
-      const base = this.router.url.split('/operations')[0];
-      setTimeout(() => this.router.navigate([base, 'operations']), 1500);
-    }, 1000);
+    const type = this.form.selectedType() === 'VENTA' ? 'SALE' : 'LOAN';
+    const freq = this.form.selectedFrequency().value as PaymentFrequency;
+
+    let payload: CreditCreatePayload;
+    if (type === 'SALE') {
+      const salePayload: SaleCreditPayload = {
+        customerId: client.id,
+        type: 'SALE',
+        installmentsCount: this.form.selectedInstallments(),
+        paymentFrequency: freq,
+        units: [],
+      };
+      payload = salePayload;
+    } else {
+      const loanPayload: LoanCreditPayload = {
+        customerId: client.id,
+        type: 'LOAN',
+        totalAmount: this.form.loanCapital(),
+        installmentsCount: this.form.installmentsCount(),
+        paymentFrequency: freq,
+      };
+      payload = loanPayload;
+    }
+
+    this.creditsService.create(payload).subscribe({
+      next: () => {
+        this.submitting = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Operación enviada',
+          detail: 'La operación fue enviada para aprobación correctamente.',
+          life: 3000,
+        });
+        this.onComplete.emit();
+        const base = this.router.url.split('/operations')[0];
+        setTimeout(() => this.router.navigate([base, 'operations']), 1500);
+      },
+      error: (err) => {
+        this.submitting = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err?.message ?? 'No se pudo registrar la operación.',
+          life: 5000,
+        });
+      },
+    });
   }
 }
