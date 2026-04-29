@@ -1,82 +1,60 @@
-import { Injectable, computed, signal } from '@angular/core';
-
-export interface Client {
-  id: number;
-  name: string;
-  dni: string;
-  phone: string;
-  email: string;
-  previousCredits: number;
-  delinquency: 'sin mora' | 'mora leve' | 'mora alta';
-  paymentCapacity: number;
-}
-
-export interface Product {
-  id: number;
-  name: string;
-  price: number;
-  stock: number;
-}
-
-export interface PaymentFrequency {
-  label: string;
-  value: string;
-  factor: number;
-}
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, forkJoin, map } from 'rxjs';
+import { CustomersService } from '../../../features/seller/clients/customers.service';
+import { ProductsService } from '../../../features/seller/products/products.service';
+import { ClientOperation } from '../../models/interface/client';
+import { PaymentFrequencyOperation } from '../../models/interface/payment';
+import { ProductOperation } from '../../models/interface/product';
 
 @Injectable()
 export class OperationFormService {
-  // Step 0 — Client
-  searchClient = signal('');
-  selectedClient = signal<Client | null>(null);
-  clients: Client[] = [
-    {
-      id: 1,
-      name: 'Juan Pérez García',
-      dni: '27.123.456',
-      phone: '381-555-1234',
-      email: 'j.perez@email.com',
-      previousCredits: 2,
-      delinquency: 'mora leve',
-      paymentCapacity: 18000,
-    },
-    {
-      id: 2,
-      name: 'María López',
-      dni: '28.654.321',
-      phone: '381-555-9876',
-      email: 'm.lopez@email.com',
-      previousCredits: 1,
-      delinquency: 'sin mora',
-      paymentCapacity: 24000,
-    },
-    {
-      id: 3,
-      name: 'Carlos Ruiz',
-      dni: '29.321.654',
-      phone: '381-555-0000',
-      email: 'c.ruiz@email.com',
-      previousCredits: 3,
-      delinquency: 'mora alta',
-      paymentCapacity: 12000,
-    },
-  ];
+  private readonly customersService = inject(CustomersService);
+  private readonly productsService = inject(ProductsService);
 
-  // Step 1 — Products
+  searchClient = signal('');
+  selectedClient = signal<ClientOperation | null>(null);
+  clients: ClientOperation[] = [];
+
   searchProduct = signal('');
   selectedType = signal<'VENTA' | 'PRESTAMO'>('VENTA');
-  selectedProducts = signal<Product[]>([]);
-  availableProducts: Product[] = [
-    { id: 101, name: 'Zapatillas Nike Air Max', price: 45000, stock: 12 },
-    { id: 102, name: 'Samsung Galaxy A54', price: 185000, stock: 5 },
-    { id: 103, name: 'Smart TV 43" Noblex', price: 120000, stock: 8 },
-  ];
+  selectedProducts = signal<ProductOperation[]>([]);
+  availableProducts: ProductOperation[] = [];
+
+  /**
+   *
+   * @returns
+   */
+  loadData(): Observable<void> {
+    return forkJoin({
+      customers: this.customersService.list({ status: 'ACTIVE' }),
+      products: this.productsService.list({ status: 'ACTIVE' }),
+    }).pipe(
+      map(({ customers, products }) => {
+        this.clients = customers.map((c) => ({
+          id: c.id,
+          name: c.fullName,
+          dni: c.dni,
+          phone: c.phone ?? '',
+          email: c.email ?? '',
+          previousCredits: 0,
+          delinquency: 'sin mora',
+          paymentCapacity: 0,
+        }));
+        this.availableProducts = products.map((p) => ({
+          id: p.id,
+          name: p.title,
+          price: p.variants[0]?.currentPrice ?? 0,
+          stock: p.availableCount,
+        }));
+      }),
+    );
+  }
+
   operationTypes = [
     { label: 'Venta a Crédito', value: 'VENTA' },
     { label: 'Préstamo Personal', value: 'PRESTAMO' },
   ];
 
-  // Step 2 — Conditions
   firstDueDate = signal<Date | undefined>(undefined);
   installmentsOptions = [
     { label: '1 cuota', value: 1 },
@@ -87,12 +65,12 @@ export class OperationFormService {
   selectedInstallments = signal(6);
   interestRate = signal(15);
   loanCapital = signal(50000);
-  paymentFrequencies: PaymentFrequency[] = [
+  paymentFrequencies: PaymentFrequencyOperation[] = [
     { label: 'Semanal (4 pagos/mes)', value: 'WEEKLY', factor: 4 },
     { label: 'Quincenal (2 pagos/mes)', value: 'BIWEEKLY', factor: 2 },
     { label: 'Mensual (1 pago/mes)', value: 'MONTHLY', factor: 1 },
   ];
-  selectedFrequency = signal<PaymentFrequency>({
+  selectedFrequency = signal<PaymentFrequencyOperation>({
     label: 'Mensual (1 pago/mes)',
     value: 'MONTHLY',
     factor: 1,
@@ -100,7 +78,6 @@ export class OperationFormService {
   loanMonths = signal(6);
   loanInterest = signal(10);
 
-  // Step 3 — Confirm
   checks = signal({
     identity: false,
     conditions: false,
@@ -108,7 +85,6 @@ export class OperationFormService {
     capacity: false,
   });
 
-  // Computed
   capital = computed(() => {
     if (this.selectedType() === 'VENTA') {
       return this.selectedProducts().reduce((acc, p) => acc + p.price, 0);
@@ -139,11 +115,19 @@ export class OperationFormService {
     return c.identity && c.conditions && c.capacity;
   });
 
-  addProduct(product: Product) {
+  /**
+   * Agrega un producto.
+   * @param product
+   */
+  addProduct(product: ProductOperation) {
     this.selectedProducts.update((list) => [...list, { ...product }]);
   }
 
-  removeProduct(product: Product) {
+  /**
+   * Remueve un producto.
+   * @param product
+   */
+  removeProduct(product: ProductOperation) {
     this.selectedProducts.update((list) => list.filter((p) => p !== product));
   }
 

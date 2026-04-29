@@ -103,6 +103,8 @@ export class OperationsComponent {
     }
   }
 
+  loadOperations() {}
+
   /**
    *  Abre el modal de nueva operación estableciendo la variable `showNewOperationModal` a `true`, lo que hace que el componente `NewOperationComponent` se muestre en la interfaz de usuario. Esta función se puede llamar desde un botón o enlace en la plantilla para iniciar el proceso de creación de una nueva operación.
    */

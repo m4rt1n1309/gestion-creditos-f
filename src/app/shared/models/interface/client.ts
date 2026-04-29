@@ -52,6 +52,17 @@ export interface Client {
   risk: 'Al dia' | 'Mora leve' | 'Mora alta';
 }
 
+export interface ClientOperation {
+  id: string;
+  name: string;
+  dni: string;
+  phone: string;
+  email: string;
+  previousCredits: number;
+  delinquency: string;
+  paymentCapacity: number;
+}
+
 export type ContactChannel = 'WhatsApp' | 'Correo' | 'Llamada';
 export type ContactHistoryStatus = 'Entregado' | 'Sin respuesta' | 'Fallido';
 
