@@ -10,5 +10,14 @@ export default defineConfig({
     defaultCommandTimeout: 8000,
     video: false,
     screenshotOnRunFailure: true,
+
+    reporter: 'mochawesome',
+    reporterOptions: {
+      reportDir: 'cypress/reports/mocha',
+      quite: true,
+      overwrite: false,
+      html: false,
+      json: true,
+    },
   },
 });

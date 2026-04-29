@@ -9,7 +9,10 @@
     "test": "ng test",
     "serve:ssr:gestion-creditos-f": "node dist/gestion-creditos-f/server/server.mjs",
     "e2e": "cypress open",
-    "e2e:run": "cypress run"
+    "e2e:run": "cypress run",
+    "e2e:report": "mochawesome-merge cypress/reports/mocha/*.json -o cypress/reports/report.json && marge cypress/reports/report.json --reportDir cypress/reports --inline",
+    "e2e:clean": "node -e \"const fs=require('fs');const d='cypress/reports/mocha';if(fs.existsSync(d))fs.readdirSync(d).forEach(f=>fs.unlinkSync(d+'/'+f));\"",
+    "e2e:all": "npm run e2e:clean && cypress run && npm run e2e:report"
   },
   "private": true,
   "dependencies": {
@@ -49,6 +52,9 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "mochawesome": "^7.1.4",
+    "mochawesome-merge": "^5.1.1",
+    "mochawesome-report-generator": "^6.3.2",
     "postcss": "^8.5.10",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.5.2"
