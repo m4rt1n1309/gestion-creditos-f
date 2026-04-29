@@ -3,7 +3,10 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -16,6 +19,7 @@ import { HeaderService } from '../../../../core/services/header.service';
 import { EmptyStateComponent } from '../../../../shared/states/empty-state/empty-state.component';
 import { ErrorStateComponent } from '../../../../shared/states/error-state/error-state.component';
 import { LoadingStateComponent } from '../../../../shared/states/loading-state/loading-state.component';
+import { UserCreateComponent } from '../user-create/user-create.component';
 import { User, UserListFilters, UserStatus } from '../user.model';
 import { UsersService } from '../users.service';
 import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
@@ -43,12 +47,16 @@ const ROLE_SEVERITY: Record<string, string> = {
     TableModule,
     TagModule,
     ButtonModule,
+    DialogModule,
     DropdownModule,
+    IconFieldModule,
+    InputIconModule,
     InputTextModule,
     TooltipModule,
     LoadingStateComponent,
     ErrorStateComponent,
     EmptyStateComponent,
+    UserCreateComponent,
   ],
   templateUrl: './users-list.component.html',
 })
@@ -60,6 +68,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
   users: User[] = [];
   loading = false;
   error: AppError | null = null;
+  displayCreateModal = false;
 
   searchTerm = '';
   selectedRole: UserRole | null = null;
@@ -126,7 +135,22 @@ export class UsersListComponent implements OnInit, OnDestroy {
    * @param id
    */
   navigateToDetail(id: string): void {
-    this.router.navigate([AppRoutes.USERS_DETAIL, id]);
+    this.router.navigate(['/', AppRoutes.ADMIN, AppRoutes.USERS, id]);
+  }
+
+  /**
+   * Abre el modal de creación de usuario.
+   */
+  openNew(): void {
+    this.displayCreateModal = true;
+  }
+
+  /**
+   * Cierra el modal y recarga la lista tras una creación exitosa.
+   */
+  onUserCreated(): void {
+    this.displayCreateModal = false;
+    this.loadUsers();
   }
 
   /**
