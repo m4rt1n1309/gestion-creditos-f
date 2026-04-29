@@ -17,7 +17,7 @@ import {
   InterestRateCreatePayload,
   PaymentFrequency,
   RateGroup,
-} from '../models/interest-rate.model';
+} from '../models/interfaces/interest-rate.model';
 import { FormatService } from '../../../../core/services/format.service';
 import { InterestRatesService } from '../services/interest-rates.service';
 
