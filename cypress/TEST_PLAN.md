@@ -13,8 +13,35 @@ Viewports: 1280×720 (desktop)
 | `01-auth.cy.ts` | Autenticación | 9 |
 | `02-sidebar-navigation.cy.ts` | Sidebar / Guardias de ruta | 16 |
 | `03-nueva-operacion.cy.ts` | Wizard Nueva Operación | 17 |
-| `04-clientes.cy.ts` | Gestión de Clientes | 20 |
-| **Total** | | **62** |
+| `04-clientes.cy.ts` | Gestión de Clientes (shared/admin) | 20 |
+| `05-negative-auth.cy.ts` | Auth — casos negativos | ~10 |
+| `06-negative-clientes.cy.ts` | Clientes — casos negativos | ~10 |
+| `07-negative-nueva-operacion.cy.ts` | Wizard — casos negativos | ~10 |
+| `08-negative-guards.cy.ts` | Guards — rol incorrecto / sin sesión | ~10 |
+| `09-admin-usuarios.cy.ts` | Admin — Gestión de Usuarios | 18 |
+| `09-cobranzas-collector.cy.ts` | Collector — Ruta y Cobros | ~10 |
+| `10-admin-aprobaciones.cy.ts` | Admin — Aprobaciones | ~10 |
+| `11-caja-tesoreria.cy.ts` | Admin — Caja y Tesorería | ~15 |
+| `12-portal-clientes.cy.ts` | Portal Cliente | ~12 |
+| `13-admin-dashboard.cy.ts` | Admin — Dashboard | 7 |
+| `14-seller-operaciones.cy.ts` | Seller — Lista de Operaciones | 8 |
+| `15-seller-productos.cy.ts` | Seller/Admin — Productos | 9 |
+| `16-comisiones.cy.ts` | Seller/Collector/Admin — Comisiones | 11 |
+| `17-admin-colecciones-gastos-pagos.cy.ts` | Admin — Planillas, Gastos, Cobros | 14 |
+| `18-admin-reportes-mora.cy.ts` | Admin — Reportes y Morosidad | 10 |
+| `19-public-password.cy.ts` | Recuperar / Cambiar Contraseña | 15 |
+| `20-admin-config-sheet.cy.ts` | Admin — Configuración y Planilla Legacy | 15 |
+| `21-seller-clientes-nuevo.cy.ts` | Seller — Lista y Crear Cliente | 15 |
+| `22-admin-generar-planilla.cy.ts` | Admin — Generar Planilla (/collections/new) | 8 |
+| `23-credit-detail.cy.ts` | Detalle de Crédito (Seller/Admin + carga/error) | 12 |
+| `24-producto-detalle-editar.cy.ts` | Producto: Detalle, Editar, Variantes, Unidades | 21 |
+| `25-seller-cliente-detalle.cy.ts` | Detalle de Cliente (Seller/Admin + carga/error) | 12 |
+| `26-collector-planilla-detalle.cy.ts` | Collector — Detalle de Planilla | 10 |
+| `27-portal-credits.cy.ts` | Portal — Créditos y Detalle de Crédito | 12 |
+| `28-admin-user-detail.cy.ts` | Admin — Detalle de Usuario | 13 |
+| `29-admin-collection-detail.cy.ts` | Admin — Detalle de Planilla de Cobro | 12 |
+| `30-producto-crear.cy.ts` | Admin — Crear Producto | 9 |
+| **Total estimado** | | **~393** |
 
 ---
 
