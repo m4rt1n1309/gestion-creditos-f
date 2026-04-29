@@ -6,7 +6,7 @@
         <input
           pInputText
           type="text"
-          placeholder="Buscar por nombre"
+          placeholder="Buscar por descripción"
           [(ngModel)]="searchTerm"
           (ngModelChange)="onSearchChange($event)"
           class="w-72"
@@ -17,6 +17,15 @@
         [(ngModel)]="selectedStatus"
         (onChange)="applyFilters()"
         placeholder="Estado"
+        [showClear]="true"
+        optionLabel="label"
+        optionValue="value"
+      />
+      <p-dropdown
+        [options]="categoryOptions"
+        [(ngModel)]="selectedCategoryId"
+        (onChange)="applyFilters()"
+        placeholder="Categoría"
         [showClear]="true"
         optionLabel="label"
         optionValue="value"
@@ -47,28 +56,34 @@
     >
       <ng-template pTemplate="header">
         <tr>
-          <th>Nombre</th>
+          <th>Título</th>
           <th>Descripción</th>
+          <th>Marca</th>
+          <th>Categoría</th>
+          <th class="text-center">Variantes</th>
           <th>Precio</th>
-          <th>Stock</th>
+          <th class="text-center">Disponibles</th>
           <th>Estado</th>
           <th></th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-product>
         <tr>
-          <td>{{ product.name }}</td>
-          <td [pTooltip]="product.description" tooltipPosition="top">
-            {{ truncateDescription(product.description) }}
+          <td class="font-medium">{{ product.title }}</td>
+          <td class="text-sm text-gray-500">
+            {{ product.description || "—" }}
           </td>
-          <td>{{ product.currentPrice | currencyArs: 2 }}</td>
-          <td>
-            @if (product.availableStock === 0) {
+          <td class="text-sm text-gray-500">{{ product.brandName ?? "—" }}</td>
+          <td class="text-sm text-gray-500">
+            {{ product.categoryName ?? "—" }}
+          </td>
+          <td class="text-center text-sm">{{ product.variants.length }}</td>
+          <td class="text-sm font-mono">{{ variantPriceLabel(product) }}</td>
+          <td class="text-center">
+            @if (product.availableCount === 0) {
               <p-tag value="Sin stock" severity="danger" />
-            } @else if (product.availableStock <= LOW_STOCK_THRESHOLD) {
-              <p-tag value="Stock bajo" severity="warning" />
             } @else {
-              {{ product.availableStock }}
+              {{ product.availableCount }}
             }
           </td>
           <td>

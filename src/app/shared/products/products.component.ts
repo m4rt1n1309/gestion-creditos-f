@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -19,17 +19,23 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 
+import { ProductsService } from '../../features/seller/products/products.service';
+import { Product as ApiProduct } from '../../features/seller/models/product.model';
 import { FormatService } from '../../core/services/format.service';
+import { Product } from '../models/interface/product';
 
-export interface Product {
-  id: number;
-  code: string;
-  name: string;
-  price: number;
-  stock: number;
-  category: string;
-  icon: string;
-  iconColor: string;
+
+function toProduct(p: ApiProduct): Product {
+  return {
+    id: p.id,
+    code: p.id.slice(0, 8).toUpperCase(),
+    name: p.title,
+    price: p.variants[0]?.currentPrice ?? 0,
+    stock: p.availableCount,
+    category: '',
+    icon: 'pi-box',
+    iconColor: '#6366f1',
+  };
 }
 
 @Component({
@@ -53,49 +59,11 @@ export interface Product {
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss',
 })
-export class ProductsComponent {
-  products: Product[] = [
-    {
-      id: 1,
-      code: 'PROD-001',
-      name: 'Notebook Samsung',
-      price: 35000,
-      stock: 5,
-      category: 'Electrónica',
-      icon: 'pi-desktop',
-      iconColor: '#6366f1',
-    },
-    {
-      id: 2,
-      code: 'PROD-002',
-      name: 'Tablet Samsung',
-      price: 12000,
-      stock: 12,
-      category: 'Electrónica',
-      icon: 'pi-tablet',
-      iconColor: '#10b981',
-    },
-    {
-      id: 3,
-      code: 'PROD-003',
-      name: 'Aire Acondicionado Split',
-      price: 25000,
-      stock: 3,
-      category: 'Electrodomésticos',
-      icon: 'pi-sun',
-      iconColor: '#f59e0b',
-    },
-    {
-      id: 4,
-      code: 'PROD-004',
-      name: 'Monitor LG 27"',
-      price: 8500,
-      stock: 0,
-      category: 'Electrónica',
-      icon: 'pi-desktop',
-      iconColor: '#ef4444',
-    },
-  ];
+export class ProductsComponent implements OnInit {
+  private readonly productsService = inject(ProductsService);
+
+  products: Product[] = [];
+  loading = false;
 
   categoryOptions = [
     { label: 'Electrónica', value: 'Electrónica' },
@@ -115,15 +83,32 @@ export class ProductsComponent {
   submitted = false;
   form: FormGroup;
 
-  constructor(private fb: FormBuilder, private fmt: FormatService) {
+  constructor(
+    private fb: FormBuilder,
+    private fmt: FormatService,
+  ) {
     this.form = this.buildForm();
   }
 
-  /**
-   * Devuelve la lista de productos filtrada por el término de búsqueda.
-   * El filtro se aplica sobre el nombre y la categoría del producto.
-   * Si el término de búsqueda está vacío, se devuelve la lista completa.
-   */
+  ngOnInit(): void {
+    this.loadProducts();
+  }
+
+    // TODO -> agregar documentacion de las funciones
+
+  private loadProducts(): void {
+    this.loading = true;
+    this.productsService.list({ status: 'ACTIVE' }).subscribe({
+      next: (items) => {
+        this.products = items.map(toProduct);
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      },
+    });
+  }
+
   get filteredProducts(): Product[] {
     if (!this.searchTerm) return this.products;
     const term = this.searchTerm.toLowerCase();
@@ -134,11 +119,6 @@ export class ProductsComponent {
     );
   }
 
-  /**
-   * Calcula el margen de ganancia en porcentaje entre el precio de compra y el precio de venta.
-   * Si el precio de compra es cero o no está definido, devuelve '--%'.
-   * De lo contrario, calcula el porcentaje y lo formatea con un decimal seguido de '%'.
-   */
   get margen(): string {
     const compra = this.form.get('precioCompra')?.value ?? 0;
     const venta = this.form.get('precioVenta')?.value ?? 0;
@@ -146,22 +126,12 @@ export class ProductsComponent {
     return this.fmt.percent((venta - compra) / compra, 1);
   }
 
-  /**
-   *  Determina el estado del stock de un producto basado en la cantidad disponible.
-   * @param stock
-   * @returns
-   */
   getStockStatus(stock: number): 'activo' | 'stock-bajo' | 'sin-stock' {
     if (stock === 0) return 'sin-stock';
     if (stock <= 3) return 'stock-bajo';
     return 'activo';
   }
 
-  /**
-   *  Devuelve la clase CSS correspondiente al estado del stock de un producto.
-   * @param stock
-   * @returns
-   */
   getRowClass(stock: number): string {
     const status = this.getStockStatus(stock);
     if (status === 'sin-stock') return 'row-sin-stock';
@@ -169,51 +139,49 @@ export class ProductsComponent {
     return '';
   }
 
-  /**
-   *  Formatea un número como precio en formato local con el símbolo de dólar.
-   * @param price
-   * @returns
-   */
   formatPrice(price: number): string {
     return this.fmt.currency(price);
   }
 
-  /**
-   *  Determina si un campo del formulario es inválido y ha sido tocado o el formulario ha sido enviado.
-   * @param field
-   * @returns
-   */
   isInvalid(field: string): boolean {
     const ctrl = this.form.get(field);
     return !!ctrl && ctrl.invalid && (ctrl.touched || this.submitted);
   }
 
-  /**
-   *  Abre el modal para crear un nuevo producto.
-   */
   cancelCreate(): void {
     this.showCreateModal = false;
     this.submitted = false;
     this.form = this.buildForm();
   }
 
-  /**
-   *  Guarda un nuevo producto basado en los datos del formulario. Si el formulario es inválido, no hace nada.
-   * @returns
-   */
   saveProduct(): void {
     this.submitted = true;
     if (this.form.invalid) return;
-    // TODO: integrate with API
-    this.showCreateModal = false;
-    this.submitted = false;
-    this.form = this.buildForm();
+
+    const { codigo, descripcion, marca, modelo, precioVenta, stockInicial } =
+      this.form.value;
+    const nameParts = [codigo, marca, modelo].filter(Boolean);
+    const name = nameParts.join(' ') || descripcion || codigo;
+    const description = descripcion || name;
+
+    this.productsService
+      .create({
+        title: name,
+        description,
+      })
+      .subscribe({
+        next: () => {
+          this.showCreateModal = false;
+          this.submitted = false;
+          this.form = this.buildForm();
+          this.loadProducts();
+        },
+        error: (err) => {
+          console.error('Error al crear producto', err);
+        },
+      });
   }
 
-  /**
-   *  Construye y devuelve un nuevo FormGroup con los controles necesarios para el formulario de producto, incluyendo validaciones.
-   * @returns
-   */
   private buildForm(): FormGroup {
     return this.fb.group({
       codigo: ['', Validators.required],

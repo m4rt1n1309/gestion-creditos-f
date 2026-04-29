@@ -10,12 +10,19 @@ const BASE = `${environment.apiBaseUrl}/products`;
 
 const rawProduct = {
   id: 'prod-uuid-1',
-  name: 'Notebook Samsung',
+  title: 'Notebook Samsung',
   description: 'Descripción de prueba',
-  current_price: 35000,
-  available_stock: 5,
+  model: null,
   status: 'ACTIVE' as const,
   created_at: '2024-01-01T00:00:00.000Z',
+  category_id: null,
+  category_name: null,
+  brand_id: null,
+  brand_name: null,
+  available_count: 5,
+  reserved_count: 1,
+  sold_count: 10,
+  variants: [],
 };
 
 const rawProductDetail = {
@@ -37,151 +44,84 @@ describe('ProductsService', () => {
 
   afterEach(() => http.verify());
 
-  it('list() sin filtros — no envía query params', (done) => {
+  it('list() — mapea availableCount/reservedCount/soldCount', (done) => {
     service.list().subscribe((products) => {
       expect(products.length).toBe(1);
-      expect(products[0].name).toBe('Notebook Samsung');
-      expect(products[0].currentPrice).toBe(35000);
-      expect(products[0].availableStock).toBe(5);
+      expect(products[0].title).toBe('Notebook Samsung');
+      expect(products[0].availableCount).toBe(5);
+      expect(products[0].reservedCount).toBe(1);
+      expect(products[0].soldCount).toBe(10);
+      expect((products[0] as unknown as Record<string, unknown>)['name']).toBeUndefined();
+      expect((products[0] as unknown as Record<string, unknown>)['currentPrice']).toBeUndefined();
       done();
     });
 
     const req = http.expectOne(BASE);
-    expect(req.request.params.keys().length).toBe(0);
     req.flush({ ok: true, message: 'ok', data: [rawProduct] });
   });
 
-  it('list() con filtros — envía solo params con valor', (done) => {
-    service
-      .list({ status: 'ACTIVE', search: 'Notebook' })
-      .subscribe(() => done());
+  it('list() con filtros — envía status, search y category_id', (done) => {
+    service.list({ status: 'ACTIVE', search: 'Notebook', categoryId: 'cat-1' }).subscribe(() => done());
 
     const req = http.expectOne((r) => r.url === BASE);
     expect(req.request.params.get('status')).toBe('ACTIVE');
     expect(req.request.params.get('search')).toBe('Notebook');
+    expect(req.request.params.get('category_id')).toBe('cat-1');
     req.flush({ ok: true, message: 'ok', data: [rawProduct] });
   });
 
-  it('create() — mapea camelCase a snake_case en body y respuesta a camelCase', (done) => {
+  it('create() — no incluye current_price ni available_stock en el body', (done) => {
     service
-      .create({
-        name: 'Nuevo Producto',
-        description: 'Una descripción',
-        currentPrice: 10000,
-        availableStock: 20,
-      })
+      .create({ title: 'Nuevo Producto', description: 'Una descripción', brandId: 'b-1', categoryId: 'c-1' })
       .subscribe((detail) => {
-        expect(detail.name).toBe('Notebook Samsung');
-        expect(detail.currentPrice).toBe(35000);
-        expect(detail.availableStock).toBe(5);
-        expect(detail.updatedAt).toBe('2024-06-01T00:00:00.000Z');
+        expect(detail.title).toBe('Notebook Samsung');
+        expect(detail.availableCount).toBe(5);
+        expect((detail as unknown as Record<string, unknown>)['currentPrice']).toBeUndefined();
+        expect((detail as unknown as Record<string, unknown>)['availableStock']).toBeUndefined();
         done();
       });
 
     const req = http.expectOne(BASE);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body['name']).toBe('Nuevo Producto');
-    expect(req.request.body['current_price']).toBe(10000);
-    expect(req.request.body['available_stock']).toBe(20);
-    expect(req.request.body['description']).toBe('Una descripción');
+    expect(req.request.body['title']).toBe('Nuevo Producto');
+    expect(req.request.body['brand_id']).toBe('b-1');
+    expect(req.request.body['category_id']).toBe('c-1');
+    expect(req.request.body['current_price']).toBeUndefined();
+    expect(req.request.body['available_stock']).toBeUndefined();
     req.flush({ ok: true, message: 'ok', data: rawProductDetail });
-  });
-
-  it('adjustStock() — retorna StockAdjustResult con solo 3 campos mapeados', (done) => {
-    service
-      .adjustStock('prod-uuid-1', {
-        movement: 'IN',
-        quantity: 10,
-        reason: 'Reposición',
-      })
-      .subscribe((result) => {
-        expect(result.id).toBe('prod-uuid-1');
-        expect(result.name).toBe('Notebook Samsung');
-        expect(result.availableStock).toBe(15);
-        expect(
-          (result as unknown as Record<string, unknown>)['currentPrice'],
-        ).toBeUndefined();
-        expect(
-          (result as unknown as Record<string, unknown>)['status'],
-        ).toBeUndefined();
-        done();
-      });
-
-    const req = http.expectOne(`${BASE}/prod-uuid-1/stock`);
-    expect(req.request.method).toBe('PATCH');
-    req.flush({
-      ok: true,
-      message: 'ok',
-      data: {
-        id: 'prod-uuid-1',
-        name: 'Notebook Samsung',
-        available_stock: 15,
-      },
-    });
   });
 
   it('update() — no incluye available_stock en el body', (done) => {
     service
-      .update('prod-uuid-1', {
-        name: 'Nombre editado',
-        currentPrice: 45000,
-      })
+      .update('prod-uuid-1', { title: 'Título editado' })
       .subscribe((detail) => {
-        expect(detail.name).toBe('Notebook Samsung');
+        expect(detail.title).toBe('Notebook Samsung');
         done();
       });
 
     const req = http.expectOne(`${BASE}/prod-uuid-1`);
     expect(req.request.method).toBe('PUT');
-    expect(req.request.body['name']).toBe('Nombre editado');
-    expect(req.request.body['current_price']).toBe(45000);
+    expect(req.request.body['title']).toBe('Título editado');
     expect(req.request.body['available_stock']).toBeUndefined();
     req.flush({ ok: true, message: 'ok', data: rawProductDetail });
   });
 
+  it('no existe adjustStock en el servicio', () => {
+    expect((service as unknown as Record<string, unknown>)['adjustStock']).toBeUndefined();
+  });
+
   it('create() — error 409 se propaga con message del backend', (done) => {
-    service
-      .create({ name: 'Duplicado', currentPrice: 100, availableStock: 1 })
-      .subscribe({
-        error: (err) => {
-          expect(err.status).toBe(409);
-          expect(err.message).toBe(
-            'Ya existe un producto registrado con ese nombre.',
-          );
-          done();
-        },
-      });
+    service.create({ title: 'Duplicado' }).subscribe({
+      error: (err) => {
+        expect(err.status).toBe(409);
+        expect(err.message).toBe('Ya existe un producto registrado con ese título.');
+        done();
+      },
+    });
 
     const req = http.expectOne(BASE);
     req.flush(
-      {
-        ok: false,
-        message: 'Ya existe un producto registrado con ese nombre.',
-      },
-      { status: 409, statusText: 'Conflict' },
-    );
-  });
-
-  it('adjustStock() — error 409 de stock insuficiente se propaga con message del backend', (done) => {
-    service
-      .adjustStock('prod-uuid-1', {
-        movement: 'OUT',
-        quantity: 100,
-        reason: 'Test',
-      })
-      .subscribe({
-        error: (err) => {
-          expect(err.status).toBe(409);
-          expect(err.message).toBe(
-            'Stock insuficiente. Disponible: 5 unidades.',
-          );
-          done();
-        },
-      });
-
-    const req = http.expectOne(`${BASE}/prod-uuid-1/stock`);
-    req.flush(
-      { ok: false, message: 'Stock insuficiente. Disponible: 5 unidades.' },
+      { ok: false, message: 'Ya existe un producto registrado con ese título.' },
       { status: 409, statusText: 'Conflict' },
     );
   });

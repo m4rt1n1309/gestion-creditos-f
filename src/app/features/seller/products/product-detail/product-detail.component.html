@@ -1,99 +1,6 @@
 <p-toast />
 <p-confirmDialog />
 
-<p-dialog
-  header="Ajustar stock"
-  [(visible)]="showStockDialog"
-  [modal]="true"
-  [style]="{ width: '450px' }"
-  [closable]="true"
-  (onHide)="closeStockDialog()"
->
-  @if (stockForm) {
-    <form
-      [formGroup]="stockForm"
-      (ngSubmit)="onStockSubmit()"
-      class="space-y-4 pt-2"
-    >
-      <div class="flex flex-col gap-1">
-        <label for="movement" class="text-sm font-medium"
-          >Tipo de movimiento *</label
-        >
-        <p-dropdown
-          inputId="movement"
-          formControlName="movement"
-          [options]="movementOptions"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="Seleccionar tipo"
-          [class.ng-invalid]="isStockInvalid('movement')"
-          [class.ng-dirty]="isStockInvalid('movement')"
-        />
-        @if (isStockInvalid("movement")) {
-          <small class="text-red-500">{{ getStockError("movement") }}</small>
-        }
-      </div>
-
-      <div class="flex flex-col gap-1">
-        <label for="quantity" class="text-sm font-medium">Cantidad *</label>
-        <p-inputNumber
-          inputId="quantity"
-          formControlName="quantity"
-          [min]="1"
-          [max]="99999"
-          [maxFractionDigits]="0"
-          placeholder="Ingresá la cantidad"
-          [class.ng-invalid]="isStockInvalid('quantity')"
-          [class.ng-dirty]="isStockInvalid('quantity')"
-        />
-        @if (isStockInvalid("quantity")) {
-          <small class="text-red-500">{{ getStockError("quantity") }}</small>
-        }
-      </div>
-
-      <div class="flex flex-col gap-1">
-        <label for="reason" class="text-sm font-medium">Motivo *</label>
-        <textarea
-          pInputTextarea
-          id="reason"
-          formControlName="reason"
-          rows="3"
-          placeholder="Describí el motivo del ajuste"
-          [class.ng-invalid]="isStockInvalid('reason')"
-          [class.ng-dirty]="isStockInvalid('reason')"
-          class="w-full"
-        ></textarea>
-        @if (isStockInvalid("reason")) {
-          <small class="text-red-500">{{ getStockError("reason") }}</small>
-        }
-      </div>
-
-      @if (stockDialogError) {
-        <div class="bg-orange-50 border border-orange-200 rounded p-3">
-          <small class="text-orange-700">{{ stockDialogError }}</small>
-        </div>
-      }
-
-      <div class="flex gap-3 pt-2">
-        <p-button
-          type="submit"
-          [label]="stockDialogConfirmLabel"
-          icon="pi pi-check"
-          [loading]="adjustingStock"
-          [disabled]="stockForm.invalid || adjustingStock"
-        />
-        <p-button
-          type="button"
-          label="Cancelar"
-          severity="secondary"
-          [outlined]="true"
-          (onClick)="closeStockDialog()"
-        />
-      </div>
-    </form>
-  }
-</p-dialog>
-
 <div class="p-4">
   <div class="mb-4">
     <p-button
@@ -112,29 +19,29 @@
   } @else if (product) {
     <div class="bg-white rounded-lg shadow p-6 space-y-6">
       <div class="flex items-center justify-between flex-wrap gap-3">
-        <div class="flex items-center gap-3">
-          <h2 class="text-xl font-semibold">{{ product.name }}</h2>
+        <div class="flex items-center gap-3 flex-wrap">
+          <h2 class="text-xl font-semibold">{{ product.title }}</h2>
           <p-tag
             [value]="product.status === 'ACTIVE' ? 'Activo' : 'Inactivo'"
             [severity]="product.status === 'ACTIVE' ? 'success' : 'danger'"
           />
         </div>
 
-        @if (isAdmin) {
-          <div class="flex gap-2 flex-wrap">
+        <div class="flex gap-2 flex-wrap">
+          <p-button
+            label="Ver variantes"
+            icon="pi pi-th-large"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="navigateToVariants()"
+          />
+          @if (isAdmin) {
             <p-button
               label="Editar"
               icon="pi pi-pencil"
               severity="secondary"
               [outlined]="true"
               (onClick)="navigateToEdit()"
-            />
-            <p-button
-              label="Ajustar stock"
-              icon="pi pi-arrows-v"
-              severity="secondary"
-              [outlined]="true"
-              (onClick)="openStockDialog()"
             />
             @if (product.status === "ACTIVE") {
               <p-button
@@ -153,39 +60,48 @@
                 (onClick)="confirmActivate()"
               />
             }
-          </div>
-        }
+          }
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         @if (product.description) {
           <div class="md:col-span-2">
-            <span class="text-sm text-gray-500">Descripción</span>
+            <span class="text-sm text-gray-500">Descripción comercial</span>
             <p class="font-medium">{{ product.description }}</p>
           </div>
         }
 
-        <div>
-          <span class="text-sm text-gray-500">Precio</span>
-          <p class="font-medium text-lg">
-            {{ product.currentPrice | currencyArs: 2 }}
-          </p>
-        </div>
+        @if (product.model) {
+          <div>
+            <span class="text-sm text-gray-500">Modelo</span>
+            <p class="font-medium">{{ product.model }}</p>
+          </div>
+        }
+
+        @if (product.brandName) {
+          <div>
+            <span class="text-sm text-gray-500">Marca</span>
+            <p class="font-medium">{{ product.brandName }}</p>
+          </div>
+        }
+
+        @if (product.categoryName) {
+          <div>
+            <span class="text-sm text-gray-500">Categoría</span>
+            <p class="font-medium">{{ product.categoryName }}</p>
+          </div>
+        }
 
         <div>
-          <span class="text-sm text-gray-500">Stock disponible</span>
-          <div class="mt-1">
-            @if (product.availableStock === 0) {
-              <p-tag value="Sin stock" severity="danger" />
-            } @else if (product.availableStock <= LOW_STOCK_THRESHOLD) {
-              <p-tag value="Stock bajo" severity="warning" />
-              <span class="ml-2 font-medium"
-                >{{ product.availableStock }} unidades</span
-              >
-            } @else {
-              <p class="font-medium">{{ product.availableStock }} unidades</p>
-            }
-          </div>
+          <span class="text-sm text-gray-500">Unidades</span>
+          <p class="font-medium text-sm">
+            Disponibles:
+            <strong>{{ product.availableCount }}</strong> &nbsp;|&nbsp;
+            Reservadas:
+            <strong>{{ product.reservedCount }}</strong> &nbsp;|&nbsp; Vendidas:
+            <strong>{{ product.soldCount }}</strong>
+          </p>
         </div>
 
         <div>
@@ -204,6 +120,45 @@
           </div>
         }
       </div>
+
+      @if (product.variants.length > 0) {
+        <div>
+          <h3 class="text-sm font-semibold text-gray-700 mb-2">Variantes</h3>
+          <p-table
+            [value]="product.variants"
+            styleClass="p-datatable-sm"
+            responsiveLayout="scroll"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Color</th>
+                <th>Talle</th>
+                <th>Capacidad</th>
+                <th class="text-right">Precio</th>
+                <th class="text-center">Estado</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-v>
+              <tr>
+                <td>{{ v.color ?? "—" }}</td>
+                <td>{{ v.size ?? "—" }}</td>
+                <td>{{ v.capacity ?? "—" }}</td>
+                <td class="text-right font-mono">
+                  {{ v.currentPrice | currencyArs: 2 }}
+                </td>
+                <td class="text-center">
+                  <p-tag
+                    [value]="v.status === 'ACTIVE' ? 'Activa' : 'Inactiva'"
+                    [severity]="v.status === 'ACTIVE' ? 'success' : 'secondary'"
+                  />
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      } @else {
+        <p class="text-sm text-gray-400">Sin variantes registradas.</p>
+      }
     </div>
   }
 </div>

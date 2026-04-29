@@ -1,3 +1,17 @@
+export interface ProductBrand {
+  id: string;
+  name: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface ProductBrandRaw {
+  id: string;
+  name: string;
+  active: boolean;
+  created_at: string;
+}
+
 export type PaymentFrequency = 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
 
 export interface ProductRate {
@@ -51,4 +65,18 @@ export interface CreateForm {
   paymentFrequency: PaymentFrequency | null;
   installmentsCount: number | null;
   ratePercent: number | null;
+}
+
+export interface ProductCategory {
+  id: string;
+  name: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface ProductCategoryRaw {
+  id: string;
+  name: string;
+  active: boolean;
+  created_at: string;
 }

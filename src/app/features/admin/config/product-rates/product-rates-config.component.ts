@@ -19,7 +19,7 @@ import {
   ProductRate,
   ProductRateCreatePayload,
   ProductRateGroup,
-} from '../models/product-rate.model';
+} from '../models/interfaces/product';
 import { ProductRatesService } from '../services/product-rates.service';
 
 const FREQ_LABELS: Record<PaymentFrequency, string> = {
@@ -96,7 +96,7 @@ export class ProductRatesConfigComponent implements OnInit {
   get activeProductOptions(): { label: string; value: string }[] {
     return this.allProducts
       .filter((p) => p.status === 'ACTIVE')
-      .map((p) => ({ label: p.name, value: p.id }));
+      .map((p) => ({ label: p.title, value: p.id }));
   }
 
   get groups(): ProductRateGroup[] {

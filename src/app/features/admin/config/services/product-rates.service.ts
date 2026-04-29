@@ -2,13 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiHttpService } from '../../../../core/http/api-http.service';
-import {
-  ProductRate,
-  ProductRateCreatePayload,
-  ProductRateListFilters,
-  ProductRateRaw,
-  ProductRateUpdatePayload,
-} from '../models/product-rate.model';
+import { ProductRate, ProductRateCreatePayload, ProductRateListFilters, ProductRateRaw, ProductRateUpdatePayload } from '../models/interfaces/product';
 
 function toProductRate(r: ProductRateRaw): ProductRate {
   return {

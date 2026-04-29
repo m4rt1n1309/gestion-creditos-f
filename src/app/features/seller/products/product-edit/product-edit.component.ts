@@ -9,18 +9,19 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { InputNumberModule } from 'primeng/inputnumber';
+import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ToastModule } from 'primeng/toast';
-import { TooltipModule } from 'primeng/tooltip';
 import { AppError } from '../../../../core/models/app-error';
 import { HeaderService } from '../../../../core/services/header.service';
+import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
 import { ErrorStateComponent } from '../../../../shared/states/error-state/error-state.component';
 import { LoadingStateComponent } from '../../../../shared/states/loading-state/loading-state.component';
+import { ProductBrandsService } from '../../../admin/config/services/product-brands.service';
+import { ProductCategoriesService } from '../../../admin/config/services/product-categories.service';
 import { ProductDetail } from '../../models/product.model';
 import { ProductsService } from '../products.service';
-import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
 
 @Component({
   selector: 'app-product-edit',
@@ -30,11 +31,10 @@ import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
     CommonModule,
     ReactiveFormsModule,
     ButtonModule,
+    DropdownModule,
     InputTextModule,
     InputTextareaModule,
-    InputNumberModule,
     ToastModule,
-    TooltipModule,
     LoadingStateComponent,
     ErrorStateComponent,
   ],
@@ -43,6 +43,8 @@ import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
 export class ProductEditComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly productsService = inject(ProductsService);
+  private readonly categoriesService = inject(ProductCategoriesService);
+  private readonly brandsService = inject(ProductBrandsService);
   private readonly router = inject(Router);
   private readonly header = inject(HeaderService);
   private readonly messageService = inject(MessageService);
@@ -54,6 +56,9 @@ export class ProductEditComponent implements OnInit {
   submitting = false;
   form!: FormGroup;
 
+  categoryOptions: { label: string; value: string }[] = [];
+  brandOptions: { label: string; value: string }[] = [];
+
   private get productId(): string {
     return this.route.snapshot.paramMap.get('id')!;
   }
@@ -63,24 +68,33 @@ export class ProductEditComponent implements OnInit {
       { label: 'Productos', route: AppRoutes.SELLER_PRODUCTS },
       { label: 'Editar producto' },
     ]);
+
+    this.categoriesService.getAll().subscribe({
+      next: (r) =>
+        (this.categoryOptions = r
+          .filter((c) => c.active)
+          .map((c) => ({ label: c.name, value: c.id }))),
+      error: () => {},
+    });
+
+    this.brandsService.getAll().subscribe({
+      next: (r) =>
+        (this.brandOptions = r
+          .filter((b) => b.active)
+          .map((b) => ({ label: b.name, value: b.id }))),
+      error: () => {},
+    });
+
     this.load();
   }
 
-  /**
-   * Verifica si un campo del formulario es inválido.
-   * @param field
-   * @returns
-   */
+    // TODO -> agregar documentacion de las funciones
+
   isInvalid(field: string): boolean {
     const camp = this.form?.get(field);
     return !!(camp && camp.invalid && (camp.dirty || camp.touched));
   }
 
-  /**
-   * Obtiene el mensaje de error para un campo específico.
-   * @param field
-   * @returns
-   */
   getError(field: string): string {
     const camp = this.form?.get(field);
     if (!camp?.errors) return '';
@@ -90,17 +104,9 @@ export class ProductEditComponent implements OnInit {
       return `Mínimo ${camp.errors['minlength'].requiredLength} caracteres.`;
     if (camp.errors['maxlength'])
       return `Máximo ${camp.errors['maxlength'].requiredLength} caracteres.`;
-    if (camp.errors['min'])
-      return `El valor mínimo es ${camp.errors['min'].min}.`;
-    if (camp.errors['max'])
-      return `El valor máximo es ${camp.errors['max'].max}.`;
     return 'Campo inválido.';
   }
 
-  /**
-   * Maneja el envío del formulario. Si el formulario es inválido, marca todos los campos como tocados para mostrar los errores. Si es válido, llama al servicio para actualizar el producto y maneja las respuestas exitosas y de error.
-   * @returns
-   */
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -112,9 +118,11 @@ export class ProductEditComponent implements OnInit {
 
     this.productsService
       .update(this.productId, {
-        name: raw.name,
+        title: raw.title,
         description: raw.description || undefined,
-        currentPrice: raw.currentPrice,
+        model: raw.model || undefined,
+        brandId: raw.brandId || undefined,
+        categoryId: raw.categoryId || undefined,
       })
       .subscribe({
         next: () => {
@@ -133,8 +141,8 @@ export class ProductEditComponent implements OnInit {
         error: (err: AppError) => {
           this.submitting = false;
           if (err.status === 409) {
-            this.form.get('name')!.setErrors({ serverError: err.message });
-            this.form.get('name')!.markAsDirty();
+            this.form.get('title')!.setErrors({ serverError: err.message });
+            this.form.get('title')!.markAsDirty();
           } else {
             this.messageService.add({
               severity: 'error',
@@ -146,16 +154,10 @@ export class ProductEditComponent implements OnInit {
       });
   }
 
-  /**
-   * Navega de regreso a la página de detalle del producto sin guardar los cambios realizados en el formulario. Se utiliza como acción para cancelar la edición del producto.
-   */
   cancel(): void {
     this.router.navigate([AppRoutes.SELLER_PRODUCTS, this.productId]);
   }
 
-  /**
-   * Carga los detalles del producto actual desde el backend. Actualiza los estados de carga y error según corresponda. Si la carga es exitosa, también inicializa el formulario con los datos del producto y actualiza el encabezado de la página con el nombre del producto.
-   */
   private load(): void {
     this.loading = true;
     this.error = null;
@@ -163,8 +165,8 @@ export class ProductEditComponent implements OnInit {
       next: (data) => {
         this.product = data;
         this.form = this.fb.group({
-          name: [
-            data.name,
+          title: [
+            data.title,
             [
               Validators.required,
               Validators.minLength(2),
@@ -172,18 +174,13 @@ export class ProductEditComponent implements OnInit {
             ],
           ],
           description: [data.description ?? '', [Validators.maxLength(1000)]],
-          currentPrice: [
-            data.currentPrice,
-            [
-              Validators.required,
-              Validators.min(0.01),
-              Validators.max(99999999),
-            ],
-          ],
+          model: [data.model ?? '', [Validators.maxLength(150)]],
+          brandId: [data.brandId ?? null],
+          categoryId: [data.categoryId ?? null],
         });
         this.header.set([
           { label: 'Productos', route: AppRoutes.SELLER_PRODUCTS },
-          { label: `Editar: ${data.name}` },
+          { label: `Editar: ${data.title}` },
         ]);
         this.loading = false;
       },

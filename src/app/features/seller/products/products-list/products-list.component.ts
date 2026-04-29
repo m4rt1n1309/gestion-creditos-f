@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CurrencyArsPipe } from '../../../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -14,19 +13,20 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MockAuthService } from '../../../../core/auth/mock-auth.service';
 import { AppError } from '../../../../core/models/app-error';
 import { UserRoleEnum } from '../../../../core/models/types/user-role';
+import { CurrencyArsPipe } from '../../../../core/pipes/currency-ars.pipe';
 import { HeaderService } from '../../../../core/services/header.service';
+import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
 import { EmptyStateComponent } from '../../../../shared/states/empty-state/empty-state.component';
 import { ErrorStateComponent } from '../../../../shared/states/error-state/error-state.component';
 import { LoadingStateComponent } from '../../../../shared/states/loading-state/loading-state.component';
+import { ProductCategory } from '../../../admin/config/models/interfaces/product';
+import { ProductCategoriesService } from '../../../admin/config/services/product-categories.service';
 import {
   Product,
   ProductListFilters,
   ProductStatus,
 } from '../../models/product.model';
 import { ProductsService } from '../products.service';
-import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
-
-const LOW_STOCK_THRESHOLD = 5;
 
 @Component({
   selector: 'app-products-list',
@@ -49,6 +49,7 @@ const LOW_STOCK_THRESHOLD = 5;
 })
 export class ProductsListComponent implements OnInit, OnDestroy {
   private readonly productsService = inject(ProductsService);
+  private readonly categoriesService = inject(ProductCategoriesService);
   private readonly auth = inject(MockAuthService);
   private readonly router = inject(Router);
   private readonly header = inject(HeaderService);
@@ -59,20 +60,20 @@ export class ProductsListComponent implements OnInit, OnDestroy {
 
   searchTerm = '';
   selectedStatus: ProductStatus | null = null;
-
-  readonly LOW_STOCK_THRESHOLD = LOW_STOCK_THRESHOLD;
+  selectedCategoryId: string | null = null;
+  categories: ProductCategory[] = [];
 
   readonly statusOptions = [
     { label: 'Activo', value: 'ACTIVE' },
     { label: 'Inactivo', value: 'INACTIVE' },
   ];
 
-  /**
-   * Indica si el usuario actual tiene permisos para crear nuevos productos. Solo los usuarios con el rol ADMIN pueden crear productos.
-   * @returns true si el usuario tiene permisos para crear productos, false en caso contrario.
-   */
   get canCreate(): boolean {
     return this.auth.hasRole(UserRoleEnum.ADMIN);
+  }
+
+  get categoryOptions(): { label: string; value: string }[] {
+    return this.categories.map((c) => ({ label: c.name, value: c.id }));
   }
 
   private readonly searchSubject = new Subject<string>();
@@ -80,6 +81,9 @@ export class ProductsListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.header.set([{ label: 'Productos' }]);
+    this.categoriesService
+      .getAll()
+      .subscribe({ next: (r) => (this.categories = r), error: () => {} });
     this.loadProducts();
 
     this.sub = this.searchSubject
@@ -91,55 +95,37 @@ export class ProductsListComponent implements OnInit, OnDestroy {
     this.sub?.unsubscribe();
   }
 
-  /**
-   * Maneja el cambio en el campo de búsqueda. Emite el nuevo valor de búsqueda a través del Subject para que se apliquen los filtros después de un debounce.
-   * @param value
-   */
   onSearchChange(value: string): void {
     this.searchSubject.next(value);
   }
 
-  /**
-   * Aplica los filtros seleccionados (estado y término de búsqueda) y recarga la lista de productos. Si no se ha seleccionado ningún filtro, se cargarán todos los productos.
-   */
   applyFilters(): void {
     this.loadProducts();
   }
 
-  /**
-   * Navega a la página de detalle del producto.
-   * @param id
-   */
   navigateToDetail(id: string): void {
     this.router.navigate([AppRoutes.SELLER_PRODUCTS, id]);
   }
 
-  /**
-   * Convierte un objeto ProductCreatePayload a un objeto para ser enviado en la solicitud de creación de producto.
-   */
   navigateToCreate(): void {
     this.router.navigate([AppRoutes.SELLER_PRODUCTS_NEW]);
   }
 
-  /**
-   * Trunca la descripción de un producto si excede la longitud máxima. Si la descripción es nula, devuelve un guion.
-   * @param description
-   * @returns
-   */
-  truncateDescription(description: string | null): string {
-    if (!description) return '—';
-    return description.length > 60
-      ? description.slice(0, 60) + '...'
-      : description;
+  variantPriceLabel(product: Product): string {
+    if (!product.variants || product.variants.length === 0) return '—';
+    const prices = product.variants.map((v) => v.currentPrice);
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return min === max
+      ? `$${min.toLocaleString('es-AR')}`
+      : `desde $${min.toLocaleString('es-AR')}`;
   }
 
-  /**
-   * Carga los productos desde el backend aplicando los filtros seleccionados. Actualiza los estados de carga y error según corresponda. Si la carga es exitosa, actualiza la lista de productos que se muestra en la tabla.
-   */
   private loadProducts(): void {
     const filters: ProductListFilters = {};
     if (this.selectedStatus) filters.status = this.selectedStatus;
     if (this.searchTerm.trim()) filters.search = this.searchTerm.trim();
+    if (this.selectedCategoryId) filters.categoryId = this.selectedCategoryId;
 
     this.loading = true;
     this.error = null;
