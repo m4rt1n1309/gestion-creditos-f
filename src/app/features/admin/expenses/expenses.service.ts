@@ -12,7 +12,7 @@ import {
 } from './expense.model';
 
 /**
- * Convierte un ExpenseRaw (formato recibido de la API) a un Expense (formato usado en la app).
+ * Convierte un objeto de tipo ExpenseRaw a un objeto de tipo Expense.
  * @param r
  * @returns
  */
@@ -23,6 +23,9 @@ function toExpense(r: ExpenseRaw): Expense {
     description: r.description,
     paymentMethod: r.payment_method as Expense['paymentMethod'],
     transferReference: r.transfer_reference,
+    categoryId: r.category_id,
+    categoryName: r.category_name,
+    expenseDate: r.expense_date,
     createdAt: r.created_at,
     createdByName: r.created_by_name,
   };
@@ -41,6 +44,7 @@ export class ExpensesService {
     const params: Record<string, string> = {};
     if (filters?.dateFrom) params['date_from'] = filters.dateFrom;
     if (filters?.dateTo) params['date_to'] = filters.dateTo;
+    if (filters?.categoryId) params['category_id'] = filters.categoryId;
     params['page'] = String(filters?.page ?? 1);
     params['limit'] = String(filters?.limit ?? 20);
     return this.api
@@ -70,6 +74,12 @@ export class ExpensesService {
     };
     if (payload.transferReference) {
       body['transfer_reference'] = payload.transferReference;
+    }
+    if (payload.categoryId) {
+      body['category_id'] = payload.categoryId;
+    }
+    if (payload.expenseDate) {
+      body['expense_date'] = payload.expenseDate;
     }
     return this.api.post<ExpenseRaw>('expenses', body).pipe(map(toExpense));
   }

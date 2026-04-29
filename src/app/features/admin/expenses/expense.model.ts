@@ -4,6 +4,9 @@ export interface Expense {
   description: string;
   paymentMethod: 'CASH' | 'TRANSFER';
   transferReference: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
+  expenseDate: string;
   createdAt: string;
   createdByName: string;
 }
@@ -11,6 +14,7 @@ export interface Expense {
 export interface ExpenseListFilters {
   dateFrom?: string;
   dateTo?: string;
+  categoryId?: string;
   page?: number;
   limit?: number;
 }
@@ -20,6 +24,8 @@ export interface ExpenseCreatePayload {
   description: string;
   paymentMethod: 'CASH' | 'TRANSFER';
   transferReference?: string;
+  categoryId?: string;
+  expenseDate?: string;
 }
 
 export interface ExpensePagedResponse {
@@ -33,6 +39,9 @@ export interface ExpenseRaw {
   description: string;
   payment_method: string;
   transfer_reference: string | null;
+  category_id: string | null;
+  category_name: string | null;
+  expense_date: string;
   created_at: string;
   created_by_name: string;
 }

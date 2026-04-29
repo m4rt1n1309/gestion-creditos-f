@@ -3,12 +3,84 @@
 <div class="p-6 space-y-6">
   <div class="flex items-center justify-between">
     <h1 class="text-2xl font-bold text-gray-800">Gastos</h1>
-    <p-button
-      label="Registrar gasto"
-      icon="pi pi-plus"
-      (onClick)="openCreate()"
-    />
+    <div class="flex gap-2">
+      <p-button
+        [label]="showCatsPanel ? 'Ocultar categorías' : 'Gestionar categorías'"
+        icon="pi pi-list"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="toggleCatsPanel()"
+      />
+      <p-button
+        label="Registrar gasto"
+        icon="pi pi-plus"
+        (onClick)="openCreate()"
+      />
+    </div>
   </div>
+
+  @if (showCatsPanel) {
+    <div
+      class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3"
+    >
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-gray-700">
+          Categorías de gastos
+        </h2>
+        <p-button
+          label="Nueva categoría"
+          icon="pi pi-plus"
+          size="small"
+          (onClick)="openCatCreate()"
+        />
+      </div>
+      @if (loadingCats) {
+        <div class="space-y-2">
+          @for (_ of [1, 2]; track $index) {
+            <p-skeleton height="2rem" />
+          }
+        </div>
+      } @else if (catRows.length === 0) {
+        <p class="text-sm text-gray-400 text-center py-4">
+          Sin categorías registradas.
+        </p>
+      } @else {
+        <p-table
+          [value]="catRows"
+          styleClass="p-datatable-sm"
+          responsiveLayout="scroll"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Nombre</th>
+              <th class="text-center">Estado</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-cat>
+            <tr>
+              <td class="font-medium">{{ cat.name }}</td>
+              <td class="text-center">
+                <p-tag
+                  [value]="cat.active ? 'Activa' : 'Inactiva'"
+                  [severity]="cat.active ? 'success' : 'secondary'"
+                />
+              </td>
+              <td class="text-center">
+                <p-button
+                  [label]="cat.active ? 'Desactivar' : 'Activar'"
+                  [severity]="cat.active ? 'danger' : 'secondary'"
+                  [outlined]="true"
+                  size="small"
+                  (onClick)="toggleCat(cat)"
+                />
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+    </div>
+  }
 
   <div class="flex flex-wrap gap-3 items-end">
     <div class="flex flex-col gap-1">
@@ -27,6 +99,19 @@
         class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
     </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-xs text-gray-400 uppercase tracking-wide"
+        >Categoría</label
+      >
+      <p-dropdown
+        [options]="filterCategoryOptions"
+        [(ngModel)]="filterCategoryId"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="text-sm"
+        placeholder="Todas"
+      />
+    </div>
     <p-button
       label="Filtrar"
       icon="pi pi-search"
@@ -34,7 +119,7 @@
       [outlined]="true"
       (onClick)="applyFilters()"
     />
-    @if (filterDateFrom || filterDateTo) {
+    @if (filterDateFrom || filterDateTo || filterCategoryId) {
       <p-button
         label="Limpiar"
         icon="pi pi-times"
@@ -69,8 +154,9 @@
       >
         <ng-template pTemplate="header">
           <tr>
-            <th>Fecha</th>
+            <th>Fecha gasto</th>
             <th>Descripción</th>
+            <th>Categoría</th>
             <th>Método</th>
             <th>Referencia</th>
             <th class="text-right">Monto</th>
@@ -80,8 +166,11 @@
         </ng-template>
         <ng-template pTemplate="body" let-e>
           <tr>
-            <td class="whitespace-nowrap">{{ formatDate(e.createdAt) }}</td>
+            <td class="whitespace-nowrap">
+              {{ formatDate(e.expenseDate || e.createdAt) }}
+            </td>
             <td>{{ e.description }}</td>
+            <td class="text-sm text-gray-500">{{ e.categoryName ?? "—" }}</td>
             <td>
               <p-tag
                 [value]="
@@ -128,11 +217,19 @@
 <p-dialog
   [(visible)]="showCreateDialog"
   [modal]="true"
-  [style]="{ width: '440px' }"
+  [style]="{ width: '460px' }"
   header="Registrar gasto"
   [closable]="!saving"
 >
   <div class="space-y-4 py-1">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Fecha del gasto *</label>
+      <input
+        type="date"
+        [(ngModel)]="createExpenseDate"
+        class="border border-gray-300 rounded-lg px-3 h-11 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium text-gray-700">Monto *</label>
       <p-inputNumber
@@ -153,6 +250,17 @@
         maxlength="255"
         class="w-full h-11"
         placeholder="Motivo del gasto..."
+      />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Categoría</label>
+      <p-dropdown
+        [options]="createCategoryOptions"
+        [(ngModel)]="createCategoryId"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full"
+        placeholder="Sin categoría"
       />
     </div>
     <div class="flex flex-col gap-1">
@@ -241,6 +349,48 @@
       icon="pi pi-trash"
       (onClick)="doDelete()"
       [loading]="deleting"
+    />
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  [(visible)]="showCatDialog"
+  [modal]="true"
+  [style]="{ width: '380px' }"
+  header="Nueva categoría de gastos"
+  [closable]="!savingCat"
+>
+  <div class="space-y-4 py-1">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Nombre *</label>
+      <input
+        pInputText
+        [(ngModel)]="newCatName"
+        maxlength="100"
+        class="w-full h-11"
+        placeholder="Nombre de la categoría..."
+      />
+    </div>
+    @if (catDialogError) {
+      <p class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+        {{ catDialogError }}
+      </p>
+    }
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      severity="secondary"
+      [text]="true"
+      (onClick)="showCatDialog = false"
+      [disabled]="savingCat"
+    />
+    <p-button
+      label="Crear"
+      icon="pi pi-check"
+      (onClick)="submitCatCreate()"
+      [loading]="savingCat"
+      [disabled]="!newCatName.trim()"
     />
   </ng-template>
 </p-dialog>
