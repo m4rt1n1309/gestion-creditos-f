@@ -42,6 +42,7 @@ function toClient(c: Customer): Client {
   ).toUpperCase();
   const colorIdx = c.fullName.charCodeAt(0) % AVATAR_COLORS.length;
   return {
+    id: c.id,
     dni: c.dni,
     initials,
     avatarColor: AVATAR_COLORS[colorIdx],
@@ -91,6 +92,7 @@ export class ClientsComponent implements OnInit {
   showViewModal: boolean = false;
   submitted: boolean = false;
   selectedClient: Client | null = null;
+  editError: string = '';
 
   form: FormGroup;
   editForm: FormGroup;
@@ -117,7 +119,7 @@ export class ClientsComponent implements OnInit {
   /**
    * Carga la lista de clientes activos desde el servicio de clientes, transformando los datos recibidos al formato utilizado en la interfaz y manejando el estado de carga para mostrar indicadores visuales mientras se obtienen los datos.
    */
-  private loadClients(): void {
+  loadClients(): void {
     this.loading = true;
     this.customersService.list({ status: 'ACTIVE' }).subscribe({
       next: (customers) => {
@@ -212,12 +214,12 @@ export class ClientsComponent implements OnInit {
   }
 
   /**
-   *  Navega a la vista de detalle del cliente seleccionado utilizando su DNI como identificador en la URL.
+   * Navega a la vista de detalle del cliente seleccionado utilizando su ID como identificador en la URL.
    * @param client
    */
   openView(client: Client): void {
     const base = this.router.url.split(`/${AppRoutes.CLIENTS}`)[0];
-    this.router.navigate([base, AppRoutes.CLIENTS, client.dni]);
+    this.router.navigate([base, AppRoutes.CLIENTS, client.id]);
   }
 
   /**
@@ -231,37 +233,42 @@ export class ClientsComponent implements OnInit {
   }
 
   /**
-   *  Navega a la vista de créditos del cliente seleccionado utilizando su DNI como identificador en la URL.
+   * Navega a la vista de créditos del cliente seleccionado utilizando su ID como identificador en la URL.
    * @param client
    */
   openCredits(client: Client): void {
     const base = this.router.url.split(`/${AppRoutes.CLIENTS}`)[0];
-    this.router.navigate([base, AppRoutes.CLIENTS, client.dni]);
+    this.router.navigate([base, AppRoutes.CLIENTS, client.id]);
   }
 
   /**
-   *  Guarda los cambios realizados en el formulario de edición del cliente seleccionado.
-   * @param client
-   * @returns
+   * Guarda los cambios del formulario de edición llamando a la API.
+   * En caso de éxito cierra el modal y recarga la lista. En caso de error
+   * muestra un mensaje sin cerrar el modal.
    */
   saveEdit(): void {
     if (this.editForm.invalid || !this.selectedClient) return;
-    const { nombre, apellido, phone, risk, estado } = this.editForm.value;
-    const idx = this.clients.findIndex(
-      (c) => c.dni === this.selectedClient!.dni,
-    );
-    if (idx !== -1) {
-      this.clients[idx] = {
-        ...this.clients[idx],
-        name: `${nombre} ${apellido}`,
-        phone,
-        risk,
-        initials: `${nombre[0]}${apellido[0]}`.toUpperCase(),
-      };
-      this.clients = [...this.clients];
-    }
-    this.showEditModal = false;
-    this.selectedClient = null;
+    this.editError = '';
+    const { nombre, apellido, phone } = this.editForm.value;
+    const id = this.selectedClient.id;
+    const payload = {
+      fullName: `${nombre} ${apellido}`.trim(),
+      phone: phone as string,
+    };
+    this.customersService.update(id, payload).subscribe({
+      next: () => {
+        this.showEditModal = false;
+        this.selectedClient = null;
+        this.loadClients();
+      },
+      error: (err: { status?: number }) => {
+        if (err?.status === 403) {
+          this.editError = 'No tenés permisos para editar clientes';
+        } else {
+          this.editError = 'Ocurrió un error al guardar los cambios. Intentá de nuevo.';
+        }
+      },
+    });
   }
 
   /**

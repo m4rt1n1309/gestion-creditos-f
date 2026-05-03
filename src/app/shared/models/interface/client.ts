@@ -43,6 +43,7 @@ export interface HistorialEvent {
 }
 
 export interface Client {
+  id: string;
   dni: string;
   initials: string;
   avatarColor: string;
@@ -83,6 +84,7 @@ export interface DocumentGroup {
 }
 
 export interface ClientDetail {
+  id: string;
   dni: string;
   initials: string;
   avatarColor: string;

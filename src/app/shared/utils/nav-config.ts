@@ -49,6 +49,7 @@ export const NAV_CONFIG: NavItem[] = [
     route: `/${AppRoutes.ADMIN}/${AppRoutes.USERS}`,
     requiredRoles: ['ADMIN'],
   },
+  // TODO: implementar la cantidad de "aprobaciones" (falta que devuelve el backend en el me, la cantidad de aprobaciones)
   {
     label: 'Aprobaciones',
     icon: 'pi pi-check-square',

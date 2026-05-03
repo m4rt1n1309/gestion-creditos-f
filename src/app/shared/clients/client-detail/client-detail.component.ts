@@ -41,6 +41,7 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
 
   private mockClients: ClientDetail[] = [
     {
+      id: 'mock-client-1',
       dni: '27.123.456',
       initials: 'JP',
       avatarColor: '#3B82F6',
@@ -244,6 +245,7 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
       ],
     },
     {
+      id: 'mock-client-2',
       dni: '28.654.321',
       initials: 'ML',
       avatarColor: '#10B981',
@@ -284,6 +286,7 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
       contactHistory: [],
     },
     {
+      id: 'mock-client-3',
       dni: '29.321.654',
       initials: 'CR',
       avatarColor: '#EF4444',
@@ -335,8 +338,8 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    const dni = this.route.snapshot.paramMap.get('dni');
-    this.client = this.mockClients.find((c) => c.dni === dni) ?? null;
+    const id = this.route.snapshot.paramMap.get('id');
+    this.client = this.mockClients.find((c) => c.id === id) ?? null;
 
     this.base = this.router.url.split('/clients')[0];
     this.headerService.breadcrumbs.set([

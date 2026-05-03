@@ -5,7 +5,7 @@ export enum AppRoutes {
   CASH_REGISTER = 'cash-register',
   CHANGE_PASSWORD = 'change-password',
   CLIENTS = 'clients',
-  CLIENTS_DETAIL = 'clients/:dni',
+  CLIENTS_DETAIL = 'clients/:id',
   CLIENTS_NEW = 'clients/new',
   COLLECTOR = 'collector',
   CONFIG = 'config',
