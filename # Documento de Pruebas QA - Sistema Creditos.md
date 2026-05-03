@@ -15,7 +15,7 @@
 | **CR-07** | Operación Crédito - Operaciones | Click en "Activo" para filtrar las operaciones. | Debería filtrar las operaciones. | Error
 | **CR-08** | Operación Crédito - Operaciones | Escribí "Perez" en el buscador. | Debería filtrar los clientes. | Error
 
-## 🟢 
+## 🟢 2. Módulo: Cliente
 
 | ID | Caso de Uso / Prueba | Acción Realizada | Resultado Esperado (Éxito) | Estado |
 | :--- | :--- | :--- | :--- | :--- |
@@ -25,11 +25,16 @@
 
 
 
-## 🟢 
+## 🟢 3. Módulo: Producto
 
 | ID | Caso de Uso / Prueba | Acción Realizada | Resultado Esperado (Éxito) | Estado |
 | :--- | :--- | :--- | :--- | :--- |
-
+| **PR-01** | Crear Producto | Se realizó la creación de un producto. | Los campos deberían ser obligatorios. | Error 
+| **PR-02** | Editar Producto | No existe el botón editar producto. | No está editar producto. | Error
+| **PR-03** | Categoría Producto | Los campos de categoría están vacíos. | No está la categoría de los productos. | Error
+| **PR-04** | Crear Producto | Se hizo click en "Crear Producto". | Los productos deberían mostrarse luego de confirmar la creación. | Error
+| **PR-05** | Crear Producto | Se hizo click en confirmar al "Crear Producto". | Debería salir un cartel que el producto fué creado exitosamente. | Error
+| **PR-06** | Crear Producto | Se hizo click en "Crear Producto". | Debería estar deshabilitado el boton "Guardar producto. | Error
 
 ## 🟢 
 

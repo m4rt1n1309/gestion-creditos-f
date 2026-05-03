@@ -154,3 +154,109 @@ Módulo Clientes
 * **Acción Realizada:** [Se hizo click sobre el boton "Editar" en un cliente.]
 * **Resultado Esperado:** [Al modificar los datos deben guardarse en la DB.]
 * **Resultado Obtenido (Error):** [Al hacer click en "Guardar Cambios" y refrescar la página los cambios no se mantienen.]
+
+---
+
+Módulo Producto
+
+**Módulo:** [Producto]
+**ID de Prueba:** [PR-01]
+**Título / Descripción:** [Crear Producto]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Se realizó la creación de un nuevo producto.]
+* **Resultado Esperado:** [Los campos deberían ser obligatorios.]
+* **Resultado Obtenido (Error):** [Te deja cargar el producto por mas que no cargues ningun valor en los campos.]
+
+---
+
+**Módulo:** [Producto]
+**ID de Prueba:** [PR-02]
+**Título / Descripción:** [Editar Producto]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Quisiera editar el producto para agregar mas unidades por ejemplo.]
+* **Resultado Esperado:** [No se encuentra el botón para editar el producto.]
+* **Resultado Obtenido (Error):** [No existe el botón editar producto.]
+
+---
+
+**Módulo:** [Producto]
+**ID de Prueba:** [PR-03]
+**Título / Descripción:** [Categoría Producto]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Quiero ver la categoría del producto.]
+* **Resultado Esperado:** [Los productos no poseen la categoría.]
+* **Resultado Obtenido (Error):** [La columna de categoría esta vacía.]
+
+---
+
+**Módulo:** [Producto]
+**ID de Prueba:** [PR-04]
+**Título / Descripción:** [Crear Producto]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Se realizó la operación de "Crear Producto".]
+* **Resultado Esperado:** [Los productos deberían mostrarse luego de confirmar la creación.]
+* **Resultado Obtenido (Error):** [Algunos campos salen vacíos a pesar de haberlos cargados, por ejemplo: stock, precio.]
+
+### 2. Evidencia Técnica
+**Payload Enviado (Request):**
+http://localhost:3000/api/products - POST
+```json 
+{
+    data: 
+{id: "de490051-aaa2-4cad-80ae-d1292011e93f", title: "PRD0002 Samsung Galaxy A54",…}
+available_count:0
+brand_id:null
+category_id:null
+created_at:"2026-05-03T01:52:36.084Z"
+description:"Galaxy A54 5G 256 GB Awesome graphite 8 GB RAM"
+id:"de490051-aaa2-4cad-80ae-d1292011e93f"
+model:null
+reserved_count:0
+sold_count:0
+status:"ACTIVE"
+title:"PRD0002 Samsung Galaxy A54"
+variants:[]
+}
+```
+
+**Respuesta del servidor:**
+```json
+{
+    "ok": true,
+    "message": "Producto registrado correctamente.",
+    "data": {
+        "id": "de490051-aaa2-4cad-80ae-d1292011e93f",
+        "title": "PRD0002 Samsung Galaxy A54",
+        "description": "Galaxy A54 5G 256 GB Awesome graphite 8 GB RAM",
+        "model": null,
+        "brand_id": null,
+        "category_id": null,
+        "status": "ACTIVE",
+        "created_at": "2026-05-03T01:52:36.084Z",
+        "available_count": 0,
+        "reserved_count": 0,
+        "sold_count": 0,
+        "variants": []
+    }
+}
+```
+
+---
+
+**Módulo:** [Producto]
+**ID de Prueba:** [PR-05]
+**Título / Descripción:** [Crear Producto]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Se hizo click en confirmar la operación de "Crear Producto".]
+* **Resultado Esperado:** [Debería salir un cartel que el producto fué creado exitosamente.]
+* **Resultado Obtenido (Error):** [No aparece ningún cartel que el producto fué creado exitosamente.]
+
+---
+
+**Módulo:** [Producto]
+**ID de Prueba:** [PR-06]
+**Título / Descripción:** [Crear Producto]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Se hizo click en "Crear Producto".]
+* **Resultado Esperado:** [Debería estar deshabilitado el botón de "Guardar Producto" hasta llenar los campos.]
+* **Resultado Obtenido (Error):** [El botón de "Guardar Cambios" esta habilitado aunque no se hayan completado los cambios.]
