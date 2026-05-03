@@ -34,7 +34,7 @@ function toUnit(raw: ProductUnitRaw): ProductUnit {
 export class ProductUnitsService {
   private readonly api = inject(ApiHttpService);
 
-    // TODO -> agregar documentacion de las funciones
+    // TODO: agregar documentacion de las funciones
 
   getAll(filters?: ProductUnitFilters): Observable<ProductUnit[]> {
     const params: Record<string, string> = {};

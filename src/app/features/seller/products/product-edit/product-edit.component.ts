@@ -88,7 +88,7 @@ export class ProductEditComponent implements OnInit {
     this.load();
   }
 
-    // TODO -> agregar documentacion de las funciones
+    // TODO: agregar documentacion de las funciones
 
   isInvalid(field: string): boolean {
     const camp = this.form?.get(field);
@@ -173,8 +173,8 @@ export class ProductEditComponent implements OnInit {
               Validators.maxLength(150),
             ],
           ],
-          description: [data.description ?? '', [Validators.maxLength(1000)]],
-          model: [data.model ?? '', [Validators.maxLength(150)]],
+          description: [data.description ?? '', [Validators.maxLength(500)]],
+          model: [data.model ?? '', [Validators.maxLength(100)]],
           brandId: [data.brandId ?? null],
           categoryId: [data.categoryId ?? null],
         });

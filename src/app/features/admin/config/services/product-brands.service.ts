@@ -10,7 +10,7 @@ function toBrand(r: ProductBrandRaw): ProductBrand {
 
 @Injectable({ providedIn: 'root' })
 export class ProductBrandsService {
-  // TODO -> agregar documentacion de las funciones
+  // TODO: agregar documentacion de las funciones
 
   private readonly api = inject(ApiHttpService);
 

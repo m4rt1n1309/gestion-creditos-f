@@ -45,7 +45,7 @@ function toVariantDetail(raw: ProductVariantDetailRaw): ProductVariantDetail {
 export class ProductVariantsService {
   private readonly api = inject(ApiHttpService);
 
-    // TODO -> agregar documentacion de las funciones
+    // TODO: agregar documentacion de las funciones
 
   getAll(filters?: ProductVariantFilters): Observable<ProductVariant[]> {
     const params: Record<string, string> = {};

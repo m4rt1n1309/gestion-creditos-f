@@ -88,7 +88,7 @@ export class ProductUnitsComponent implements OnInit {
   singleForm!: FormGroup;
   bulkForm!: FormGroup;
 
-    // TODO -> agregar documentacion de las funciones
+    // TODO: agregar documentacion de las funciones
 
   get isAdmin(): boolean {
     return this.auth.hasRole(UserRoleEnum.ADMIN);

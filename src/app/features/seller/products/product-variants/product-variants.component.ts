@@ -89,7 +89,7 @@ export class ProductVariantsComponent implements OnInit {
     this.loadVariants();
   }
 
-    // TODO -> agregar documentacion de las funciones
+    // TODO: agregar documentacion de las funciones
 
   goBack(): void {
     this.location.back();

@@ -14,7 +14,7 @@ function toCategory(r: ProductCategoryRaw): ProductCategory {
 export class ProductCategoriesService {
   private readonly api = inject(ApiHttpService);
 
-  // TODO -> agregar documentacion de las funciones
+  // TODO: agregar documentacion de las funciones
 
   getAll(): Observable<ProductCategory[]> {
     return this.api

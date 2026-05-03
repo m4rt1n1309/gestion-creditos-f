@@ -65,6 +65,7 @@ export class ProductsComponent implements OnInit {
   products: Product[] = [];
   loading = false;
 
+  // TODO: reemplazar hardcodeo por categorias propias del backend
   categoryOptions = [
     { label: 'Electrónica', value: 'Electrónica' },
     { label: 'Electrodomésticos', value: 'Electrodomésticos' },
@@ -94,7 +95,7 @@ export class ProductsComponent implements OnInit {
     this.loadProducts();
   }
 
-    // TODO -> agregar documentacion de las funciones
+    // TODO: agregar documentacion de las funciones
 
   private loadProducts(): void {
     this.loading = true;

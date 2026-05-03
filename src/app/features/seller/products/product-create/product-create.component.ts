@@ -64,8 +64,8 @@ export class ProductCreateComponent implements OnInit {
           Validators.maxLength(150),
         ],
       ],
-      description: ['', [Validators.maxLength(1000)]],
-      model: ['', [Validators.maxLength(150)]],
+      description: ['', [Validators.maxLength(500)]],
+      model: ['', [Validators.maxLength(100)]],
       brandId: [null],
       categoryId: [null],
     });

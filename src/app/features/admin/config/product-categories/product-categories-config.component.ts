@@ -52,7 +52,7 @@ export class ProductCategoriesConfigComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // TODO -> agregar documentacion de las funciones
+  // TODO: agregar documentacion de las funciones
 
   load(): void {
     this.loading = true;

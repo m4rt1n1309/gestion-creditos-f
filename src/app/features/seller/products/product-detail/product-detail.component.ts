@@ -65,7 +65,7 @@ export class ProductDetailComponent implements OnInit {
     this.load();
   }
 
-  // TODO -> agregar documentacion de las funciones
+  // TODO: agregar documentacion de las funciones
 
   goBack(): void {
     this.location.back();

@@ -74,7 +74,7 @@ function fromUpdatePayload(p: ProductUpdatePayload): Record<string, unknown> {
 export class ProductsService {
   private readonly api = inject(ApiHttpService);
 
-    // TODO -> agregar documentacion de las funciones
+    // TODO: agregar documentacion de las funciones
 
   list(filters?: ProductListFilters): Observable<Product[]> {
     const params: Record<string, string> = {};
