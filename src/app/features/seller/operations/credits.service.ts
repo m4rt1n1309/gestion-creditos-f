@@ -110,6 +110,7 @@ function toCreditUnit(raw: CreditUnitRaw): CreditUnit {
  * @returns
  */
 function toCreditDetail(raw: CreditDetailRaw): CreditDetail {
+  const downPayment = raw.down_payment ?? 0;
   return {
     ...toCredit(raw),
     rejectionReason: raw.rejection_reason,
@@ -119,13 +120,10 @@ function toCreditDetail(raw: CreditDetailRaw): CreditDetail {
     products: raw.products?.map(toProduct),
     units: raw.units?.map(toCreditUnit),
     installments: raw.installments.map(toInstallment),
-    downPayment: raw.down_payment ?? 0,
+    downPayment,
+    financedAmount: raw.financed_amount ?? Math.max(raw.total_amount - downPayment, 0),
     downPaymentMethod: raw.down_payment_method,
     downPaymentTransferReference: raw.down_payment_transfer_reference,
-    prepaidInstallments: raw.prepaid_installments ?? 0,
-    prepaidInstallmentsMethod: raw.prepaid_installments_method,
-    prepaidInstallmentsTransferReference:
-      raw.prepaid_installments_transfer_reference,
     settledAt: raw.settled_at,
     settlementAmount: raw.settlement_amount,
     settlementType: raw.settlement_type,
@@ -178,6 +176,8 @@ function toSimulateResult(raw: Record<string, unknown>): SimulateResult {
   }
   if (raw['financed_amount'] !== undefined) {
     result.financedAmount = raw['financed_amount'] as number;
+  } else if (result.downPayment !== undefined) {
+    result.financedAmount = Math.max(result.totalAmount - result.downPayment, 0);
   }
   return result;
 }
@@ -196,7 +196,7 @@ function toCreateBody(p: CreditCreatePayload): Record<string, unknown> {
   };
   if (p.notes) body['notes'] = p.notes;
   if (p.type === 'SALE') {
-    body['units'] = p.units.map((u) => ({ unit_id: u.unitId }));
+    body['unit_ids'] = p.units.map((u) => u.unitId);
     if (p.downPayment !== undefined && p.downPayment > 0) {
       body['down_payment'] = p.downPayment;
       if (p.downPaymentMethod)
@@ -204,14 +204,6 @@ function toCreateBody(p: CreditCreatePayload): Record<string, unknown> {
       if (p.downPaymentTransferReference)
         body['down_payment_transfer_reference'] =
           p.downPaymentTransferReference;
-    }
-    if (p.prepaidInstallments !== undefined && p.prepaidInstallments > 0) {
-      body['prepaid_installments'] = p.prepaidInstallments;
-      if (p.prepaidInstallmentsMethod)
-        body['prepaid_installments_method'] = p.prepaidInstallmentsMethod;
-      if (p.prepaidInstallmentsTransferReference)
-        body['prepaid_installments_transfer_reference'] =
-          p.prepaidInstallmentsTransferReference;
     }
   } else {
     body['total_amount'] = p.totalAmount;

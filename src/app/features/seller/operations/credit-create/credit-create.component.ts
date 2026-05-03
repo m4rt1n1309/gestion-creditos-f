@@ -140,28 +140,33 @@ export class CreditCreateComponent implements OnInit {
     return this.form.get('downPayment')?.value ?? 0;
   }
 
-  get prepaidInstallmentsValue(): number {
-    return this.form.get('prepaidInstallments')?.value ?? 0;
-  }
-
   get downPaymentMethod(): string {
     return this.form.get('downPaymentMethod')?.value ?? 'CASH';
-  }
-
-  get prepaidInstallmentsMethod(): string {
-    return this.form.get('prepaidInstallmentsMethod')?.value ?? 'CASH';
   }
 
   get cartTotal(): number {
     return this.cart.reduce((sum, u) => sum + u.price, 0);
   }
 
+  get financedAmountPreview(): number {
+    return Math.max(this.cartTotal - this.downPaymentValue, 0);
+  }
+
+  /**
+   * Inicializa el formulario y carga los catálogos necesarios para crear créditos.
+   */
   ngOnInit(): void {
     this.header.set([
       { label: 'Operaciones', route: '/seller/operations' },
       { label: 'Nueva operación' },
     ]);
     this.buildForm();
+    this.form.get('downPayment')?.valueChanges.subscribe(() => {
+      this.clearSimulationState();
+      if (this.unitsError === 'El enganche no puede ser mayor al total de la venta.') {
+        this.unitsError = null;
+      }
+    });
     this.loadCustomers();
     this.productsService.list({ status: 'ACTIVE' }).subscribe({
       next: (data) => (this.selectorProducts = data),
@@ -178,6 +183,11 @@ export class CreditCreateComponent implements OnInit {
     this.submitError = null;
     this.unitsError = null;
     this.showExtraSection = false;
+    this.form.patchValue({
+      downPayment: 0,
+      downPaymentMethod: 'CASH',
+      downPaymentTransferReference: '',
+    });
   }
 
   /**
@@ -253,6 +263,7 @@ export class CreditCreateComponent implements OnInit {
     });
     this.selectedUnitId = '';
     this.unitsError = null;
+    this.clearSimulationState();
   }
 
   /**
@@ -261,6 +272,7 @@ export class CreditCreateComponent implements OnInit {
    */
   removeFromCart(index: number): void {
     this.cart.splice(index, 1);
+    this.clearSimulationState();
   }
 
   /**
@@ -271,9 +283,17 @@ export class CreditCreateComponent implements OnInit {
     const v = this.form.getRawValue();
     if (!v.installmentsCount || !v.paymentFrequency) return;
 
+    const saleValidationError = this.getSaleValidationError();
+    if (saleValidationError) {
+      this.unitsError = saleValidationError;
+      this.simulateResult = null;
+      return;
+    }
+
     this.simulating = true;
     this.simulateResult = null;
     this.simulateError = null;
+    this.unitsError = null;
 
     const payload =
       v.type === 'SALE'
@@ -317,6 +337,12 @@ export class CreditCreateComponent implements OnInit {
       return;
     }
 
+    const saleValidationError = this.getSaleValidationError();
+    if (saleValidationError) {
+      this.unitsError = saleValidationError;
+      return;
+    }
+
     const v = this.form.getRawValue();
     let payload: CreditCreatePayload;
 
@@ -338,18 +364,6 @@ export class CreditCreateComponent implements OnInit {
         ) {
           (salePayload as any).downPaymentTransferReference =
             v.downPaymentTransferReference;
-        }
-      }
-      if (v.prepaidInstallments > 0) {
-        (salePayload as any).prepaidInstallments = v.prepaidInstallments;
-        (salePayload as any).prepaidInstallmentsMethod =
-          v.prepaidInstallmentsMethod;
-        if (
-          v.prepaidInstallmentsMethod === 'TRANSFER' &&
-          v.prepaidInstallmentsTransferReference
-        ) {
-          (salePayload as any).prepaidInstallmentsTransferReference =
-            v.prepaidInstallmentsTransferReference;
         }
       }
       payload = salePayload;
@@ -426,10 +440,30 @@ export class CreditCreateComponent implements OnInit {
       downPayment: [0, [Validators.min(0)]],
       downPaymentMethod: ['CASH'],
       downPaymentTransferReference: ['', Validators.maxLength(100)],
-      prepaidInstallments: [0, [Validators.min(0)]],
-      prepaidInstallmentsMethod: ['CASH'],
-      prepaidInstallmentsTransferReference: ['', Validators.maxLength(100)],
     });
+  }
+
+  /**
+   * Limpia la simulación actual cuando cambian las condiciones de una venta.
+   */
+  private clearSimulationState(): void {
+    this.simulateResult = null;
+    this.simulateError = null;
+  }
+
+  /**
+   * Valida las reglas mínimas de una venta antes de simular o crear el crédito.
+   * @returns {string | null} Mensaje de error si la venta es inválida.
+   */
+  private getSaleValidationError(): string | null {
+    if (!this.isSale) return null;
+    if (this.cart.length === 0) {
+      return 'Agregá al menos una unidad al carrito.';
+    }
+    if (this.downPaymentValue > this.cartTotal) {
+      return 'El enganche no puede ser mayor al total de la venta.';
+    }
+    return null;
   }
 
   /**

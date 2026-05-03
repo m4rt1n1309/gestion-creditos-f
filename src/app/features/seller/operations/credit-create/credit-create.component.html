@@ -20,6 +20,8 @@
           <p-radioButton
             formControlName="type"
             value="SALE"
+            inputId="credit-type-sale"
+            data-cy="credit-type-sale"
             (onClick)="onTypeChange()"
           />
           <span>Venta</span>
@@ -28,6 +30,8 @@
           <p-radioButton
             formControlName="type"
             value="LOAN"
+            inputId="credit-type-loan"
+            data-cy="credit-type-loan"
             (onClick)="onTypeChange()"
           />
           <span>Préstamo</span>
@@ -40,18 +44,20 @@
 
       <div class="mb-4">
         <label class="block text-sm font-medium mb-1">Cliente *</label>
-        <p-dropdown
-          formControlName="customerId"
+          <p-dropdown
+            formControlName="customerId"
           [options]="customerOptions"
           optionLabel="label"
           optionValue="value"
           placeholder="Seleccionar cliente activo"
           [filter]="true"
           filterBy="label"
-          [showClear]="true"
-          styleClass="w-full"
-          [class.ng-invalid]="isInvalid('customerId')"
-        />
+            [showClear]="true"
+            styleClass="w-full"
+            inputId="credit-customer"
+            data-cy="credit-customer"
+            [class.ng-invalid]="isInvalid('customerId')"
+          />
         @if (isInvalid("customerId")) {
           <small class="text-red-500">Cliente requerido.</small>
         }
@@ -69,6 +75,8 @@
             optionValue="value"
             placeholder="Seleccionar"
             styleClass="w-full"
+            inputId="credit-frequency"
+            data-cy="credit-frequency"
             [class.ng-invalid]="isInvalid('paymentFrequency')"
           />
           @if (isInvalid("paymentFrequency")) {
@@ -85,6 +93,8 @@
             [max]="120"
             [useGrouping]="false"
             styleClass="w-full"
+            inputId="credit-installments-count"
+            data-cy="credit-installments-count"
           />
           @if (isInvalid("installmentsCount")) {
             <small class="text-red-500">Entre 1 y 120 cuotas.</small>
@@ -147,6 +157,8 @@
             filterBy="label"
             [showClear]="true"
             styleClass="w-full"
+            inputId="sale-product-selector"
+            data-cy="sale-product-selector"
             (onChange)="onProductSelected()"
           />
         </div>
@@ -163,6 +175,8 @@
               placeholder="Seleccionar variante"
               [showClear]="true"
               styleClass="w-full"
+              inputId="sale-variant-selector"
+              data-cy="sale-variant-selector"
               [disabled]="loadingVariants"
               (onChange)="onVariantSelected()"
             />
@@ -186,6 +200,8 @@
                 filterBy="label"
                 [showClear]="true"
                 styleClass="w-full"
+                inputId="sale-unit-selector"
+                data-cy="sale-unit-selector"
                 [disabled]="loadingUnits"
               />
             </div>
@@ -193,6 +209,7 @@
               label="Agregar"
               icon="pi pi-plus"
               type="button"
+              data-cy="sale-add-unit"
               [disabled]="!selectedUnitId"
               (onClick)="addToCart()"
             />
@@ -214,6 +231,7 @@
 
         @if (cart.length > 0) {
           <div class="mt-4 border rounded overflow-hidden">
+            <div class="sr-only" data-cy="sale-cart-count">{{ cart.length }}</div>
             <table class="w-full text-sm">
               <thead class="bg-gray-50">
                 <tr>
@@ -255,11 +273,31 @@
                   <td colspan="3" class="px-3 py-2 text-sm text-gray-500">
                     Subtotal
                   </td>
-                  <td class="px-3 py-2 text-right font-semibold">
+                  <td class="px-3 py-2 text-right font-semibold" data-cy="sale-cart-total">
                     {{ cartTotal | currencyArs: 2 }}
                   </td>
                   <td></td>
                 </tr>
+                @if (downPaymentValue > 0) {
+                  <tr>
+                    <td colspan="3" class="px-3 py-2 text-sm text-gray-500">
+                      Enganche
+                    </td>
+                    <td class="px-3 py-2 text-right font-semibold" data-cy="sale-down-payment-preview">
+                      {{ downPaymentValue | currencyArs: 2 }}
+                    </td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td colspan="3" class="px-3 py-2 text-sm text-gray-500">
+                      Monto financiado
+                    </td>
+                    <td class="px-3 py-2 text-right font-semibold" data-cy="sale-financed-amount-preview">
+                      {{ financedAmountPreview | currencyArs: 2 }}
+                    </td>
+                    <td></td>
+                  </tr>
+                }
               </tfoot>
             </table>
           </div>
@@ -282,11 +320,12 @@
         <button
           type="button"
           class="w-full flex items-center justify-between text-sm font-medium text-gray-700"
+          data-cy="sale-toggle-down-payment"
           (click)="showExtraSection = !showExtraSection"
         >
           <span class="flex items-center gap-2">
             <i class="pi pi-wallet text-gray-400"></i>
-            ¿Incluir enganche o adelanto de cuotas?
+            ¿Incluir enganche?
           </span>
           <i
             [class]="
@@ -308,6 +347,8 @@
                 currency="ARS"
                 locale="es-AR"
                 styleClass="w-full"
+                inputId="sale-down-payment"
+                data-cy="sale-down-payment"
               />
             </div>
 
@@ -323,6 +364,8 @@
                     optionLabel="label"
                     optionValue="value"
                     styleClass="w-full"
+                    inputId="sale-down-payment-method"
+                    data-cy="sale-down-payment-method"
                   />
                 </div>
                 @if (downPaymentMethod === "TRANSFER") {
@@ -335,50 +378,7 @@
                       formControlName="downPaymentTransferReference"
                       maxlength="100"
                       class="w-full h-11"
-                      placeholder="Nro. operación..."
-                    />
-                  </div>
-                }
-              </div>
-            }
-
-            <div>
-              <label class="block text-sm font-medium mb-1"
-                >Cuotas adelantadas</label
-              >
-              <p-inputNumber
-                formControlName="prepaidInstallments"
-                [min]="0"
-                [useGrouping]="false"
-                styleClass="w-full"
-                placeholder="0"
-              />
-            </div>
-
-            @if (prepaidInstallmentsValue > 0) {
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-sm font-medium mb-1"
-                    >Método de pago del adelanto *</label
-                  >
-                  <p-dropdown
-                    formControlName="prepaidInstallmentsMethod"
-                    [options]="paymentMethodOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    styleClass="w-full"
-                  />
-                </div>
-                @if (prepaidInstallmentsMethod === "TRANSFER") {
-                  <div>
-                    <label class="block text-sm font-medium mb-1"
-                      >Referencia transferencia</label
-                    >
-                    <input
-                      pInputText
-                      formControlName="prepaidInstallmentsTransferReference"
-                      maxlength="100"
-                      class="w-full h-11"
+                      data-cy="sale-down-payment-transfer-reference"
                       placeholder="Nro. operación..."
                     />
                   </div>
@@ -400,6 +400,7 @@
           [outlined]="true"
           size="small"
           type="button"
+          data-cy="credit-simulate"
           [loading]="simulating"
           (onClick)="simulate()"
         />
@@ -444,18 +445,18 @@
                 simulateResult.installmentsCount
               }}</span>
             </div>
-            @if (simulateResult.downPayment) {
+            @if (simulateResult.downPayment !== undefined) {
               <div>
                 <span class="text-gray-500">Enganche: </span>
-                <span class="font-semibold">{{
+                <span class="font-semibold" data-cy="simulate-down-payment">{{
                   simulateResult.downPayment | currencyArs: 2
                 }}</span>
               </div>
             }
-            @if (simulateResult.financedAmount) {
+            @if (simulateResult.financedAmount !== undefined) {
               <div>
                 <span class="text-gray-500">Monto financiado: </span>
-                <span class="font-semibold">{{
+                <span class="font-semibold" data-cy="simulate-financed-amount">{{
                   simulateResult.financedAmount | currencyArs: 2
                 }}</span>
               </div>
@@ -488,6 +489,7 @@
         label="Registrar operación"
         icon="pi pi-check"
         type="submit"
+        data-cy="credit-submit"
         [loading]="submitting"
       />
     </div>

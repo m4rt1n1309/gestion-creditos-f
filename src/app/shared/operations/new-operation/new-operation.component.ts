@@ -89,16 +89,29 @@ export class NewOperationComponent implements OnInit {
     return this.form.isConfirmed();
   }
 
+  /** Mensaje de error inline para ventas sin unidades seleccionadas. */
+  unitsError: string | null = null;
+
   /**
    * Finaliza la creación de la operación.
+   * Valida que las ventas (SALE) tengan al menos una unidad seleccionada
+   * antes de enviar el payload al backend.
    * @returns
    */
   finish() {
     const client = this.form.selectedClient();
     if (!client) return;
 
-    this.submitting = true;
     const type = this.form.selectedType() === 'VENTA' ? 'SALE' : 'LOAN';
+    const selectedUnits = this.form.selectedProducts();
+
+    if (type === 'SALE' && selectedUnits.length === 0) {
+      this.unitsError = 'Agregá al menos una unidad al carrito.';
+      return;
+    }
+    this.unitsError = null;
+
+    this.submitting = true;
     const freq = this.form.selectedFrequency().value as PaymentFrequency;
 
     let payload: CreditCreatePayload;
@@ -108,7 +121,7 @@ export class NewOperationComponent implements OnInit {
         type: 'SALE',
         installmentsCount: this.form.selectedInstallments(),
         paymentFrequency: freq,
-        units: [],
+        units: selectedUnits.map((p) => ({ unitId: p.id })),
       };
       payload = salePayload;
     } else {

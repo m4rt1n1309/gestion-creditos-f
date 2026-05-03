@@ -71,6 +71,14 @@
           {{ credit.totalAmount | currencyArs: 2 }}
         </div>
       </div>
+      @if (credit.type === "SALE") {
+        <div>
+          <div class="text-xs text-gray-500">Monto financiado</div>
+          <div class="font-semibold">
+            {{ credit.financedAmount | currencyArs: 2 }}
+          </div>
+        </div>
+      }
       <div>
         <div class="text-xs text-gray-500">Cuotas</div>
         <div class="font-semibold">
@@ -138,13 +146,16 @@
       </div>
     </div>
 
-    @if (
-      credit.type === "SALE" &&
-      (credit.downPayment > 0 || credit.prepaidInstallments > 0)
-    ) {
+    @if (credit.type === "SALE") {
       <div class="mb-6 p-4 bg-white border rounded">
         <h3 class="font-semibold mb-3">Condiciones iniciales</h3>
         <div class="grid grid-cols-2 gap-4">
+          <div>
+            <div class="text-xs text-gray-500">Monto financiado</div>
+            <div class="font-semibold">
+              {{ credit.financedAmount | currencyArs: 2 }}
+            </div>
+          </div>
           @if (credit.downPayment > 0) {
             <div>
               <div class="text-xs text-gray-500">Enganche</div>
@@ -163,26 +174,6 @@
               @if (credit.downPaymentTransferReference) {
                 <div class="text-xs text-gray-400">
                   Ref: {{ credit.downPaymentTransferReference }}
-                </div>
-              }
-            </div>
-          }
-          @if (credit.prepaidInstallments > 0) {
-            <div>
-              <div class="text-xs text-gray-500">Cuotas adelantadas</div>
-              <div class="font-semibold">{{ credit.prepaidInstallments }}</div>
-              @if (credit.prepaidInstallmentsMethod) {
-                <div class="text-xs text-gray-400">
-                  {{
-                    credit.prepaidInstallmentsMethod === "CASH"
-                      ? "Efectivo"
-                      : "Transferencia"
-                  }}
-                </div>
-              }
-              @if (credit.prepaidInstallmentsTransferReference) {
-                <div class="text-xs text-gray-400">
-                  Ref: {{ credit.prepaidInstallmentsTransferReference }}
                 </div>
               }
             </div>

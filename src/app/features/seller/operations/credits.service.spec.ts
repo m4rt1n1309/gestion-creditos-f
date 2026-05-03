@@ -39,6 +39,7 @@ const mockDetailRaw: CreditDetailRaw = {
   notes: null,
   approved_by: null,
   customer_phone: '1122334455',
+  financed_amount: 10000,
   products: [
     {
       id: 'cp-1',
@@ -63,9 +64,6 @@ const mockDetailRaw: CreditDetailRaw = {
   down_payment: 0,
   down_payment_method: null,
   down_payment_transfer_reference: null,
-  prepaid_installments: 0,
-  prepaid_installments_method: null,
-  prepaid_installments_transfer_reference: null,
   settled_at: null,
   settlement_amount: null,
   settlement_type: null,
@@ -282,6 +280,7 @@ describe('CreditsService', () => {
       expect(detail.products![0].historicalPrice).toBe(500);
       expect(detail.products![0].productName).toBe('Prod A');
       expect(detail.customerPhone).toBe('1122334455');
+      expect(detail.financedAmount).toBe(10000);
     });
   });
 
@@ -299,7 +298,8 @@ describe('CreditsService', () => {
 
       const req = httpMock.expectOne(`${BASE}/credits`);
       expect(req.request.body['type']).toBe('SALE');
-      expect(req.request.body['units']).toEqual([{ unit_id: 'unit-1' }]);
+      expect(req.request.body['unit_ids']).toEqual(['unit-1']);
+      expect(req.request.body['units']).toBeUndefined();
       expect(req.request.body['total_amount']).toBeUndefined();
       expect(req.request.body['products']).toBeUndefined();
       req.flush({
@@ -331,6 +331,27 @@ describe('CreditsService', () => {
       });
     });
 
+    it('operación no-SALE no incluye unit_ids en el body', () => {
+      service
+        .create({
+          customerId: 'cust-1',
+          type: 'LOAN',
+          totalAmount: 3000,
+          installmentsCount: 3,
+          paymentFrequency: 'MONTHLY',
+        })
+        .subscribe();
+
+      const req = httpMock.expectOne(`${BASE}/credits`);
+      expect(req.request.body['unit_ids']).toBeUndefined();
+      expect(req.request.body['units']).toBeUndefined();
+      req.flush({
+        ok: true,
+        data: { id: 'new-id', status: 'PENDING_APPROVAL' },
+        message: '',
+      });
+    });
+
     it('SALE with downPayment includes down_payment and down_payment_method', () => {
       service
         .create({
@@ -347,6 +368,7 @@ describe('CreditsService', () => {
       const req = httpMock.expectOne(`${BASE}/credits`);
       expect(req.request.body['down_payment']).toBe(500);
       expect(req.request.body['down_payment_method']).toBe('CASH');
+      expect(req.request.body['prepaid_installments']).toBeUndefined();
       req.flush({ ok: true, data: { id: 'new-id', status: 'PENDING_APPROVAL' }, message: '' });
     });
 
@@ -363,6 +385,7 @@ describe('CreditsService', () => {
 
       const req = httpMock.expectOne(`${BASE}/credits`);
       expect(req.request.body['down_payment']).toBeUndefined();
+      expect(req.request.body['prepaid_installments']).toBeUndefined();
       req.flush({ ok: true, data: { id: 'new-id', status: 'PENDING_APPROVAL' }, message: '' });
     });
   });
