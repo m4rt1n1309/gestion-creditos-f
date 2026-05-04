@@ -119,4 +119,37 @@ export class OperationsComponent {
   closeNewOperation() {
     this.showNewOperationModal = false;
   }
+
+  /**
+   * Devuelve el listado de operaciones aplicando en conjunto el filtro por estado y el texto buscado.
+   * La búsqueda ignora mayúsculas/minúsculas y tildes para evitar falsos negativos como "Perez" vs "Pérez".
+   */
+  get filteredOperations() {
+    const term = this.normalizeText(this.searchTerm);
+
+    return this.operations.filter((operation) => {
+      const matchesStatus =
+        !this.selectedStatus || operation.status === this.selectedStatus;
+
+      if (!term) {
+        return matchesStatus;
+      }
+
+      const normalizedClient = this.normalizeText(operation.client);
+      return matchesStatus && normalizedClient.includes(term);
+    });
+  }
+
+  /**
+   * Normaliza un texto para comparaciones de búsqueda flexibles.
+   * @param value Texto original a normalizar.
+   * @returns Texto en minúsculas y sin diacríticos.
+   */
+  private normalizeText(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+  }
 }

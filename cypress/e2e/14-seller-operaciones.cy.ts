@@ -51,6 +51,26 @@ describe('Admin — Lista de Operaciones (misma vista vía /admin)', () => {
   });
 
   it('botón "Nueva operación" existe para ADMIN', () => {
-    cy.contains('button', 'Nueva operación').should('exist');
+    cy.contains('button', 'Nueva Operación').should('exist');
+  });
+
+  it('CR-07: filtra operaciones por estado Activo', () => {
+    cy.get('p-dropdown').first().click();
+    cy.contains('.p-dropdown-item', 'Activo').click();
+
+    cy.get('p-table tbody tr').should('have.length', 1);
+    cy.get('p-table tbody tr').first().should('contain.text', 'ACTIVO');
+  });
+
+  it('CR-08: filtra por cliente al buscar "Perez"', () => {
+    cy.contains('h1', 'Operaciones')
+      .parents('div.p-6')
+      .first()
+      .find('input[placeholder="Buscar..."]')
+      .clear()
+      .type('Perez');
+
+    cy.get('p-table tbody tr').should('have.length', 1);
+    cy.get('p-table tbody tr').first().should('contain.text', 'Juan Pérez García');
   });
 });

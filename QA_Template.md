@@ -108,7 +108,7 @@ http://localhost:3000/api/credits - POST
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Hice click en "Activo" para filtrar las operaciones.]
 * **Resultado Esperado:** [Debería filtrar las operaciones.]
-* **Resultado Obtenido (Error):** [No funciona el filtro.]
+* **Resultado Obtenido (Actual):** [Corregido. El listado ahora aplica filtro real por estado y "Activo" devuelve únicamente operaciones activas. Validado con `operations.component.spec.ts` (caso CR-07) y Cypress `14-seller-operaciones.cy.ts`.]
 
 ---
 
@@ -118,7 +118,7 @@ http://localhost:3000/api/credits - POST
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Escribí "Perez" en el buscador.]
 * **Resultado Esperado:** [Debería filtrar los clientes.]
-* **Resultado Obtenido (Error):** [No funciona el buscador.]
+* **Resultado Obtenido (Actual):** [Corregido. El buscador ahora filtra por cliente ignorando mayúsculas/minúsculas y tildes (ej. "Perez" encuentra "Pérez"). Validado con `operations.component.spec.ts` (caso CR-08) y Cypress `14-seller-operaciones.cy.ts`.]
 
 ---
 

@@ -12,8 +12,8 @@
 | **CR-04** | Operación Crédito | Escribí "aire" en "Buscar productos". | Debería filtrar la búsqueda por el nombre. | Corregido / Validado |
 | **CR-05** | Configuración del Crédito | Click en "Siguiente" sin elegir "Fecha de primer pago". | Debería estar deshabilitado el botón "Siguiente". | Corregido / Validado |
 | **CR-06** | Operación Crédito - Declaraciones y Autorizaciones | Dejé sin marcar la casilla "Autorizo el desembolso inmediato". | Debería estar deshabilitado el botón "Siguiente" hasta marcar la casilla. | Corregido / Validado |
-| **CR-07** | Operación Crédito - Operaciones | Click en "Activo" para filtrar las operaciones. | Debería filtrar las operaciones. | Error
-| **CR-08** | Operación Crédito - Operaciones | Escribí "Perez" en el buscador. | Debería filtrar los clientes. | Error
+| **CR-07** | Operación Crédito - Operaciones | Click en "Activo" para filtrar las operaciones. | Debería filtrar las operaciones. | Corregido / Validado |
+| **CR-08** | Operación Crédito - Operaciones | Escribí "Perez" en el buscador. | Debería filtrar los clientes. | Corregido / Validado |
 
 ## 🟢 2. Módulo: Cliente
 
