@@ -26,7 +26,7 @@ Modulo Crédito
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Hice click en "Enviar para Aprobación"]
 * **Resultado Esperado:** [Debería enviar la operación para ser aprobada.]
-* **Resultado Obtenido (Error):** [Arroja Error 400 y no se registro la operación.]
+* **Resultado Obtenido (Actual):** [Corregido. La operación SALE envía `unit_ids` y acepta `down_payment`; el alta ya no usa `prepaid_installments`. Validado con Cypress en `31-qa-regression-issues.cy.ts`.]
 ### 2. Evidencia Técnica
 **Payload Enviado (Request):**
 http://localhost:3000/api/credits - POST
@@ -36,21 +36,17 @@ http://localhost:3000/api/credits - POST
     installments_count:6
     payment_frequency:"MONTHLY"
     type:"SALE"
-    units:[]
+    unit_ids:["unit-1"]
+    down_payment:200
+    down_payment_method:"CASH"
 }
 ```
 
-**Respuesta del servidor:**
+**Respuesta esperada actual:**
 ```json
 {
-    "ok": false,
-    "message": "Datos inválidos. Revisá los campos marcados.",
-    "errors": [
-        {
-            "field": "unit_ids",
-            "message": "Las ventas deben incluir al menos una unidad de producto."
-        }
-    ]
+    "ok": true,
+    "message": "Pre-operación registrada. Pendiente de aprobación."
 }
 ```
 ---
@@ -143,7 +139,7 @@ Módulo Clientes
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Se hizo click sobre el boton "Ver" en un cliente.]
 * **Resultado Esperado:** [Debe mostrar los datos del Cliente.]
-* **Resultado Obtenido (Error):** [Muestra un mensaje que dice Cliente no encontrado y no muestra nada.]
+* **Resultado Obtenido (Actual):** [Corregido. El detalle ahora carga el cliente real por `id`; solo muestra “Cliente no encontrado.” cuando el backend responde 404. Validado con Cypress en `32-client-detail-regression.cy.ts`.]
 
 ---
 
@@ -153,7 +149,21 @@ Módulo Clientes
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Se hizo click sobre el boton "Editar" en un cliente.]
 * **Resultado Esperado:** [Al modificar los datos deben guardarse en la DB.]
-* **Resultado Obtenido (Error):** [Al hacer click en "Guardar Cambios" y refrescar la página los cambios no se mantienen.]
+* **Resultado Obtenido (Actual):** [Corregido. Los cambios persistidos actualmente (`full_name`, `phone`) se guardan y se mantienen tras refrescar. Los campos no soportados por el contrato real fueron retirados del modal para evitar UX engañosa. Validado con Cypress en `04-clientes.cy.ts`.]
+
+---
+
+## Resumen de correcciones ya validadas
+
+- **CR-01** → Corregido / validado
+- **CL-02** → Corregido / validado
+- **CL-03** → Corregido / validado
+
+## Evidencia automatizada
+
+- `cypress/e2e/31-qa-regression-issues.cy.ts` → passing
+- `cypress/e2e/32-client-detail-regression.cy.ts` → passing
+- `cypress/e2e/04-clientes.cy.ts` → passing
 
 ---
 

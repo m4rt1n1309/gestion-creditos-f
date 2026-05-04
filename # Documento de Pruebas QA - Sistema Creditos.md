@@ -1,4 +1,4 @@
-# Documento de Pruebas QA - Sistema PadelSys
+# Documento de Pruebas QA - Sistema Créditos
 
 **Propósito:** Registrar los casos de uso, validar el comportamiento esperado (Frontend y Backend) y documentar los errores para la generación de prompts de corrección.
 
@@ -6,7 +6,7 @@
 
 | ID | Caso de Uso / Prueba | Acción Realizada | Resultado Esperado (Éxito) | Estado |
 | :--- | :--- | :--- | :--- | :--- |
-| **CR-01** | Operación Crédito | Click en "Enviar para Aprobación". | Debería enviar la operación para ser aprobada. | Error 400
+| **CR-01** | Operación Crédito | Click en "Enviar para Aprobación". | Debería enviar la operación para ser aprobada. | Corregido / Validado |
 | **CR-02** | Operación Crédito | En fecha de primer pago puse una fecha anterior a la actual. | Debería estar deshabilitadas las fechas fechas anteriores a la actual. | Error
 | **CR-03** | Operación Crédito | Click en "Tipo de operación" y "Préstamo personal". | Debería desaparecer los productos. | Error 
 | **CR-04** | Operación Crédito | Escribí "aire" en "Buscar productos". | Debería filtrar la búsqueda por el nombre. | Error 
@@ -20,8 +20,8 @@
 | ID | Caso de Uso / Prueba | Acción Realizada | Resultado Esperado (Éxito) | Estado |
 | :--- | :--- | :--- | :--- | :--- |
 | **CL-01** | Crear Cliente | Se realizó la creación de un cliente. | Debería salir un mensaje que el cliente se gaurdó correctamente. | Error 
-| **CL-02** | Ver Cliente | Click en "Ver" en un cleinte. | Debería mostrar los datos del cliente. | Error 
-| **CL-0#** | Gestión de Clientes | Click en "Editar" en un cliente. | Los cambios deberían guardarse en la DB. | Error
+| **CL-02** | Ver Cliente | Click en "Ver" en un cliente. | Debería mostrar los datos del cliente. | Corregido / Validado |
+| **CL-03** | Gestión de Clientes | Click en "Editar" en un cliente. | Los cambios deberían guardarse en la DB. | Corregido / Validado |
 
 
 
@@ -35,6 +35,18 @@
 | **PR-04** | Crear Producto | Se hizo click en "Crear Producto". | Los productos deberían mostrarse luego de confirmar la creación. | Error
 | **PR-05** | Crear Producto | Se hizo click en confirmar al "Crear Producto". | Debería salir un cartel que el producto fué creado exitosamente. | Error
 | **PR-06** | Crear Producto | Se hizo click en "Crear Producto". | Debería estar deshabilitado el boton "Guardar producto. | Error
+
+## ✅ Correcciones validadas recientemente
+
+- **CR-01**: el flujo SALE quedó alineado al contrato actual (`unit_ids`, `down_payment`, sin `prepaid_installments` en alta).
+- **CL-02**: el detalle del cliente ya carga por `id` real y no depende de mocks locales.
+- **CL-03**: la edición de cliente persiste los campos soportados actualmente (`full_name`, `phone`) y se refleja tras recargar.
+
+## 🧪 Evidencia de regresión automatizada
+
+- `cypress/e2e/31-qa-regression-issues.cy.ts` → flujo SALE integrado: **passing**
+- `cypress/e2e/32-client-detail-regression.cy.ts` → CL-02 detalle cliente: **passing**
+- `cypress/e2e/04-clientes.cy.ts` → módulo clientes / CL-03 persistencia: **passing**
 
 ## 🟢 
 
