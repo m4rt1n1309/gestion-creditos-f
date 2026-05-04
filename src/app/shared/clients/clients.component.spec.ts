@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { MessageService } from 'primeng/api';
 
 import { ClientsComponent } from './clients.component';
 import { MockAuthService } from '../../core/auth/mock-auth.service';
@@ -47,11 +48,13 @@ describe('ClientsComponent', () => {
   let routerSpy: jasmine.SpyObj<Router>;
   let customersServiceSpy: jasmine.SpyObj<CustomersService>;
   let authSpy: jasmine.SpyObj<MockAuthService>;
+  let messageServiceSpy: jasmine.SpyObj<MessageService>;
 
   beforeEach(async () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate'], { url: '/admin/clients' });
     customersServiceSpy = jasmine.createSpyObj('CustomersService', ['list', 'create', 'update']);
     authSpy = jasmine.createSpyObj('MockAuthService', ['hasRole']);
+    messageServiceSpy = jasmine.createSpyObj('MessageService', ['add']);
     customersServiceSpy.list.and.returnValue(of(MOCK_CUSTOMERS));
     authSpy.hasRole.and.returnValue(true);
 
@@ -62,6 +65,7 @@ describe('ClientsComponent', () => {
         { provide: MockAuthService, useValue: authSpy },
         { provide: CustomersService, useValue: customersServiceSpy },
         { provide: FormatService, useValue: { currency: (n: number) => `$${n}` } },
+        { provide: MessageService, useValue: messageServiceSpy },
       ],
     }).compileComponents();
 
@@ -190,6 +194,35 @@ describe('ClientsComponent', () => {
       expect(component.showEditModal).toBeFalse();
       expect(component.editError).toContain('permisos');
       expect(customersServiceSpy.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('createClient()', () => {
+    it('muestra toast de éxito al crear cliente correctamente', () => {
+      customersServiceSpy.create.and.returnValue(of(MOCK_CUSTOMER_DETAIL as any));
+      spyOn<any>(component, 'loadClients').and.callThrough();
+      component.showCreateModal = true;
+      component.form.setValue({
+        nombres: 'Laura',
+        apellidos: 'Gómez',
+        dni: '99887766',
+        telefonoPrincipal: '3101112222',
+        telefonoAlterno: '',
+        email: 'laura@test.com',
+        direccion: 'Calle 10',
+        ingresos: '5000000',
+      });
+
+      component.createClient();
+
+      expect(customersServiceSpy.create).toHaveBeenCalled();
+      expect(component.showCreateModal).toBeFalse();
+      expect((component as any).loadClients).toHaveBeenCalled();
+      expect(messageServiceSpy.add).toHaveBeenCalledWith({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Cliente guardado correctamente.',
+      });
     });
   });
 });

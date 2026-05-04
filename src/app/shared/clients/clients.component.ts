@@ -17,6 +17,8 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 import { CustomersService } from '../../features/seller/clients/customers.service';
 import { Customer } from '../../features/seller/models/customer.model';
@@ -70,13 +72,16 @@ function toClient(c: Customer): Client {
     InputIconModule,
     TagModule,
     DialogModule,
+    ToastModule,
   ],
+  providers: [MessageService],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss',
 })
 export class ClientsComponent implements OnInit {
   private readonly customersService = inject(CustomersService);
   private readonly auth = inject(MockAuthService);
+  private readonly messageService = inject(MessageService);
 
   clients: Client[] = [];
   loading = false;
@@ -318,6 +323,11 @@ export class ClientsComponent implements OnInit {
           this.submitted = false;
           this.form = this.buildForm();
           this.loadClients();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Cliente guardado correctamente.',
+          });
         },
         error: (err) => {
           console.error('Error al crear cliente', err);

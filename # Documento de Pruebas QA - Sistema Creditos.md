@@ -19,7 +19,7 @@
 
 | ID | Caso de Uso / Prueba | Acción Realizada | Resultado Esperado (Éxito) | Estado |
 | :--- | :--- | :--- | :--- | :--- |
-| **CL-01** | Crear Cliente | Se realizó la creación de un cliente. | Debería salir un mensaje que el cliente se gaurdó correctamente. | Error 
+| **CL-01** | Crear Cliente | Se realizó la creación de un cliente. | Debería salir un mensaje que el cliente se guardó correctamente. | Corregido / Validado |
 | **CL-02** | Ver Cliente | Click en "Ver" en un cliente. | Debería mostrar los datos del cliente. | Corregido / Validado |
 | **CL-03** | Gestión de Clientes | Click en "Editar" en un cliente. | Los cambios deberían guardarse en la DB. | Corregido / Validado |
 
@@ -51,6 +51,7 @@
 ## 🧪 Evidencia de regresión automatizada
 
 - `cypress/e2e/31-qa-regression-issues.cy.ts` → flujo SALE integrado: **passing**
+- `src/app/shared/clients/clients.component.spec.ts` → CL-01 toast de éxito al crear cliente: **passing**
 - `cypress/e2e/32-client-detail-regression.cy.ts` → CL-02 detalle cliente: **passing**
 - `cypress/e2e/04-clientes.cy.ts` → módulo clientes / CL-03 persistencia: **passing**
 - `cypress/e2e/30-producto-crear.cy.ts` → PR-01 crear producto: **passing**

@@ -254,6 +254,26 @@ describe('Gestión de Clientes — Admin', () => {
     });
 
     it('completa el formulario y crea el cliente exitosamente', () => {
+      cy.intercept('POST', '**/api/customers', {
+        statusCode: 201,
+        body: {
+          ok: true,
+          data: {
+            id: 'cust-cl-01',
+            full_name: 'Laura Gómez',
+            dni: '9988776655',
+            address: 'Calle 10 #5-20',
+            phone: '3101112222',
+            email: 'lgomez@email.com',
+            status: 'ACTIVE',
+            portal_enabled: false,
+            created_at: '2026-05-04T00:00:00.000Z',
+            collector_id: null,
+            collector_name: null,
+          },
+        },
+      }).as('createClient');
+
       cy.get('p-table tbody tr').its('length').then((initialCount) => {
         cy.get('p-dialog').last().within(() => {
           cy.get('input[formControlName="nombres"]').type('Laura');
@@ -266,7 +286,11 @@ describe('Gestión de Clientes — Admin', () => {
           cy.get('input[formControlName="ingresos"]').type('5000000');
         });
         cy.get('p-dialog p-button[label="Crear Cliente"]').click();
+        cy.wait('@createClient');
         cy.get('p-dialog[ng-reflect-visible="true"]').should('not.exist');
+        cy.contains('.p-toast-message', 'Cliente guardado correctamente.').should(
+          'be.visible',
+        );
         // createClient() cierra el modal pero no agrega a la lista (TODO: API integration)
         cy.get('p-table tbody tr').should('have.length', initialCount);
       });
