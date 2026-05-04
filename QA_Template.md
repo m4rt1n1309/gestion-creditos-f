@@ -219,6 +219,10 @@ Módulo Producto
 * **Resultado Esperado:** [No se encuentra el botón para editar el producto.]
 * **Resultado Obtenido (Actual):** [Corregido. El listado compartido de `/admin/products` ahora muestra el botón "Editar" por fila y permite navegar al formulario `seller/products/:id/edit`. Validado con `36-product-edit-category-regression.cy.ts`.]
 
+* **Acción Realizada:** [Quisiera editar el producto para agregar mas unidades por ejemplo.]
+* **Resultado Esperado:** [Hice click en "Editar Producto".]
+* **Resultado Obtenido (Actual):** [El campo stock no se encuentra y los botones "Guardar Cambios" y "Cancelar" no estan alineados con los demas botones.]
+
 ---
 
 **Módulo:** [Producto]
