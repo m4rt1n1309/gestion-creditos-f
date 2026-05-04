@@ -37,7 +37,7 @@
   } @else if (errorDashboard && !dashboard) {
     <app-error-state />
   } @else if (dashboard) {
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
       <div
         class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-1"
       >
@@ -59,7 +59,7 @@
         </p>
       </div>
       <div
-        class="bg-green-50 border border-green-200 rounded-2xl shadow-sm p-4 space-y-1 md:col-span-1 lg:col-span-2"
+        class="bg-green-50 border border-green-200 rounded-2xl shadow-sm p-4 space-y-1 md:col-span-2"
       >
         <p class="text-xs font-medium text-green-600 uppercase tracking-wide">
           Total recaudado
@@ -75,7 +75,51 @@
           Egresos
         </p>
         <p class="text-lg font-bold text-red-600 font-mono">
-          {{ formatCurrency(dashboard.totalEgreses) }}
+          {{ formatCurrency(dashboard.totalOutflows) }}
+        </p>
+      </div>
+      <div
+        class="rounded-2xl shadow-sm p-4 space-y-1"
+        [class]="
+          dashboard.netBalance >= 0
+            ? 'bg-teal-50 border border-teal-200'
+            : 'bg-red-50 border border-red-200'
+        "
+      >
+        <p
+          class="text-xs font-medium uppercase tracking-wide"
+          [class]="dashboard.netBalance >= 0 ? 'text-teal-600' : 'text-red-500'"
+        >
+          Balance neto
+        </p>
+        <p
+          class="text-lg font-bold font-mono"
+          [class]="dashboard.netBalance >= 0 ? 'text-teal-700' : 'text-red-600'"
+        >
+          {{ formatCurrency(dashboard.netBalance) }}
+        </p>
+      </div>
+      <div
+        class="bg-orange-50 border border-orange-200 rounded-2xl shadow-sm p-4 space-y-1"
+      >
+        <p class="text-xs font-medium text-orange-500 uppercase tracking-wide">
+          Cobros pend.
+        </p>
+        <p class="text-lg font-bold text-orange-600 font-mono">
+          {{ formatCurrency(dashboard.pendingAmount) }}
+        </p>
+      </div>
+      <div
+        class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-1"
+      >
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide">
+          Enganches hoy
+        </p>
+        <p class="text-lg font-bold text-gray-800 font-mono">
+          {{ formatCurrency(dashboard.downPaymentsTotal) }}
+        </p>
+        <p class="text-xs text-gray-400">
+          {{ dashboard.downPaymentsCount }} operaciones
         </p>
       </div>
       <div
@@ -97,7 +141,6 @@
     </div>
   }
 
-  <!-- History -->
   <p-card styleClass="shadow-sm">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-base font-semibold text-gray-800">
@@ -126,6 +169,18 @@
           class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs text-gray-400 uppercase tracking-wide"
+          >Estado</label
+        >
+        <p-dropdown
+          [options]="differenceStatusOptions"
+          [(ngModel)]="filterDifferenceStatus"
+          optionLabel="label"
+          optionValue="value"
+          styleClass="text-sm"
+        />
+      </div>
       <p-button
         label="Filtrar"
         icon="pi pi-search"
@@ -133,7 +188,7 @@
         [outlined]="true"
         (onClick)="applyFilters()"
       />
-      @if (filterDateFrom || filterDateTo) {
+      @if (filterDateFrom || filterDateTo || filterDifferenceStatus) {
         <p-button
           label="Limpiar"
           icon="pi pi-times"
@@ -226,6 +281,26 @@
         Ingresá el monto físico que tenés en caja.
       </div>
 
+      @if (closePendingError) {
+        <div
+          class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-800 space-y-2"
+        >
+          <div class="flex items-start gap-2">
+            <i class="pi pi-exclamation-triangle text-amber-500 mt-0.5"></i>
+            <p>{{ closePendingError }}</p>
+          </div>
+          <p-button
+            label="Cerrar igualmente (force)"
+            icon="pi pi-lock"
+            severity="warning"
+            [outlined]="true"
+            size="small"
+            [loading]="closing"
+            (onClick)="confirmClose(true)"
+          />
+        </div>
+      }
+
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-medium text-gray-500 uppercase tracking-wide"
           >Efectivo físico contado (ARS)</label
@@ -259,7 +334,6 @@
       </div>
     </div>
   }
-
   <ng-template pTemplate="footer">
     <p-button
       label="Cancelar"
@@ -274,12 +348,11 @@
       severity="danger"
       [loading]="closing"
       [disabled]="declaredCash == null"
-      (onClick)="confirmClose()"
+      (onClick)="confirmClose(false)"
     />
   </ng-template>
 </p-dialog>
 
-<!-- Dialog: Detail -->
 <p-dialog
   [(visible)]="showDetailDialog"
   [modal]="true"
@@ -386,7 +459,6 @@
       }
     </div>
   }
-
   <ng-template pTemplate="footer">
     <p-button
       label="Cerrar"

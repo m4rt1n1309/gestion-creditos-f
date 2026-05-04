@@ -1,4 +1,4 @@
-import { UserRole } from "../types/user-role";
+import { UserRole } from '../types/user-role';
 
 export interface AuthUser {
   id: string;
@@ -6,7 +6,7 @@ export interface AuthUser {
   full_name: string;
   /** Alias de full_name — mantenido para compatibilidad con templates existentes. */
   name: string;
-  dni: string;
+  dni?: string;
   /** Roles como array. Backend devuelve role singular; adapter lo envuelve en [role]. */
   roles: UserRole[];
   /** Iniciales calculadas del full_name — usado en avatar UI. */

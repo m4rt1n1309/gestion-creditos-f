@@ -85,8 +85,10 @@
       <li>
         <a
           pRipple
-          routerLink="/profile"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+          [routerLink]="null"
+          pTooltip="Próximamente"
+          tooltipPosition="right"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-not-allowed opacity-60"
         >
           <i class="pi pi-user text-lg opacity-70"></i>
           <span class="text-sm font-medium">Mi Perfil</span>

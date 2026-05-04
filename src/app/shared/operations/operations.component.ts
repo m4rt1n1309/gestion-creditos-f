@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { CurrencyArsPipe } from '../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -17,6 +18,7 @@ import { TagModule } from 'primeng/tag';
   selector: 'operations',
   standalone: true,
   imports: [
+    CurrencyArsPipe,
     CommonModule,
     FormsModule,
     RouterLink,
@@ -101,6 +103,8 @@ export class OperationsComponent {
     }
   }
 
+  loadOperations() {}
+
   /**
    *  Abre el modal de nueva operación estableciendo la variable `showNewOperationModal` a `true`, lo que hace que el componente `NewOperationComponent` se muestre en la interfaz de usuario. Esta función se puede llamar desde un botón o enlace en la plantilla para iniciar el proceso de creación de una nueva operación.
    */
@@ -114,5 +118,38 @@ export class OperationsComponent {
    */
   closeNewOperation() {
     this.showNewOperationModal = false;
+  }
+
+  /**
+   * Devuelve el listado de operaciones aplicando en conjunto el filtro por estado y el texto buscado.
+   * La búsqueda ignora mayúsculas/minúsculas y tildes para evitar falsos negativos como "Perez" vs "Pérez".
+   */
+  get filteredOperations() {
+    const term = this.normalizeText(this.searchTerm);
+
+    return this.operations.filter((operation) => {
+      const matchesStatus =
+        !this.selectedStatus || operation.status === this.selectedStatus;
+
+      if (!term) {
+        return matchesStatus;
+      }
+
+      const normalizedClient = this.normalizeText(operation.client);
+      return matchesStatus && normalizedClient.includes(term);
+    });
+  }
+
+  /**
+   * Normaliza un texto para comparaciones de búsqueda flexibles.
+   * @param value Texto original a normalizar.
+   * @returns Texto en minúsculas y sin diacríticos.
+   */
+  private normalizeText(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 }

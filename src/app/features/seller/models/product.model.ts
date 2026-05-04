@@ -1,13 +1,29 @@
 export type ProductStatus = 'ACTIVE' | 'INACTIVE';
 
+export interface ProductVariantSummary {
+  id: string;
+  color: string | null;
+  size: string | null;
+  capacity: string | null;
+  currentPrice: number;
+  status: string;
+}
+
 export interface Product {
   id: string;
-  name: string;
-  description: string | null;
-  currentPrice: number;
-  availableStock: number;
+  title: string;
+  description: string;
+  model: string | null;
   status: ProductStatus;
   createdAt: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  brandId: string | null;
+  brandName: string | null;
+  availableCount: number;
+  reservedCount: number;
+  soldCount: number;
+  variants: ProductVariantSummary[];
 }
 
 export interface ProductDetail extends Product {
@@ -17,49 +33,51 @@ export interface ProductDetail extends Product {
 export interface ProductListFilters {
   status?: ProductStatus;
   search?: string;
+  categoryId?: string;
 }
 
 export interface ProductCreatePayload {
-  name: string;
+  title: string;
   description?: string;
-  currentPrice: number;
-  availableStock: number;
+  model?: string;
+  brandId?: string;
+  categoryId?: string;
 }
 
 export interface ProductUpdatePayload {
-  name?: string;
+  title?: string;
   description?: string;
-  currentPrice?: number;
+  model?: string;
+  brandId?: string;
+  categoryId?: string;
 }
 
-export interface StockAdjustPayload {
-  movement: 'IN' | 'OUT';
-  quantity: number;
-  reason: string;
-}
-
-export interface StockAdjustResult {
+export interface ProductVariantSummaryRaw {
   id: string;
-  name: string;
-  availableStock: number;
+  color: string | null;
+  size: string | null;
+  capacity: string | null;
+  current_price: number;
+  status: string;
 }
 
 export interface ProductRaw {
   id: string;
-  name: string;
-  description: string | null;
-  current_price: number;
-  available_stock: number;
+  title: string;
+  description: string;
+  model: string | null;
   status: ProductStatus;
   created_at: string;
+  category_id: string | null;
+  category_name: string | null;
+  brand_id: string | null;
+  brand_name: string | null;
+  available_count: number;
+  reserved_count: number;
+  sold_count: number;
+  variants: ProductVariantSummaryRaw[];
 }
 
 export interface ProductDetailRaw extends ProductRaw {
   updated_at: string;
-}
-
-export interface StockAdjustResultRaw {
-  id: string;
-  name: string;
-  available_stock: number;
 }

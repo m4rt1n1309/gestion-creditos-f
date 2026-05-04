@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -34,6 +34,10 @@ import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
   templateUrl: './user-create.component.html',
 })
 export class UserCreateComponent implements OnInit {
+  @Input() isModal = false;
+  @Output() created = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
+
   private readonly fb = inject(FormBuilder);
   private readonly usersService = inject(UsersService);
   private readonly router = inject(Router);
@@ -54,10 +58,12 @@ export class UserCreateComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.header.set([
-      { label: 'Usuarios', route: '/admin/users' },
-      { label: 'Nuevo usuario' },
-    ]);
+    if (!this.isModal) {
+      this.header.set([
+        { label: 'Usuarios', route: '/admin/users' },
+        { label: 'Nuevo usuario' },
+      ]);
+    }
 
     this.form = this.fb.group({
       fullName: [
@@ -158,18 +164,26 @@ export class UserCreateComponent implements OnInit {
   }
 
   /**
-   * Cierra el diálogo de contraseña temporal y redirige al detalle del usuario recién creado. Resetea el estado del diálogo y la contraseña temporal para evitar mostrar información incorrecta si se vuelve a abrir el diálogo sin crear un nuevo usuario.
+   * Cierra el diálogo de contraseña temporal. En modo modal emite el evento `created`; en modo página redirige al detalle del usuario.
    */
   onTempPasswordClosed(): void {
     this.showTempPasswordDialog = false;
     this.tempPassword = '';
-    this.router.navigate([AppRoutes.USERS_DETAIL, this.createdUserId]);
+    if (this.isModal) {
+      this.created.emit();
+    } else {
+      this.router.navigate(['/', AppRoutes.ADMIN, AppRoutes.USERS, this.createdUserId]);
+    }
   }
 
   /**
-   * Cancela la creación del usuario y redirige de vuelta a la lista de usuarios. No realiza ninguna acción adicional, ya que el usuario aún no ha sido creado hasta que se envía el formulario exitosamente.
+   * Cancela la creación del usuario. En modo modal emite el evento `cancelled`; en modo página redirige a la lista.
    */
   cancel(): void {
-    this.router.navigate([AppRoutes.USERS]);
+    if (this.isModal) {
+      this.cancelled.emit();
+    } else {
+      this.router.navigate(['/', AppRoutes.ADMIN, AppRoutes.USERS]);
+    }
   }
 }

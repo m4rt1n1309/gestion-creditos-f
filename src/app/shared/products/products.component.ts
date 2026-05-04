@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -7,7 +7,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
@@ -18,21 +22,33 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
 
-export interface Product {
-  id: number;
-  code: string;
-  name: string;
-  price: number;
-  stock: number;
-  category: string;
-  icon: string;
-  iconColor: string;
+import { FormatService } from '../../core/services/format.service';
+import { Product as ApiProduct } from '../../features/seller/models/product.model';
+import { ProductUnitsService } from '../../features/seller/products/product-units.service';
+import { ProductVariantsService } from '../../features/seller/products/product-variants.service';
+import { ProductsService } from '../../features/seller/products/products.service';
+import { AppRoutes } from '../models/enums/routes.enum';
+import { Product } from '../models/interface/product';
+
+function toProduct(p: ApiProduct): Product {
+  return {
+    id: p.id,
+    code: p.id.slice(0, 8).toUpperCase(),
+    name: p.title,
+    price: p.variants[0]?.currentPrice ?? 0,
+    stock: p.availableCount,
+    category: p.categoryName ?? '—',
+    icon: 'pi-box',
+    iconColor: '#6366f1',
+  };
 }
 
 @Component({
   selector: 'app-products',
   standalone: true,
+  providers: [MessageService],
   imports: [
     CommonModule,
     FormsModule,
@@ -47,54 +63,22 @@ export interface Product {
     DropdownModule,
     InputNumberModule,
     InputTextareaModule,
+    ToastModule,
   ],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss',
 })
-export class ProductsComponent {
-  products: Product[] = [
-    {
-      id: 1,
-      code: 'PROD-001',
-      name: 'Notebook Samsung',
-      price: 35000,
-      stock: 5,
-      category: 'Electrónica',
-      icon: 'pi-desktop',
-      iconColor: '#6366f1',
-    },
-    {
-      id: 2,
-      code: 'PROD-002',
-      name: 'Tablet Samsung',
-      price: 12000,
-      stock: 12,
-      category: 'Electrónica',
-      icon: 'pi-tablet',
-      iconColor: '#10b981',
-    },
-    {
-      id: 3,
-      code: 'PROD-003',
-      name: 'Aire Acondicionado Split',
-      price: 25000,
-      stock: 3,
-      category: 'Electrodomésticos',
-      icon: 'pi-sun',
-      iconColor: '#f59e0b',
-    },
-    {
-      id: 4,
-      code: 'PROD-004',
-      name: 'Monitor LG 27"',
-      price: 8500,
-      stock: 0,
-      category: 'Electrónica',
-      icon: 'pi-desktop',
-      iconColor: '#ef4444',
-    },
-  ];
+export class ProductsComponent implements OnInit {
+  private readonly productsService = inject(ProductsService);
+  private readonly productVariantsService = inject(ProductVariantsService);
+  private readonly productUnitsService = inject(ProductUnitsService);
+  private readonly messageService = inject(MessageService);
+  private readonly router = inject(Router);
 
+  products: Product[] = [];
+  loading = false;
+
+  // TODO: reemplazar hardcodeo por categorias propias del backend
   categoryOptions = [
     { label: 'Electrónica', value: 'Electrónica' },
     { label: 'Electrodomésticos', value: 'Electrodomésticos' },
@@ -113,15 +97,32 @@ export class ProductsComponent {
   submitted = false;
   form: FormGroup;
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private fmt: FormatService,
+  ) {
     this.form = this.buildForm();
   }
 
-  /**
-   * Devuelve la lista de productos filtrada por el término de búsqueda.
-   * El filtro se aplica sobre el nombre y la categoría del producto.
-   * Si el término de búsqueda está vacío, se devuelve la lista completa.
-   */
+  ngOnInit(): void {
+    this.loadProducts();
+  }
+
+  // TODO: agregar documentacion de las funciones
+
+  private loadProducts(): void {
+    this.loading = true;
+    this.productsService.list({ status: 'ACTIVE' }).subscribe({
+      next: (items) => {
+        this.products = items.map(toProduct);
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      },
+    });
+  }
+
   get filteredProducts(): Product[] {
     if (!this.searchTerm) return this.products;
     const term = this.searchTerm.toLowerCase();
@@ -132,35 +133,19 @@ export class ProductsComponent {
     );
   }
 
-  /**
-   * Calcula el margen de ganancia en porcentaje entre el precio de compra y el precio de venta.
-   * Si el precio de compra es cero o no está definido, devuelve '--%'.
-   * De lo contrario, calcula el porcentaje y lo formatea con un decimal seguido de '%'.
-   */
   get margen(): string {
     const compra = this.form.get('precioCompra')?.value ?? 0;
     const venta = this.form.get('precioVenta')?.value ?? 0;
     if (!compra || compra === 0) return '--%';
-    const pct = (((venta - compra) / compra) * 100).toFixed(1);
-    return `${pct}%`;
+    return this.fmt.percent((venta - compra) / compra, 1);
   }
 
-  /**
-   *  Determina el estado del stock de un producto basado en la cantidad disponible.
-   * @param stock
-   * @returns
-   */
   getStockStatus(stock: number): 'activo' | 'stock-bajo' | 'sin-stock' {
     if (stock === 0) return 'sin-stock';
     if (stock <= 3) return 'stock-bajo';
     return 'activo';
   }
 
-  /**
-   *  Devuelve la clase CSS correspondiente al estado del stock de un producto.
-   * @param stock
-   * @returns
-   */
   getRowClass(stock: number): string {
     const status = this.getStockStatus(stock);
     if (status === 'sin-stock') return 'row-sin-stock';
@@ -168,27 +153,25 @@ export class ProductsComponent {
     return '';
   }
 
-  /**
-   *  Formatea un número como precio en formato local con el símbolo de dólar.
-   * @param price
-   * @returns
-   */
   formatPrice(price: number): string {
-    return `$${price.toLocaleString('es-AR')}`;
+    return this.fmt.currency(price);
   }
 
-  /**
-   *  Determina si un campo del formulario es inválido y ha sido tocado o el formulario ha sido enviado.
-   * @param field
-   * @returns
-   */
   isInvalid(field: string): boolean {
     const ctrl = this.form.get(field);
     return !!ctrl && ctrl.invalid && (ctrl.touched || this.submitted);
   }
 
   /**
-   *  Abre el modal para crear un nuevo producto.
+   * Indica si la acción de guardar debe permanecer deshabilitada según el estado actual del formulario.
+   * @returns {boolean} `true` cuando faltan campos requeridos o contienen valores inválidos.
+   */
+  get isCreateDisabled(): boolean {
+    return this.form.invalid;
+  }
+
+  /**
+   * Cancela la creación del producto, cierra el modal y reinicia el formulario a su estado inicial.
    */
   cancelCreate(): void {
     this.showCreateModal = false;
@@ -197,21 +180,107 @@ export class ProductsComponent {
   }
 
   /**
-   *  Guarda un nuevo producto basado en los datos del formulario. Si el formulario es inválido, no hace nada.
-   * @returns
+   * Navega a la pantalla de edición del producto seleccionado para completar cambios más avanzados.
+   * @param {string} productId - Identificador del producto a editar.
+   */
+  navigateToEdit(productId: string): void {
+    this.router.navigate([
+      AppRoutes.SELLER_PRODUCTS_EDIT.replace(':id', productId),
+    ]);
+  }
+
+  /**
+   * Crea un producto nuevo usando los campos válidos del modal y refresca el listado al confirmar.
    */
   saveProduct(): void {
     this.submitted = true;
     if (this.form.invalid) return;
-    // TODO: integrate with API
-    this.showCreateModal = false;
-    this.submitted = false;
-    this.form = this.buildForm();
+
+    const { codigo, descripcion, marca, modelo, precioVenta, stockInicial } =
+      this.form.value;
+    const nameParts = [codigo, marca, modelo].filter(Boolean);
+    const name = nameParts.join(' ') || descripcion || codigo;
+    const description = descripcion || name;
+    const initialUnits = this.buildInitialUnits(codigo, stockInicial);
+
+    this.productsService
+      .create({
+        title: name,
+        description,
+      })
+      .pipe(
+        switchMap((product) =>
+          this.productVariantsService
+            .create({
+              productId: product.id,
+              currentPrice: Number(precioVenta),
+            })
+            .pipe(
+              switchMap((variant) =>
+                initialUnits.length > 0
+                  ? this.productUnitsService.createBulk({
+                      variantId: variant.id,
+                      units: initialUnits,
+                    })
+                  : of(null),
+              ),
+            ),
+        ),
+      )
+      .subscribe({
+        next: () => {
+          this.showCreateModal = false;
+          this.submitted = false;
+          this.form = this.buildForm();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Producto registrado correctamente.',
+          });
+          this.loadProducts();
+        },
+        error: (err) => {
+          console.error('Error al crear producto', err);
+        },
+      });
   }
 
   /**
-   *  Construye y devuelve un nuevo FormGroup con los controles necesarios para el formulario de producto, incluyendo validaciones.
-   * @returns
+   * Genera las unidades iniciales del producto usando un prefijo estable y un correlativo de tres dígitos.
+   * @param {string} codigoBase - Código ingresado por el usuario para el producto.
+   * @param {number} stockInicial - Cantidad inicial de unidades a crear.
+   * @returns {Array<{ unitCode: string }>} Unidades listas para enviar al alta masiva.
+   */
+  private buildInitialUnits(
+    codigoBase: string,
+    stockInicial: number,
+  ): Array<{ unitCode: string }> {
+    const total = Number(stockInicial ?? 0);
+    if (!Number.isFinite(total) || total <= 0) return [];
+
+    const prefix = this.sanitizeUnitCode(codigoBase);
+    return Array.from({ length: total }, (_, index) => ({
+      unitCode: `${prefix}-${String(index + 1).padStart(3, '0')}`,
+    }));
+  }
+
+  /**
+   * Normaliza el código base para que pueda reutilizarse como prefijo de unidades sin caracteres inválidos.
+   * @param {string} value - Texto original ingresado en el formulario.
+   * @returns {string} Prefijo seguro para códigos de unidad.
+   */
+  private sanitizeUnitCode(value: string): string {
+    const normalized = String(value ?? '')
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9_-]+/g, '-');
+
+    return normalized || 'PROD';
+  }
+
+  /**
+   * Construye el formulario de alta del modal con las validaciones mínimas necesarias para habilitar el guardado.
+   * @returns {FormGroup} Formulario reactivo listo para crear productos.
    */
   private buildForm(): FormGroup {
     return this.fb.group({

@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { CurrencyArsPipe } from '../../../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { DropdownModule } from 'primeng/dropdown';
+import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { MockAuthService } from '../../../../core/auth/mock-auth.service';
@@ -26,12 +28,14 @@ import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
   selector: 'app-credits-list',
   standalone: true,
   imports: [
+    CurrencyArsPipe,
     CommonModule,
     FormsModule,
     TableModule,
     TagModule,
     ButtonModule,
     DropdownModule,
+    InputTextModule,
     LoadingStateComponent,
     ErrorStateComponent,
     EmptyStateComponent,
@@ -45,9 +49,11 @@ export class CreditsListComponent implements OnInit {
   private readonly header = inject(HeaderService);
 
   credits: Credit[] = [];
+  filteredCredits: Credit[] = [];
   loading = false;
   error: AppError | null = null;
 
+  searchTerm = '';
   selectedStatus: CreditStatus | null = null;
   selectedType: CreditType | null = null;
 
@@ -76,11 +82,25 @@ export class CreditsListComponent implements OnInit {
     this.load();
   }
 
-  /**
-   * Aplica los filtros seleccionados y recarga la lista de créditos. Si no se ha seleccionado ningún filtro, se cargarán todos los créditos.
-   */
   applyFilters(): void {
     this.load();
+  }
+
+  onSearchChange(): void {
+    this.applyClientFilters();
+  }
+
+  private applyClientFilters(): void {
+    const term = this.searchTerm.trim().toLowerCase();
+    if (!term) {
+      this.filteredCredits = this.credits;
+      return;
+    }
+    this.filteredCredits = this.credits.filter(
+      (c) =>
+        c.customerName.toLowerCase().includes(term) ||
+        c.customerDni.toLowerCase().includes(term),
+    );
   }
 
   /**
@@ -95,7 +115,7 @@ export class CreditsListComponent implements OnInit {
    * @param id
    */
   navigateToDetail(id: string): void {
-    this.router.navigate([AppRoutes.SELLER_OPERATIONS_DETAIL, id]);
+    this.router.navigate(['/seller/operations', id]);
   }
 
   /**
@@ -147,9 +167,6 @@ export class CreditsListComponent implements OnInit {
     return map[frequency] ?? frequency.toLowerCase();
   }
 
-  /**
-   * Carga la lista de créditos según los filtros aplicados.
-   */
   private load(): void {
     const filters: CreditListFilters = {};
     if (this.selectedStatus) filters.status = this.selectedStatus;
@@ -161,6 +178,7 @@ export class CreditsListComponent implements OnInit {
       next: (data) => {
         this.credits = data;
         this.loading = false;
+        this.applyClientFilters();
       },
       error: (err: AppError) => {
         this.error = err;

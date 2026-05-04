@@ -121,13 +121,13 @@ export class LoginComponent implements OnDestroy {
       return void this.router.navigate([AppRoutes.CHANGE_PASSWORD]);
 
     if (user.roles.includes(UserRoleEnum.ADMIN))
-      return void this.router.navigate([AppRoutes.DASHBOARD]);
+      return void this.router.navigate([AppRoutes.ADMIN, AppRoutes.DASHBOARD]);
     if (user.roles.includes(UserRoleEnum.SELLER))
-      return void this.router.navigate([AppRoutes.OPERATIONS]);
+      return void this.router.navigate([AppRoutes.SELLER, AppRoutes.OPERATIONS]);
     if (user.roles.includes(UserRoleEnum.COLLECTOR))
       return void this.router.navigate([AppRoutes.ROUTE]);
     if (user.roles.includes(UserRoleEnum.SELLER_COLLECTOR))
-      return void this.router.navigate([AppRoutes.OPERATIONS]);
+      return void this.router.navigate([AppRoutes.SELLER, AppRoutes.OPERATIONS]);
 
     this.router.navigate([AppRoutes.LOGIN]);
   }

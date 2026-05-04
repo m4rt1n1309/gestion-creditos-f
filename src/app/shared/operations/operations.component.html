@@ -50,7 +50,7 @@
     class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
   >
     <p-table
-      [value]="operations"
+      [value]="filteredOperations"
       styleClass="p-datatable-sm"
       [responsiveLayout]="'scroll'"
     >
@@ -84,7 +84,7 @@
             </span>
           </td>
           <td class="p-4 font-bold text-gray-900">
-            ${{ op.amount | number: "1.0-0" }}
+            {{ op.amount | currencyArs }}
           </td>
           <td class="p-4 text-gray-600">{{ op.installments }}</td>
           <td class="p-4 text-center">

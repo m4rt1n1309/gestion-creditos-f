@@ -1,5 +1,6 @@
-import { CommonModule, CurrencyPipe, Location } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { CurrencyArsPipe } from '../../../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MessageService } from 'primeng/api';
@@ -12,14 +13,16 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { AuthService } from '../../../../core/auth/auth.service';
+import { MockAuthService } from '../../../../core/auth/mock-auth.service';
 import { AppError } from '../../../../core/models/app-error';
+import { FormatService } from '../../../../core/services/format.service';
 import { HeaderService } from '../../../../core/services/header.service';
 import { ErrorStateComponent } from '../../../../shared/states/error-state/error-state.component';
 import { LoadingStateComponent } from '../../../../shared/states/loading-state/loading-state.component';
 import {
   CreditDetail,
   CreditStatus,
+  CreditUnit,
   InstallmentStatus,
 } from '../../models/credit.model';
 import {
@@ -34,8 +37,8 @@ import { InstallmentsService } from '../installments.service';
   selector: 'app-credit-detail',
   standalone: true,
   imports: [
+    CurrencyArsPipe,
     CommonModule,
-    CurrencyPipe,
     FormsModule,
     ButtonModule,
     TagModule,
@@ -58,8 +61,9 @@ export class CreditDetailComponent implements OnInit {
   private readonly installmentsService = inject(InstallmentsService);
   private readonly location = inject(Location);
   private readonly header = inject(HeaderService);
-  readonly auth = inject(AuthService);
+  readonly auth = inject(MockAuthService);
   private readonly msg = inject(MessageService);
+  private readonly fmt = inject(FormatService);
 
   credit: CreditDetail | null = null;
   loading = false;
@@ -132,6 +136,16 @@ export class CreditDetailComponent implements OnInit {
 
   goBack(): void {
     this.location.back();
+  }
+
+  /**
+   * Devuelve la etiqueta correspondiente a la variante de la unidad.
+   * @param u
+   * @returns
+   */
+  variantLabel(u: CreditUnit): string {
+    const parts = [u.color, u.size, u.capacity].filter((s) => !!s);
+    return parts.length > 0 ? parts.join(' / ') : '—';
   }
 
   /**
@@ -332,10 +346,7 @@ export class CreditDetailComponent implements OnInit {
       next: (result) => {
         this.processingSettlement = false;
         this.showSettlementDialog = false;
-        const formatted = new Intl.NumberFormat('es-AR', {
-          style: 'currency',
-          currency: 'ARS',
-        }).format(result.settlementAmount);
+        const formatted = this.fmt.currency(result.settlementAmount, 2);
         this.msg.add({
           severity: 'success',
           summary: 'Cancelación anticipada',

@@ -16,6 +16,137 @@
     }
   </div>
 
+  @if (activeTab === "summary") {
+    @if (loadingSummary) {
+      <app-loading-state />
+    } @else if (errorSummary) {
+      <app-error-state />
+    } @else if (summaryReport) {
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div
+          class="bg-green-50 border border-green-200 rounded-2xl p-4 space-y-1 md:col-span-2"
+        >
+          <p class="text-xs font-medium text-green-600 uppercase tracking-wide">
+            Cobrado hoy (total)
+          </p>
+          <p class="text-2xl font-extrabold text-green-700 font-mono">
+            {{ formatCurrency(summaryReport.todayTotal) }}
+          </p>
+          <p class="text-xs text-green-600">
+            Cobros:
+            {{ formatCurrency(summaryReport.todayCollected) }}
+            &nbsp;·&nbsp;Enganches:
+            {{ formatCurrency(summaryReport.todayDownPayments) }}
+          </p>
+        </div>
+        <div
+          class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-1"
+        >
+          <p class="text-xs text-gray-400 uppercase tracking-wide">
+            Efectivo hoy
+          </p>
+          <p class="text-lg font-bold text-gray-800 font-mono">
+            {{ formatCurrency(summaryReport.todayCash) }}
+          </p>
+        </div>
+        <div
+          class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-1"
+        >
+          <p class="text-xs text-gray-400 uppercase tracking-wide">
+            Transferencia hoy
+          </p>
+          <p class="text-lg font-bold text-gray-800 font-mono">
+            {{ formatCurrency(summaryReport.todayTransfer) }}
+          </p>
+        </div>
+        <div
+          class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-1"
+        >
+          <p class="text-xs text-gray-400 uppercase tracking-wide">
+            Cobros del día
+          </p>
+          <p class="text-xl font-bold text-gray-800">
+            {{ summaryReport.todayPaymentsCount }}
+          </p>
+        </div>
+        <div
+          class="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-1"
+        >
+          <p class="text-xs font-medium text-blue-600 uppercase tracking-wide">
+            Enganches del día
+          </p>
+          <p class="text-xl font-bold text-blue-700 font-mono">
+            {{ formatCurrency(summaryReport.todayDownPayments) }}
+          </p>
+          <p class="text-xs text-blue-500">
+            {{ summaryReport.todayDownPaymentsCount }} operaciones
+          </p>
+        </div>
+        <div
+          class="bg-orange-50 border border-orange-200 rounded-2xl p-4 space-y-1"
+        >
+          <p
+            class="text-xs font-medium text-orange-500 uppercase tracking-wide"
+          >
+            Cobros pendientes
+          </p>
+          <p class="text-xl font-bold text-orange-600">
+            {{ summaryReport.pendingPaymentsCount }}
+          </p>
+        </div>
+        <div
+          class="bg-orange-50 border border-orange-200 rounded-2xl p-4 space-y-1"
+        >
+          <p
+            class="text-xs font-medium text-orange-500 uppercase tracking-wide"
+          >
+            Créditos pend. aprobación
+          </p>
+          <p class="text-xl font-bold text-orange-600">
+            {{ summaryReport.pendingCreditsCount }}
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div
+          class="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-1 md:col-span-2"
+        >
+          <p class="text-xs font-medium text-blue-600 uppercase tracking-wide">
+            Cartera activa
+          </p>
+          <p class="text-2xl font-extrabold text-blue-700 font-mono">
+            {{ formatCurrency(summaryReport.activePortfolioBalance) }}
+          </p>
+        </div>
+        <div class="bg-red-50 border border-red-200 rounded-2xl p-4 space-y-1">
+          <p class="text-xs font-medium text-red-500 uppercase tracking-wide">
+            En mora
+          </p>
+          <p class="text-xl font-bold text-red-600">
+            {{ summaryReport.overdueCount }}
+          </p>
+          <p class="text-xs text-red-400 font-mono">
+            {{ formatCurrency(summaryReport.overdueAmount) }}
+          </p>
+        </div>
+        <div
+          class="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 space-y-1"
+        >
+          <p class="text-xs text-gray-400 uppercase tracking-wide">
+            Próximos 7 días
+          </p>
+          <p class="text-xl font-bold text-gray-800">
+            {{ summaryReport.upcoming7dCount }}
+          </p>
+          <p class="text-xs text-gray-400 font-mono">
+            {{ formatCurrency(summaryReport.upcoming7dAmount) }}
+          </p>
+        </div>
+      </div>
+    }
+  }
+
   @if (activeTab === "collection") {
     <p-card styleClass="shadow-sm">
       <div class="flex flex-wrap gap-4 items-end">
@@ -153,7 +284,6 @@
     } @else if (errorPortfolio) {
       <app-error-state />
     } @else if (portfolioReport) {
-      <!-- Saldo pendiente card -->
       <div
         class="bg-blue-50 border border-blue-200 rounded-2xl p-6 space-y-1 max-w-xs"
       >
@@ -167,7 +297,6 @@
           Suma de cuotas no pagadas de créditos activos
         </p>
       </div>
-
       <p-card styleClass="shadow-sm">
         <div class="mb-3">
           <h2 class="text-base font-semibold text-gray-800">
@@ -221,7 +350,6 @@
     } @else if (errorOverdue) {
       <app-error-state />
     } @else if (overdueReport) {
-      <!-- Summary cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-red-50 border border-red-200 rounded-2xl p-4 space-y-1">
           <p class="text-xs font-medium text-red-500 uppercase tracking-wide">
@@ -266,7 +394,6 @@
           </p>
         </div>
       </div>
-
       <p-card styleClass="shadow-sm">
         <div class="mb-3">
           <h2 class="text-base font-semibold text-gray-800">Por cliente</h2>
@@ -419,6 +546,34 @@
   }
 
   @if (activeTab === "products") {
+    <p-card styleClass="shadow-sm">
+      <div class="flex flex-wrap gap-4 items-end">
+        <div class="flex flex-col gap-1">
+          <label
+            class="text-xs font-medium text-gray-500 uppercase tracking-wide"
+          >
+            Stock máximo
+            <span class="normal-case text-gray-400"
+              >(opcional — filtra stock ≤ N)</span
+            >
+          </label>
+          <p-inputNumber
+            [(ngModel)]="stockThreshold"
+            [min]="0"
+            [useGrouping]="false"
+            styleClass="w-32"
+            placeholder="Sin filtro"
+          />
+        </div>
+        <p-button
+          label="Consultar"
+          icon="pi pi-search"
+          [loading]="loadingProducts"
+          (onClick)="consultProducts()"
+        />
+      </div>
+    </p-card>
+
     @if (loadingProducts) {
       <app-loading-state />
     } @else if (errorProducts) {
@@ -434,26 +589,34 @@
         >
           <ng-template pTemplate="header">
             <tr>
-              <th>Nombre</th>
-              <th class="text-right">Precio actual</th>
-              <th class="text-center">Stock</th>
+              <th>Título</th>
+              <th>Descripción</th>
+              <th class="text-right">Precio mín.</th>
+              <th class="text-right">Precio máx.</th>
+              <th class="text-center">Disponibles</th>
               <th class="text-center">Estado</th>
               <th class="text-center">Veces vendido</th>
-              <th class="text-center">Unidades vendidas</th>
+              <th class="text-right">Precio prom. venta</th>
               <th class="text-right">Ingresos generados</th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-row>
             <tr>
-              <td class="font-medium">{{ row.name }}</td>
+              <td class="font-medium">{{ row.title }}</td>
+              <td class="text-sm text-gray-500">
+                {{ row.description || "—" }}
+              </td>
               <td class="text-right font-mono">
-                {{ formatCurrency(row.currentPrice) }}
+                {{ formatCurrency(row.minPrice) }}
+              </td>
+              <td class="text-right font-mono">
+                {{ formatCurrency(row.maxPrice) }}
               </td>
               <td class="text-center">
-                @if (row.availableStock === 0) {
+                @if (row.availableCount === 0) {
                   <p-tag value="Sin stock" severity="danger" />
                 } @else {
-                  {{ row.availableStock }}
+                  {{ row.availableCount }}
                 }
               </td>
               <td class="text-center">
@@ -463,13 +626,148 @@
                 />
               </td>
               <td class="text-center">{{ row.timesSold }}</td>
-              <td class="text-center">{{ row.totalUnitsSold }}</td>
+              <td class="text-right font-mono">
+                {{ formatCurrency(row.avgSellingPrice) }}
+              </td>
               <td class="text-right font-mono font-semibold text-blue-600">
                 {{ formatCurrency(row.totalRevenue) }}
               </td>
             </tr>
           </ng-template>
         </p-table>
+      </p-card>
+    }
+  }
+
+  @if (activeTab === "upcoming") {
+    <p-card styleClass="shadow-sm">
+      <div class="flex flex-wrap gap-4 items-end">
+        <div class="flex flex-col gap-1">
+          <label
+            class="text-xs font-medium text-gray-500 uppercase tracking-wide"
+            >Horizonte</label
+          >
+          <p-dropdown
+            [options]="upcomingDaysOptions"
+            [(ngModel)]="upcomingDays"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="text-sm"
+          />
+        </div>
+        <p-button
+          label="Consultar"
+          icon="pi pi-search"
+          [loading]="loadingUpcoming"
+          (onClick)="consultUpcoming()"
+        />
+      </div>
+    </p-card>
+
+    @if (loadingUpcoming) {
+      <app-loading-state />
+    } @else if (errorUpcoming) {
+      <app-error-state />
+    } @else if (upcomingReport) {
+      <div class="grid grid-cols-2 gap-4 max-w-sm">
+        <div
+          class="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-1"
+        >
+          <p class="text-xs font-medium text-blue-600 uppercase tracking-wide">
+            Cuotas
+          </p>
+          <p class="text-2xl font-extrabold text-blue-700">
+            {{ upcomingReport.summary.installmentsCount }}
+          </p>
+        </div>
+        <div
+          class="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-1"
+        >
+          <p class="text-xs font-medium text-blue-600 uppercase tracking-wide">
+            Monto esperado
+          </p>
+          <p class="text-xl font-bold text-blue-700 font-mono">
+            {{ formatCurrency(upcomingReport.summary.expectedAmount) }}
+          </p>
+        </div>
+      </div>
+
+      <p-card styleClass="shadow-sm">
+        <div class="mb-3">
+          <h2 class="text-base font-semibold text-gray-800">Por día</h2>
+        </div>
+        @if (upcomingReport.byDay.length === 0) {
+          <p class="text-sm text-gray-400 text-center py-6">
+            Sin vencimientos en el período.
+          </p>
+        } @else {
+          <p-table
+            [value]="upcomingReport.byDay"
+            styleClass="p-datatable-sm"
+            responsiveLayout="scroll"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Fecha</th>
+                <th class="text-center">Cuotas</th>
+                <th class="text-right">Monto esperado</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row>
+              <tr>
+                <td>{{ formatDate(row.dueDate) }}</td>
+                <td class="text-center font-semibold">{{ row.count }}</td>
+                <td class="text-right font-mono font-semibold text-blue-600">
+                  {{ formatCurrency(row.expectedAmount) }}
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        }
+      </p-card>
+
+      <p-card styleClass="shadow-sm">
+        <div class="mb-3">
+          <h2 class="text-base font-semibold text-gray-800">Por cliente</h2>
+        </div>
+        @if (upcomingReport.byCustomer.length === 0) {
+          <p class="text-sm text-gray-400 text-center py-6">
+            Sin clientes con vencimientos en el período.
+          </p>
+        } @else {
+          <p-table
+            [value]="upcomingReport.byCustomer"
+            styleClass="p-datatable-sm p-datatable-hoverable-rows"
+            responsiveLayout="scroll"
+          >
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Cliente</th>
+                <th>Teléfono</th>
+                <th>Cobrador</th>
+                <th class="text-center">Cuotas</th>
+                <th class="text-right">Monto esperado</th>
+                <th>Próximo venc.</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-row>
+              <tr>
+                <td class="font-medium">{{ row.customerName }}</td>
+                <td class="text-sm text-gray-500">{{ row.phone ?? "—" }}</td>
+                <td class="text-sm text-gray-500">
+                  {{ row.assignedCollector ?? "—" }}
+                </td>
+                <td class="text-center font-semibold">
+                  {{ row.installmentsCount }}
+                </td>
+                <td class="text-right font-mono font-semibold text-blue-600">
+                  {{ formatCurrency(row.expectedAmount) }}
+                </td>
+                <td class="text-sm">{{ formatDate(row.nextDueDate) }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        }
       </p-card>
     }
   }

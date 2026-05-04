@@ -79,6 +79,20 @@ export const SELLER_ROUTES: Routes = [
       ),
   },
   {
+    path: 'products/:id/variants/:variantId/units',
+    loadComponent: () =>
+      import('./products/product-units/product-units.component').then(
+        (c) => c.ProductUnitsComponent,
+      ),
+  },
+  {
+    path: 'products/:id/variants',
+    loadComponent: () =>
+      import('./products/product-variants/product-variants.component').then(
+        (c) => c.ProductVariantsComponent,
+      ),
+  },
+  {
     path: AppRoutes.PRODUCTS_DETAIL,
     loadComponent: () =>
       import('./products/product-detail/product-detail.component').then(

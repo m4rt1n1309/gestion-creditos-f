@@ -1,4 +1,4 @@
-// TODO -> reemplazar por variables en ingles, solo es provisorio para las pruebas del frontend
+// TODO: reemplazar por variables en ingles, solo es provisorio para las pruebas del frontend
 
 export interface Credit {
   id: string;

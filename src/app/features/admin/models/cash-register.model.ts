@@ -1,13 +1,17 @@
-export type DifferenceStatus = 'BALANCED' | 'SURPLUS' | 'SHORTAGE';
+export type DifferenceStatus = 'EXACT' | 'SURPLUS' | 'SHORTAGE';
 
 export interface CashRegisterDashboard {
   date: string;
   cashAmount: number;
   transferAmount: number;
   totalCollected: number;
-  totalEgreses: number;
+  totalOutflows: number;
   approvedCount: number;
   pendingCount: number;
+  netBalance: number;
+  pendingAmount: number;
+  downPaymentsTotal: number;
+  downPaymentsCount: number;
 }
 
 export interface CashRegister {
@@ -27,11 +31,15 @@ export interface CashRegister {
 export interface CashRegisterFilters {
   dateFrom?: string;
   dateTo?: string;
+  differenceStatus?: DifferenceStatus;
 }
 
 export interface CashRegisterClosePayload {
   declaredCash: number;
   observations?: string;
+  force?: boolean;
+  /** Fecha para cierre retroactivo (YYYY-MM-DD). Opcional. */
+  registerDate?: string;
 }
 
 export interface CashRegisterDashboardRaw {
@@ -39,9 +47,13 @@ export interface CashRegisterDashboardRaw {
   cash_amount: number;
   transfer_amount: number;
   total_collected: number;
-  total_egreses: number;
+  total_outflows: number;
   approved_count: number;
   pending_count: number;
+  net_balance: number;
+  pending_amount: number;
+  down_payments_total: number;
+  down_payments_count: number;
 }
 
 export interface CashRegisterRaw {

@@ -1,5 +1,5 @@
-import { CurrencyPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { CurrencyArsPipe } from '../../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -24,7 +24,7 @@ import {
   selector: 'app-delinquency',
   standalone: true,
   imports: [
-    CurrencyPipe,
+    CurrencyArsPipe,
     FormsModule,
     TableModule,
     ButtonModule,

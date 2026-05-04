@@ -40,6 +40,22 @@ export interface CreditProduct {
   historicalPrice: number;
   productId: string;
   productName: string;
+  historicalRate: number | null;
+}
+
+export interface CreditUnit {
+  id: string;
+  historicalPrice: number;
+  historicalRate: number | null;
+  unitId: string;
+  unitCode: string;
+  unitStatus: string;
+  variantId: string;
+  color: string | null;
+  size: string | null;
+  capacity: string | null;
+  productId: string;
+  productName: string;
 }
 
 export interface CreditDetail extends Credit {
@@ -48,7 +64,15 @@ export interface CreditDetail extends Credit {
   approvedBy: string | null;
   customerPhone: string | null;
   products?: CreditProduct[];
+  units?: CreditUnit[];
   installments: CreditInstallment[];
+  downPayment: number;
+  financedAmount: number;
+  downPaymentMethod: string | null;
+  downPaymentTransferReference: string | null;
+  settledAt: string | null;
+  settlementAmount: number | null;
+  settlementType: string | null;
 }
 
 export interface CreditListFilters {
@@ -60,9 +84,20 @@ export interface CreditListFilters {
 export interface SimulatePayload {
   type: CreditType;
   totalAmount?: number;
+  products?: Array<{ variantId: string; quantity: number }>;
   installmentsCount: number;
   paymentFrequency: PaymentFrequency;
-  products?: Array<{ productId: string; quantity: number }>;
+  downPayment?: number;
+}
+
+export interface SimulateResultItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+  rate: number;
+  installmentContribution: number;
 }
 
 export interface SimulateResult {
@@ -73,6 +108,9 @@ export interface SimulateResult {
   installmentAmount: number;
   totalToReturn: number;
   note: string;
+  items?: SimulateResultItem[];
+  downPayment?: number;
+  financedAmount?: number;
 }
 
 export interface SaleCreditPayload {
@@ -80,8 +118,11 @@ export interface SaleCreditPayload {
   type: 'SALE';
   installmentsCount: number;
   paymentFrequency: PaymentFrequency;
-  products: Array<{ productId: string; quantity: number }>;
+  units: Array<{ unitId: string }>;
   notes?: string;
+  downPayment?: number;
+  downPaymentMethod?: 'CASH' | 'TRANSFER';
+  downPaymentTransferReference?: string;
 }
 
 export interface LoanCreditPayload {
@@ -128,6 +169,22 @@ export interface CreditProductRaw {
   historical_price: number;
   product_id: string;
   product_name: string;
+  historical_rate: number | null;
+}
+
+export interface CreditUnitRaw {
+  id: string;
+  historical_price: number;
+  historical_rate: number | null;
+  unit_id: string;
+  unit_code: string;
+  unit_status: string;
+  variant_id: string;
+  color: string | null;
+  size: string | null;
+  capacity: string | null;
+  product_id: string;
+  product_name: string;
 }
 
 export interface CreditDetailRaw extends CreditRaw {
@@ -136,7 +193,15 @@ export interface CreditDetailRaw extends CreditRaw {
   approved_by: string | null;
   customer_phone: string | null;
   products?: CreditProductRaw[];
+  units?: CreditUnitRaw[];
   installments: CreditInstallmentRaw[];
+  down_payment: number;
+  financed_amount?: number;
+  down_payment_method: string | null;
+  down_payment_transfer_reference: string | null;
+  settled_at: string | null;
+  settlement_amount: number | null;
+  settlement_type: string | null;
 }
 
 export interface ApprovePayload {
@@ -156,4 +221,13 @@ export interface EarlySettlementResult {
   creditId: string;
   settlementAmount: number;
   paymentMethod: string;
+}
+
+export interface CartUnit {
+  unitId: string;
+  unitCode: string;
+  productName: string;
+  variantLabel: string;
+  price: number;
+  variantId: string;
 }

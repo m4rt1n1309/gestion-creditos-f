@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
 import { RippleModule } from 'primeng/ripple';
+import { TooltipModule } from 'primeng/tooltip';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MockAuthService } from '../../../core/auth/mock-auth.service';
@@ -19,6 +20,7 @@ import { NAV_CONFIG } from '../../utils/nav-config';
     BadgeModule,
     AvatarModule,
     RippleModule,
+    TooltipModule,
   ],
   templateUrl: './sidebar.component.html',
 })

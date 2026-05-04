@@ -8,7 +8,7 @@ import {
   InterestRateListFilters,
   InterestRateRaw,
   InterestRateUpdatePayload,
-} from '../models/interest-rate.model';
+} from '../models/interfaces/interest-rate.model';
 
 /**
  * Convierte un objeto InterestRateRaw a InterestRate.

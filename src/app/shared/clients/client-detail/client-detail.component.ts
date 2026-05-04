@@ -1,9 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { ButtonModule } from 'primeng/button';
+import { CustomersService } from '../../../features/seller/clients/customers.service';
+import { CustomerDetail as CustomerApiDetail } from '../../../features/seller/models/customer.model';
 import { HeaderService } from '../../../core/services/header.service';
 import { ClientDetail } from '../../models/interface/client';
+import { ErrorStateComponent } from '../../states/error-state/error-state.component';
+import { LoadingStateComponent } from '../../states/loading-state/loading-state.component';
 import { ClientContactarComponent } from './tabs/client-contactar/client-contactar.component';
 import { ClientCreditsComponent } from './tabs/client-credits/client-credits.component';
 import { ClientDocumentsComponent } from './tabs/client-documents/client-documents.component';
@@ -12,12 +17,54 @@ import { AppRoutes } from '../../models/enums/routes.enum';
 
 type TabId = 'creditos' | 'historial' | 'documentos' | 'contactar';
 
+const AVATAR_COLORS = [
+  '#3B82F6',
+  '#10B981',
+  '#F59E0B',
+  '#EF4444',
+  '#8B5CF6',
+  '#EC4899',
+  '#14B8A6',
+  '#F97316',
+];
+
+/**
+ * Convierte el detalle real del cliente al contrato visual usado por la vista compartida.
+ * Completa valores faltantes con placeholders seguros para evitar estados rotos cuando el backend no expone toda la información histórica.
+ * @param customer
+ * @returns
+ */
+function toClientDetail(customer: CustomerApiDetail): ClientDetail {
+  const parts = customer.fullName.trim().split(/\s+/);
+  const initials = ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase();
+  const colorIdx = customer.fullName.charCodeAt(0) % AVATAR_COLORS.length;
+
+  return {
+    id: customer.id,
+    dni: customer.dni,
+    initials,
+    avatarColor: AVATAR_COLORS[colorIdx],
+    name: customer.fullName,
+    phone: customer.phone ?? 'Sin teléfono',
+    email: customer.email ?? 'Sin email',
+    direccion: customer.address ?? 'Sin dirección',
+    ciudad: '—',
+    risk: 'Al dia',
+    credits: [],
+    historial: [],
+    documents: [],
+    contactHistory: [],
+  };
+}
+
 @Component({
   selector: 'app-client-detail',
   standalone: true,
   imports: [
     CommonModule,
     ButtonModule,
+    LoadingStateComponent,
+    ErrorStateComponent,
     ClientCreditsComponent,
     ClientHistorialComponent,
     ClientDocumentsComponent,
@@ -27,7 +74,15 @@ type TabId = 'creditos' | 'historial' | 'documentos' | 'contactar';
   styleUrl: './client-detail.component.scss',
 })
 export class ClientDetailComponent implements OnInit, OnDestroy {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly headerService = inject(HeaderService);
+  private readonly customersService = inject(CustomersService);
+
   client: ClientDetail | null = null;
+  loading = false;
+  notFound = false;
+  errorMessage = '';
   private _activeTab: TabId = 'creditos';
   base = '';
 
@@ -39,311 +94,10 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
     this.updateHeaderActions();
   }
 
-  private mockClients: ClientDetail[] = [
-    {
-      dni: '27.123.456',
-      initials: 'JP',
-      avatarColor: '#3B82F6',
-      name: 'Juan Pérez García',
-      phone: '+54 9 2865 123456',
-      email: 'juan@email.com',
-      direccion: 'Calle Principal 123',
-      ciudad: 'San Miguel de Tucumán',
-      risk: 'Mora leve',
-      credits: [
-        {
-          id: 'CR-2024-0341',
-          tipo: 'Préstamo Express Personal',
-          producto: 'Préstamo Express Personal',
-          montoOriginal: 25000,
-          saldoPendiente: 18500,
-          cuotaActual: 14,
-          totalCuotas: 24,
-          cuotaMensual: 1250,
-          proximoVencimiento: '30/04/2026',
-          tasa: '1.8% mensual',
-          estado: 'ACTIVO',
-          progreso: 56,
-        },
-        {
-          id: 'CR-2023-0187',
-          tipo: 'Credito Plus Personal',
-          producto: 'Credito Plus Personal',
-          montoOriginal: 10000,
-          saldoPendiente: 7200,
-          cuotaActual: 6,
-          totalCuotas: 18,
-          cuotaMensual: 0,
-          proximoVencimiento: '',
-          tasa: '1.5% mensual',
-          estado: 'EN MORA',
-          progreso: 33,
-          diasMora: 29,
-          moraAcumulada: 580,
-          vencimientoMora: '15/03/2026',
-        },
-      ],
-      historial: [
-        {
-          fecha: '01 Abr 2026',
-          hora: '10:32 a.m.',
-          evento: 'Pago recibido',
-          creditoId: 'CR-2024-0341',
-          monto: 1250,
-          usuario: 'Sistema',
-          estado: 'Aplicado',
-        },
-        {
-          fecha: '15 Mar 2026',
-          hora: '06:15 a.m.',
-          evento: 'Mora aplicada',
-          creditoId: 'CR-2023-0187',
-          monto: 580,
-          usuario: 'Ana Martínez',
-          estado: 'Pendiente',
-        },
-        {
-          fecha: '01 Mar 2026',
-          hora: '11:09 a.m.',
-          evento: 'Pago recibido',
-          creditoId: 'CR-2024-0341',
-          monto: 1250,
-          usuario: 'Sistema',
-          estado: 'Aplicado',
-        },
-        {
-          fecha: '01 Mar 2026',
-          hora: '10:03 a.m.',
-          evento: 'Pago recibido',
-          creditoId: 'CR-2023-0187',
-          monto: 1080,
-          usuario: 'Sistema',
-          estado: 'Aplicado',
-        },
-        {
-          fecha: '01 Feb 2026',
-          hora: '11:50 a.m.',
-          evento: 'Pago recibido',
-          creditoId: 'CR-2024-0341',
-          monto: 1250,
-          usuario: 'Sistema',
-          estado: 'Aplicado',
-        },
-        {
-          fecha: '15 Ene 2026',
-          hora: '08:20 a.m.',
-          evento: 'Notificación enviada',
-          creditoId: 'CR-2023-0187',
-          monto: null,
-          usuario: 'Sistema',
-          estado: 'Enviada',
-        },
-        {
-          fecha: '15 Dic 2025',
-          hora: '01:33 p.m.',
-          evento: 'Crédito creado',
-          creditoId: 'CR-2024-0341',
-          monto: 25000,
-          usuario: 'Carlos Ruiz',
-          estado: 'Activo',
-        },
-      ],
-      documents: [
-        {
-          id: 'doc-1',
-          name: 'Cédula de Ciudadanía',
-          type: 'PDF',
-          sizeKb: 1200,
-          date: '12 Ene 2026',
-          category: 'Identificación',
-          status: 'ok',
-        },
-        {
-          id: 'doc-2',
-          name: 'Foto Documento',
-          type: 'JPG',
-          sizeKb: 850,
-          date: '12 Ene 2026',
-          category: 'Identificación',
-          status: 'ok',
-        },
-        {
-          id: 'doc-3',
-          name: 'Contrato CR-2024-0341',
-          type: 'PDF',
-          sizeKb: 3100,
-          date: '15 Dic 2025',
-          category: 'Documentos de Crédito',
-          status: 'ok',
-          creditoId: 'CR-2024-0341',
-        },
-        {
-          id: 'doc-4',
-          name: 'Contrato CR-2023-0187',
-          type: 'PDF',
-          sizeKb: 2800,
-          date: '01 Jun 2023',
-          category: 'Documentos de Crédito',
-          status: 'ok',
-          creditoId: 'CR-2023-0187',
-        },
-        {
-          id: 'doc-5',
-          name: 'Pagaré CR-2023-0187',
-          type: 'PDF',
-          sizeKb: 0,
-          date: '',
-          category: 'Documentos de Crédito',
-          status: 'pendiente',
-          required: true,
-          creditoId: 'CR-2023-0187',
-        },
-        {
-          id: 'doc-6',
-          name: 'Certificado Laboral',
-          type: 'PDF',
-          sizeKb: 540,
-          date: '10 Ene 2026',
-          category: 'Documentos Laborales',
-          status: 'ok',
-        },
-      ],
-      contactHistory: [
-        {
-          channel: 'WhatsApp',
-          descripcion: 'Pago pendiente recordatorio',
-          fecha: '15 Mar 2026',
-          hora: '09:00 a.m.',
-          usuario: 'Ana Martínez',
-          estado: 'Entregado',
-        },
-        {
-          channel: 'Correo',
-          descripcion: 'Mora aplicada notificación',
-          fecha: '15 Mar 2026',
-          hora: '09:18 a.m.',
-          usuario: 'Sistema',
-          estado: 'Entregado',
-        },
-        {
-          channel: 'Llamada',
-          descripcion: 'Sin respuesta',
-          fecha: '10 Mar 2026',
-          hora: '02:30 p.m.',
-          usuario: 'Carlos Ruiz',
-          estado: 'Sin respuesta',
-        },
-        {
-          channel: 'WhatsApp',
-          descripcion: 'Bienvenida nuevo crédito',
-          fecha: '15 Dic 2025',
-          hora: '03:30 p.m.',
-          usuario: 'Sistema',
-          estado: 'Entregado',
-        },
-      ],
-    },
-    {
-      dni: '28.654.321',
-      initials: 'ML',
-      avatarColor: '#10B981',
-      name: 'María López',
-      phone: '+54 9 3654 3211',
-      email: 'maria@mail.com',
-      direccion: 'Av. Libertad 456',
-      ciudad: 'San Miguel de Tucumán',
-      risk: 'Al dia',
-      credits: [
-        {
-          id: 'CR-2024-0200',
-          tipo: 'Préstamo personal',
-          producto: 'Préstamo personal',
-          montoOriginal: 20000,
-          saldoPendiente: 14000,
-          cuotaActual: 3,
-          totalCuotas: 10,
-          cuotaMensual: 2000,
-          proximoVencimiento: '20/04/2026',
-          tasa: '1.5% mensual',
-          estado: 'ACTIVO',
-          progreso: 30,
-        },
-      ],
-      historial: [
-        {
-          fecha: '01 Abr 2026',
-          hora: '09:00 a.m.',
-          evento: 'Pago recibido',
-          creditoId: 'CR-2024-0200',
-          monto: 2000,
-          usuario: 'Sistema',
-          estado: 'Aplicado',
-        },
-      ],
-      documents: [],
-      contactHistory: [],
-    },
-    {
-      dni: '29.321.654',
-      initials: 'CR',
-      avatarColor: '#EF4444',
-      name: 'Carlos Ruiz',
-      phone: '+54 9 3214 5693',
-      email: 'carlos@mail.com',
-      direccion: 'Belgrano 789',
-      ciudad: 'San Miguel de Tucumán',
-      risk: 'Mora alta',
-      credits: [
-        {
-          id: 'CR-2024-0150',
-          tipo: 'TV LG 55"',
-          producto: 'TV LG 55"',
-          montoOriginal: 45000,
-          saldoPendiente: 36000,
-          cuotaActual: 5,
-          totalCuotas: 18,
-          cuotaMensual: 2500,
-          proximoVencimiento: '05/04/2026',
-          tasa: '2.0% mensual',
-          estado: 'EN MORA',
-          progreso: 28,
-          diasMora: 11,
-          moraAcumulada: 1800,
-          vencimientoMora: '05/04/2026',
-        },
-      ],
-      historial: [
-        {
-          fecha: '05 Abr 2026',
-          hora: '10:00 a.m.',
-          evento: 'Mora aplicada',
-          creditoId: 'CR-2024-0150',
-          monto: 1800,
-          usuario: 'Sistema',
-          estado: 'Pendiente',
-        },
-      ],
-      documents: [],
-      contactHistory: [],
-    },
-  ];
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private headerService: HeaderService,
-  ) {}
-
   ngOnInit(): void {
-    const dni = this.route.snapshot.paramMap.get('dni');
-    this.client = this.mockClients.find((c) => c.dni === dni) ?? null;
-
     this.base = this.router.url.split('/clients')[0];
-    this.headerService.breadcrumbs.set([
-      { label: 'Clientes', route: `${this.base}/clients` },
-      { label: this.client?.name ?? 'Cliente' },
-      { label: 'Créditos' },
-    ]);
+    this.updateBreadcrumbs();
+    this.loadClient();
     this.updateHeaderActions();
   }
 
@@ -370,7 +124,56 @@ export class ClientDetailComponent implements OnInit, OnDestroy {
       this.client?.credits
         .filter((c) => c.estado !== 'PAGADO')
         .reduce((sum, c) => sum + c.saldoPendiente, 0) ?? 0
-    );
+      );
+  }
+
+  /**
+   * Carga el cliente real desde el backend usando el ID de la ruta.
+   * Solo muestra estado de no encontrado cuando la API responde 404; el resto de errores se informa como falla de carga.
+   */
+  private loadClient(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) {
+      this.notFound = true;
+      this.client = null;
+      this.updateBreadcrumbs();
+      return;
+    }
+
+    this.loading = true;
+    this.notFound = false;
+    this.errorMessage = '';
+
+    this.customersService
+      .getById(id)
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: (customer) => {
+          this.client = toClientDetail(customer);
+          this.updateBreadcrumbs();
+        },
+        error: (error: { status?: number; message?: string }) => {
+          this.client = null;
+          if (error?.status === 404) {
+            this.notFound = true;
+          } else {
+            this.errorMessage =
+              error?.message ?? 'Ocurrió un error al cargar el cliente.';
+          }
+          this.updateBreadcrumbs();
+        },
+      });
+  }
+
+  /**
+   * Sincroniza el breadcrumb con el estado real de la vista para evitar títulos inconsistentes.
+   */
+  private updateBreadcrumbs(): void {
+    this.headerService.breadcrumbs.set([
+      { label: 'Clientes', route: `${this.base}/clients` },
+      { label: this.client?.name ?? 'Cliente' },
+      { label: 'Créditos' },
+    ]);
   }
 
   private updateHeaderActions(): void {

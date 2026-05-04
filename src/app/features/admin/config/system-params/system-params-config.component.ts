@@ -9,7 +9,10 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { TableModule } from 'primeng/table';
 import { ToastModule } from 'primeng/toast';
 import { AppError } from '../../../../core/models/app-error';
-import { ParamMeta, SystemConfigParam } from '../models/system-config.model';
+import {
+  ParamMeta,
+  SystemConfigParam,
+} from '../models/interfaces/system-config.model';
 import { SystemConfigService } from '../services/system-config.service';
 
 const PARAM_META: Record<string, ParamMeta> = {

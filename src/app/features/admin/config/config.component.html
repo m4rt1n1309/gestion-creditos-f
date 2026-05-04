@@ -25,6 +25,9 @@
       @if (activeTab === 'tasas') {
         <app-interest-rates-config />
       }
+      @if (activeTab === 'tasas-producto') {
+        <app-product-rates-config />
+      }
       @if (activeTab === 'parametros') {
         <app-system-params-config />
       }
@@ -36,6 +39,12 @@
       }
       @if (activeTab === 'notificaciones') {
         <app-notifications-config />
+      }
+      @if (activeTab === 'categorias-producto') {
+        <app-product-categories-config />
+      }
+      @if (activeTab === 'marcas') {
+        <app-product-brands-config />
       }
     </div>
 

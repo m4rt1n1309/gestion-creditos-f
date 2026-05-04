@@ -5,7 +5,7 @@ export enum AppRoutes {
   CASH_REGISTER = 'cash-register',
   CHANGE_PASSWORD = 'change-password',
   CLIENTS = 'clients',
-  CLIENTS_DETAIL = 'clients/:dni',
+  CLIENTS_DETAIL = 'clients/:id',
   CLIENTS_NEW = 'clients/new',
   COLLECTOR = 'collector',
   CONFIG = 'config',
@@ -29,6 +29,9 @@ export enum AppRoutes {
   USERS_DETAIL = 'users/:id',
   USERS_NEW = 'users/new',
 
+  // Admin expenses
+  ADMIN_EXPENSES = 'expenses',
+
   // Admin collections, payments & commissions
   ADMIN_COMMISSIONS = 'commissions',
   ADMIN_COLLECTIONS = 'collections',
@@ -42,6 +45,9 @@ export enum AppRoutes {
   PORTAL_DASHBOARD = '/portal/dashboard',
   PORTAL_CREDITS = '/portal/credits',
   PORTAL_CREDIT_DETAIL = '/portal/credits/:id',
+
+  // Profile
+  PROFILE = 'profile',
 
   // Seller
   SELLER_OPERATIONS = 'seller/operations/new',

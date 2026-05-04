@@ -1,0 +1,106 @@
+<p-toast />
+
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h2 class="text-base font-semibold text-gray-700">
+      Categorías de productos
+    </h2>
+    <p-button
+      label="Nueva categoría"
+      icon="pi pi-plus"
+      (onClick)="openCreate()"
+    />
+  </div>
+
+  @if (loading) {
+    <div class="space-y-2">
+      @for (_ of [1, 2, 3]; track $index) {
+        <p-skeleton height="2.5rem" />
+      }
+    </div>
+  } @else if (rows.length === 0) {
+    <p class="text-sm text-gray-400 text-center py-8">
+      Sin categorías registradas.
+    </p>
+  } @else {
+    <div
+      class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+    >
+      <p-table
+        [value]="rows"
+        styleClass="p-datatable-sm p-datatable-hoverable-rows"
+        responsiveLayout="scroll"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Nombre</th>
+            <th class="text-center">Estado</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-cat>
+          <tr>
+            <td class="font-medium">{{ cat.name }}</td>
+            <td class="text-center">
+              <p-tag
+                [value]="cat.active ? 'Activa' : 'Inactiva'"
+                [severity]="cat.active ? 'success' : 'secondary'"
+              />
+            </td>
+            <td class="text-center">
+              <p-button
+                [label]="cat.active ? 'Desactivar' : 'Activar'"
+                [severity]="cat.active ? 'danger' : 'secondary'"
+                [outlined]="true"
+                size="small"
+                (onClick)="toggle(cat)"
+              />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
+</div>
+
+<p-dialog
+  [(visible)]="showDialog"
+  [modal]="true"
+  [style]="{ width: '400px' }"
+  header="Nueva categoría"
+  [closable]="!saving"
+>
+  <div class="space-y-4 py-1">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-gray-700">Nombre *</label>
+      <input
+        pInputText
+        [(ngModel)]="newName"
+        maxlength="100"
+        class="w-full h-11"
+        placeholder="Nombre de la categoría..."
+      />
+    </div>
+    @if (dialogError) {
+      <p class="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+        {{ dialogError }}
+      </p>
+    }
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      severity="secondary"
+      [text]="true"
+      (onClick)="showDialog = false"
+      [disabled]="saving"
+    />
+    <p-button
+      label="Crear"
+      icon="pi pi-check"
+      (onClick)="submitCreate()"
+      [loading]="saving"
+      [disabled]="!newName.trim()"
+    />
+  </ng-template>
+</p-dialog>

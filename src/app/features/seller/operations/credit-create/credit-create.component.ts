@@ -1,9 +1,9 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import {
-  FormArray,
   FormBuilder,
   FormGroup,
+  FormsModule,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
@@ -17,15 +17,21 @@ import { InputTextareaModule } from 'primeng/inputtextarea';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { ToastModule } from 'primeng/toast';
 import { AppError } from '../../../../core/models/app-error';
+import { CurrencyArsPipe } from '../../../../core/pipes/currency-ars.pipe';
 import { HeaderService } from '../../../../core/services/header.service';
 import { CustomersService } from '../../clients/customers.service';
 import {
+  CartUnit,
   CreditCreatePayload,
   PaymentFrequency,
   SimulateResult,
 } from '../../models/credit.model';
 import { Customer } from '../../models/customer.model';
+import { ProductUnit } from '../../models/product-unit.model';
+import { ProductVariant } from '../../models/product-variant.model';
 import { Product } from '../../models/product.model';
+import { ProductUnitsService } from '../../products/product-units.service';
+import { ProductVariantsService } from '../../products/product-variants.service';
 import { ProductsService } from '../../products/products.service';
 import { CreditsService } from '../credits.service';
 
@@ -34,7 +40,9 @@ import { CreditsService } from '../credits.service';
   standalone: true,
   providers: [MessageService],
   imports: [
+    CurrencyArsPipe,
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     ButtonModule,
     DropdownModule,
@@ -51,6 +59,8 @@ export class CreditCreateComponent implements OnInit {
   private readonly creditsService = inject(CreditsService);
   private readonly customersService = inject(CustomersService);
   private readonly productsService = inject(ProductsService);
+  private readonly variantsService = inject(ProductVariantsService);
+  private readonly unitsService = inject(ProductUnitsService);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly header = inject(HeaderService);
@@ -64,7 +74,19 @@ export class CreditCreateComponent implements OnInit {
   simulateResult: SimulateResult | null = null;
   simulateError: string | null = null;
   submitError: string | null = null;
-  productsError: string | null = null;
+  unitsError: string | null = null;
+  showExtraSection = false;
+
+  selectorProducts: Product[] = [];
+  selectorVariants: ProductVariant[] = [];
+  selectorUnits: ProductUnit[] = [];
+  selectedProductId = '';
+  selectedVariantId = '';
+  selectedUnitId = '';
+  loadingVariants = false;
+  loadingUnits = false;
+
+  cart: CartUnit[] = [];
 
   readonly frequencyOptions = [
     { label: 'Semanal', value: 'WEEKLY' },
@@ -72,30 +94,19 @@ export class CreditCreateComponent implements OnInit {
     { label: 'Mensual', value: 'MONTHLY' },
   ];
 
-  /**
-   * Obtiene el tipo de crédito seleccionado en el formulario (SALE o LOAN). Se utiliza para mostrar/ocultar campos específicos de cada tipo.
-   */
+  readonly paymentMethodOptions = [
+    { label: 'Efectivo', value: 'CASH' },
+    { label: 'Transferencia', value: 'TRANSFER' },
+  ];
+
   get creditType(): string {
     return this.form.get('type')?.value ?? 'SALE';
   }
 
-  /**
-   * Indica si el crédito es de tipo "SALE". Se utiliza para mostrar/ocultar campos específicos de este tipo.
-   */
   get isSale(): boolean {
     return this.creditType === 'SALE';
   }
 
-  /**
-   * Obtiene el FormArray que contiene las filas de productos en el formulario. Solo se utiliza para créditos de tipo "SALE". Cada fila representa un producto seleccionado y su cantidad.
-   */
-  get productRows(): FormArray {
-    return this.form.get('products') as FormArray;
-  }
-
-  /**
-   * Obtiene las opciones de clientes para mostrar en el dropdown de selección de cliente. Convierte la lista de clientes cargada desde el servicio a un formato adecuado para el componente de dropdown, mostrando el nombre completo y DNI de cada cliente.
-   */
   get customerOptions(): { label: string; value: string }[] {
     return this.customers.map((c) => ({
       label: `${c.fullName} (${c.dni})`,
@@ -103,93 +114,205 @@ export class CreditCreateComponent implements OnInit {
     }));
   }
 
-  /**
-   * Obtiene las opciones de productos para mostrar en el dropdown de selección de productos (solo para créditos de tipo "SALE"). Convierte la lista de productos cargada desde el servicio a un formato adecuado para el componente de dropdown, mostrando el nombre del producto y su stock disponible.
-   */
-  get productOptions(): { label: string; value: string }[] {
-    return this.products.map((p) => ({
-      label: `${p.name} — Stock: ${p.availableStock}`,
+  get productSelectorOptions(): { label: string; value: string }[] {
+    return this.selectorProducts.map((p) => ({
+      label: `${p.title} — Disponibles: ${p.availableCount}`,
       value: p.id,
     }));
   }
 
-  /**
-   * Convierte el estado del crédito a una etiqueta legible para mostrar en la interfaz.
-   */
-  get saleTotal(): number {
-    if (!this.isSale) return 0;
-    return this.productRows.controls.reduce((sum, row) => {
-      const productId = row.get('productId')?.value;
-      const quantity = row.get('quantity')?.value ?? 0;
-      const product = this.products.find((p) => p.id === productId);
-      return sum + (product ? product.currentPrice * quantity : 0);
-    }, 0);
+  get variantSelectorOptions(): { label: string; value: string }[] {
+    return this.selectorVariants.map((v) => {
+      const parts = [v.color, v.size, v.capacity].filter(Boolean);
+      const label = parts.length > 0 ? parts.join(' / ') : 'Sin variante';
+      return { label: `${label} — $${v.currentPrice}`, value: v.id };
+    });
   }
 
+  get unitSelectorOptions(): { label: string; value: string }[] {
+    const cartIds = new Set(this.cart.map((c) => c.unitId));
+    return this.selectorUnits
+      .filter((u) => !cartIds.has(u.id))
+      .map((u) => ({ label: u.unitCode, value: u.id }));
+  }
+
+  get downPaymentValue(): number {
+    return this.form.get('downPayment')?.value ?? 0;
+  }
+
+  get downPaymentMethod(): string {
+    return this.form.get('downPaymentMethod')?.value ?? 'CASH';
+  }
+
+  get cartTotal(): number {
+    return this.cart.reduce((sum, u) => sum + u.price, 0);
+  }
+
+  get financedAmountPreview(): number {
+    return Math.max(this.cartTotal - this.downPaymentValue, 0);
+  }
+
+  /**
+   * Inicializa el formulario y carga los catálogos necesarios para crear créditos.
+   */
   ngOnInit(): void {
     this.header.set([
       { label: 'Operaciones', route: '/seller/operations' },
       { label: 'Nueva operación' },
     ]);
     this.buildForm();
+    this.form.get('downPayment')?.valueChanges.subscribe(() => {
+      this.clearSimulationState();
+      if (this.unitsError === 'El enganche no puede ser mayor al total de la venta.') {
+        this.unitsError = null;
+      }
+    });
     this.loadCustomers();
-    this.loadProducts();
+    this.productsService.list({ status: 'ACTIVE' }).subscribe({
+      next: (data) => (this.selectorProducts = data),
+      error: () => {},
+    });
   }
 
   /**
-   * Convierte el payload de simulación a la estructura esperada por la API.
+   * Resetea los estados relacionados con la simulación y el carrito cada vez que se cambia el tipo de crédito, para asegurar que la información mostrada sea relevante al tipo seleccionado y evitar inconsistencias en la interfaz. Esto incluye limpiar los resultados de simulación anteriores, errores, y vaciar el carrito, además de ocultar secciones adicionales que solo aplican a ciertos tipos de crédito.
    */
-  onTypeChange(): void {
+  onTypeChange(newType: string): void {
     this.simulateResult = null;
     this.simulateError = null;
     this.submitError = null;
-    this.productsError = null;
+    this.unitsError = null;
+    this.showExtraSection = false;
+    this.form.patchValue({
+      downPayment: 0,
+      downPaymentMethod: 'CASH',
+      downPaymentTransferReference: '',
+    });
+    const totalAmount = this.form.get('totalAmount');
+    if (newType === 'LOAN') {
+      totalAmount?.setValidators([Validators.required, Validators.min(1)]);
+    } else {
+      totalAmount?.clearValidators();
+      totalAmount?.setValue(null);
+    }
+    totalAmount?.updateValueAndValidity();
   }
 
   /**
-   * Agrega una nueva fila para seleccionar un producto y su cantidad. Solo se muestra para créditos de tipo "SALE".
+   * Maneja la selección de un producto, cargando sus variantes y unidades disponibles.
+   * @returns
    */
-  addProductRow(): void {
-    this.productRows.push(
-      this.fb.group({
-        productId: ['', Validators.required],
-        quantity: [
-          1,
-          [Validators.required, Validators.min(1), Validators.max(9999)],
-        ],
-      }),
-    );
+  onProductSelected(): void {
+    this.selectedVariantId = '';
+    this.selectedUnitId = '';
+    this.selectorVariants = [];
+    this.selectorUnits = [];
+    if (!this.selectedProductId) return;
+    this.loadingVariants = true;
+    this.variantsService
+      .getAll({ productId: this.selectedProductId, status: 'ACTIVE' })
+      .subscribe({
+        next: (data) => {
+          this.selectorVariants = data;
+          this.loadingVariants = false;
+        },
+        error: () => {
+          this.loadingVariants = false;
+        },
+      });
   }
 
   /**
-   * Elimina una fila de producto.
+   * Maneja la selección de una variante, cargando las unidades disponibles.
+   * @returns
+   */
+  onVariantSelected(): void {
+    this.selectedUnitId = '';
+    this.selectorUnits = [];
+    if (!this.selectedVariantId) return;
+    this.loadingUnits = true;
+    this.unitsService
+      .getAll({ variantId: this.selectedVariantId, status: 'AVAILABLE' })
+      .subscribe({
+        next: (data) => {
+          this.selectorUnits = data;
+          this.loadingUnits = false;
+        },
+        error: () => {
+          this.loadingUnits = false;
+        },
+      });
+  }
+
+  /**
+   * Agrega una unidad al carrito.
+   * @returns
+   */
+  addToCart(): void {
+    if (!this.selectedUnitId) return;
+    const unit = this.selectorUnits.find((u) => u.id === this.selectedUnitId);
+    if (!unit) return;
+    const variant = this.selectorVariants.find(
+      (v) => v.id === this.selectedVariantId,
+    );
+    const product = this.selectorProducts.find(
+      (p) => p.id === this.selectedProductId,
+    );
+    const parts = [variant?.color, variant?.size, variant?.capacity].filter(
+      Boolean,
+    );
+    const variantLabel = parts.length > 0 ? parts.join(' / ') : '';
+    this.cart.push({
+      unitId: unit.id,
+      unitCode: unit.unitCode,
+      productName: product?.title ?? unit.productName,
+      variantLabel,
+      price: unit.currentPrice,
+      variantId: this.selectedVariantId,
+    });
+    this.selectedUnitId = '';
+    this.unitsError = null;
+    this.clearSimulationState();
+  }
+
+  /**
+   * Elimina una unidad del carrito.
    * @param index
    */
-  removeProductRow(index: number): void {
-    this.productRows.removeAt(index);
+  removeFromCart(index: number): void {
+    this.cart.splice(index, 1);
+    this.clearSimulationState();
   }
 
   /**
-   * Simula un crédito según los parámetros proporcionados.
+   * Simula el crédito basado en los valores del formulario.
    * @returns
    */
   simulate(): void {
     const v = this.form.getRawValue();
     if (!v.installmentsCount || !v.paymentFrequency) return;
+    if (v.type === 'SALE' && this.cart.length === 0) return;
+
+    const saleValidationError = this.getSaleValidationError();
+    if (saleValidationError) {
+      this.unitsError = saleValidationError;
+      this.simulateResult = null;
+      return;
+    }
 
     this.simulating = true;
     this.simulateResult = null;
     this.simulateError = null;
+    this.unitsError = null;
 
     const payload =
       v.type === 'SALE'
         ? {
             type: 'SALE' as const,
+            products: this.buildProductsForSimulate(),
             installmentsCount: v.installmentsCount,
             paymentFrequency: v.paymentFrequency as PaymentFrequency,
-            products: (v.products as { productId: string; quantity: number }[])
-              .filter((p) => p.productId && p.quantity)
-              .map((p) => ({ productId: p.productId, quantity: p.quantity })),
+            ...(v.downPayment > 0 ? { downPayment: v.downPayment } : {}),
           }
         : {
             type: 'LOAN' as const,
@@ -211,7 +334,7 @@ export class CreditCreateComponent implements OnInit {
   }
 
   /**
-   * Envía el formulario para crear un nuevo crédito.
+   * Maneja el envío del formulario de creación de crédito.
    * @returns
    */
   onSubmit(): void {
@@ -219,24 +342,41 @@ export class CreditCreateComponent implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
+    if (this.isSale && this.cart.length === 0) {
+      this.unitsError = 'Agregá al menos una unidad al carrito.';
+      return;
+    }
+
+    const saleValidationError = this.getSaleValidationError();
+    if (saleValidationError) {
+      this.unitsError = saleValidationError;
+      return;
+    }
 
     const v = this.form.getRawValue();
     let payload: CreditCreatePayload;
 
     if (v.type === 'SALE') {
-      payload = {
+      const salePayload: CreditCreatePayload = {
         customerId: v.customerId,
         type: 'SALE',
         installmentsCount: v.installmentsCount,
         paymentFrequency: v.paymentFrequency,
-        products: (v.products as { productId: string; quantity: number }[]).map(
-          (p) => ({
-            productId: p.productId,
-            quantity: p.quantity,
-          }),
-        ),
+        units: this.cart.map((u) => ({ unitId: u.unitId })),
         notes: v.notes || undefined,
       };
+      if (v.downPayment > 0) {
+        (salePayload as any).downPayment = v.downPayment;
+        (salePayload as any).downPaymentMethod = v.downPaymentMethod;
+        if (
+          v.downPaymentMethod === 'TRANSFER' &&
+          v.downPaymentTransferReference
+        ) {
+          (salePayload as any).downPaymentTransferReference =
+            v.downPaymentTransferReference;
+        }
+      }
+      payload = salePayload;
     } else {
       payload = {
         customerId: v.customerId,
@@ -250,7 +390,7 @@ export class CreditCreateComponent implements OnInit {
 
     this.submitting = true;
     this.submitError = null;
-    this.productsError = null;
+    this.unitsError = null;
 
     this.creditsService.create(payload).subscribe({
       next: (result) => {
@@ -267,10 +407,8 @@ export class CreditCreateComponent implements OnInit {
       },
       error: (err: AppError) => {
         this.submitting = false;
-        if (err.status === 409 || (err.status === 400 && this.isSale)) {
-          this.productsError = err.message;
-        } else if (err.status === 404) {
-          this.submitError = err.message;
+        if (err.status === 409 || err.status === 400) {
+          this.unitsError = err.message;
         } else {
           this.submitError = err.message;
         }
@@ -279,7 +417,7 @@ export class CreditCreateComponent implements OnInit {
   }
 
   /**
-   * Navega hacia atrás en el historial del navegador.
+   * Navega hacia atrás en el historial del navegador, regresando a la página anterior. Esto es útil para permitir al usuario volver fácilmente a la lista de operaciones o a la página desde donde accedió al formulario de creación de crédito, mejorando la navegación y experiencia del usuario dentro de la aplicación.
    */
   goBack(): void {
     this.location.back();
@@ -295,20 +433,14 @@ export class CreditCreateComponent implements OnInit {
     return !!(c && c.invalid && (c.dirty || c.touched));
   }
 
-  /**
-   * Verifica si una fila de productos es inválida.
-   * @param rowIndex
-   * @param field
-   * @returns
-   */
-  isRowInvalid(rowIndex: number, field: string): boolean {
-    const c = this.productRows.at(rowIndex)?.get(field);
-    return !!(c && c.invalid && (c.dirty || c.touched));
+  private buildProductsForSimulate(): Array<{ variantId: string; quantity: number }> {
+    const map = new Map<string, number>();
+    for (const unit of this.cart) {
+      map.set(unit.variantId, (map.get(unit.variantId) ?? 0) + 1);
+    }
+    return Array.from(map.entries()).map(([variantId, quantity]) => ({ variantId, quantity }));
   }
 
-  /**
-   * Convierte un SimulatePayload (formato usado en la app) a un objeto para el cuerpo de la solicitud.
-   */
   private buildForm(): void {
     this.form = this.fb.group({
       type: ['SALE'],
@@ -320,27 +452,41 @@ export class CreditCreateComponent implements OnInit {
       ],
       notes: ['', Validators.maxLength(500)],
       totalAmount: [null],
-      products: this.fb.array([]),
+      downPayment: [0, [Validators.min(0)]],
+      downPaymentMethod: ['CASH'],
+      downPaymentTransferReference: ['', Validators.maxLength(100)],
     });
-    this.addProductRow();
   }
 
   /**
-   * Carga la lista de clientes activos para mostrar en el dropdown de selección de cliente.
+   * Limpia la simulación actual cuando cambian las condiciones de una venta.
+   */
+  private clearSimulationState(): void {
+    this.simulateResult = null;
+    this.simulateError = null;
+  }
+
+  /**
+   * Valida las reglas mínimas de una venta antes de simular o crear el crédito.
+   * @returns {string | null} Mensaje de error si la venta es inválida.
+   */
+  private getSaleValidationError(): string | null {
+    if (!this.isSale) return null;
+    if (this.cart.length === 0) {
+      return 'Agregá al menos una unidad al carrito.';
+    }
+    if (this.downPaymentValue > this.cartTotal) {
+      return 'El enganche no puede ser mayor al total de la venta.';
+    }
+    return null;
+  }
+
+  /**
+   * Carga la lista de clientes activos desde el servicio de clientes y los asigna a la propiedad `customers`. Si ocurre un error durante la carga, simplemente se ignora y no se muestran clientes en el selector, lo que permite que la aplicación siga funcionando aunque no se puedan cargar los clientes por alguna razón (como un error de red). Esta función se llama al inicializar el componente para asegurar que el selector de clientes esté poblado con las opciones disponibles.
    */
   private loadCustomers(): void {
     this.customersService.list({ status: 'ACTIVE' }).subscribe({
       next: (data) => (this.customers = data),
-      error: () => {},
-    });
-  }
-
-  /**
-   * Carga la lista de productos activos para mostrar en el dropdown de selección de productos (solo para créditos de tipo "SALE").
-   */
-  private loadProducts(): void {
-    this.productsService.list({ status: 'ACTIVE' }).subscribe({
-      next: (data) => (this.products = data),
       error: () => {},
     });
   }

@@ -22,9 +22,13 @@ function toDashboard(r: CashRegisterDashboardRaw): CashRegisterDashboard {
     cashAmount: r.cash_amount,
     transferAmount: r.transfer_amount,
     totalCollected: r.total_collected,
-    totalEgreses: r.total_egreses,
+    totalOutflows: r.total_outflows,
     approvedCount: r.approved_count,
     pendingCount: r.pending_count,
+    netBalance: r.net_balance ?? 0,
+    pendingAmount: r.pending_amount ?? 0,
+    downPaymentsTotal: r.down_payments_total ?? 0,
+    downPaymentsCount: r.down_payments_count ?? 0,
   };
 }
 
@@ -55,11 +59,14 @@ export class CashRegisterService {
 
   /**
    * Obtiene el panel de control de cajas.
+   * @param date - Fecha opcional en formato YYYY-MM-DD para filtrar el dashboard.
    * @returns
    */
-  getDashboard(): Observable<CashRegisterDashboard> {
+  getDashboard(date?: string): Observable<CashRegisterDashboard> {
+    const params: Record<string, string> = {};
+    if (date) params['date'] = date;
     return this.api
-      .get<CashRegisterDashboardRaw>('cash-register/dashboard')
+      .get<CashRegisterDashboardRaw>('cash-register/dashboard', params)
       .pipe(map(toDashboard));
   }
 
@@ -72,6 +79,8 @@ export class CashRegisterService {
     const params: Record<string, string> = {};
     if (filters?.dateFrom) params['date_from'] = filters.dateFrom;
     if (filters?.dateTo) params['date_to'] = filters.dateTo;
+    if (filters?.differenceStatus)
+      params['difference_status'] = filters.differenceStatus;
     return this.api
       .get<CashRegisterRaw[]>('cash-register', params)
       .pipe(map((items) => items.map(toCashRegister)));
@@ -98,6 +107,8 @@ export class CashRegisterService {
       declared_cash: payload.declaredCash,
     };
     if (payload.observations) body['observations'] = payload.observations;
+    if (payload.force) body['force'] = true;
+    if (payload.registerDate) body['register_date'] = payload.registerDate;
     return this.api
       .post<CashRegisterRaw>('cash-register/close', body)
       .pipe(map(toCashRegister));

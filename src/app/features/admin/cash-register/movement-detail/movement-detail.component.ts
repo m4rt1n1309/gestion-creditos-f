@@ -1,5 +1,6 @@
-import { CurrencyPipe, DatePipe, NgIf } from '@angular/common';
+import { DatePipe, NgIf } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { CurrencyArsPipe } from '../../../../core/pipes/currency-ars.pipe';
 import { DialogModule } from 'primeng/dialog';
 
 export interface CashMovementDetail {
@@ -26,7 +27,7 @@ export interface CashMovementDetail {
 @Component({
   selector: 'app-movement-detail',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, NgIf, DialogModule],
+  imports: [CurrencyArsPipe, DatePipe, NgIf, DialogModule],
   templateUrl: './movement-detail.component.html',
   styleUrl: './movement-detail.component.scss',
 })

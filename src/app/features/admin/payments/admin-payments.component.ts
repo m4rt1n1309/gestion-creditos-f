@@ -1,5 +1,6 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { CurrencyArsPipe } from '../../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
@@ -29,7 +30,7 @@ import { UsersService } from '../users/users.service';
   selector: 'app-admin-payments',
   standalone: true,
   imports: [
-    CurrencyPipe,
+    CurrencyArsPipe,
     DatePipe,
     FormsModule,
     ButtonModule,

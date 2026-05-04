@@ -24,6 +24,14 @@ import {
   ProductReportRow,
   ProductReportRowRaw,
   ReportDateRange,
+  SummaryReport,
+  SummaryReportRaw,
+  UpcomingByCustomer,
+  UpcomingByCustomerRaw,
+  UpcomingByDay,
+  UpcomingByDayRaw,
+  UpcomingReport,
+  UpcomingReportRaw,
 } from './report.models';
 
 /**
@@ -161,13 +169,15 @@ function toCollectorRow(r: CollectorReportRowRaw): CollectorReportRow {
 function toProductRow(r: ProductReportRowRaw): ProductReportRow {
   return {
     id: r.id,
-    name: r.name,
-    currentPrice: r.current_price,
-    availableStock: r.available_stock,
+    title: r.title,
+    description: r.description,
     status: r.status as ProductReportRow['status'],
+    minPrice: r.min_price,
+    maxPrice: r.max_price,
+    availableCount: r.available_count,
     timesSold: r.times_sold,
-    totalUnitsSold: r.total_units_sold,
     totalRevenue: r.total_revenue,
+    avgSellingPrice: r.avg_selling_price,
   };
 }
 
@@ -235,11 +245,86 @@ export class ReportsService {
 
   /**
    * Obtiene el informe de productos.
-   * @returns
    */
-  getProductsReport(): Observable<ProductReportRow[]> {
+  getProductsReport(stockThreshold?: number): Observable<ProductReportRow[]> {
+    const params: Record<string, string> = {};
+    if (stockThreshold !== undefined && stockThreshold >= 0) {
+      params['stock_threshold'] = String(stockThreshold);
+    }
     return this.api
-      .get<ProductReportRowRaw[]>('reports/products')
+      .get<ProductReportRowRaw[]>('reports/products', params)
       .pipe(map((items) => items.map(toProductRow)));
   }
+
+  /**
+   * Obtiene el resumen del día.
+   */
+  getSummaryReport(): Observable<SummaryReport> {
+    return this.api
+      .get<SummaryReportRaw>('reports/summary')
+      .pipe(map(toSummaryReport));
+  }
+
+  /**
+   * Obtiene el reporte de vencimientos próximos.
+   */
+  getUpcomingReport(days?: number): Observable<UpcomingReport> {
+    const params: Record<string, string> = {};
+    if (days !== undefined) params['days'] = String(days);
+    return this.api
+      .get<UpcomingReportRaw>('reports/upcoming', params)
+      .pipe(map(toUpcomingReport));
+  }
+}
+
+function toSummaryReport(r: SummaryReportRaw): SummaryReport {
+  return {
+    reportDate: r.report_date,
+    todayCollected: r.today_collected,
+    todayCash: r.today_cash,
+    todayTransfer: r.today_transfer,
+    todayPaymentsCount: r.today_payments_count,
+    todayDownPayments: r.today_down_payments,
+    todayDownPaymentsCount: r.today_down_payments_count,
+    todayTotal: r.today_total,
+    pendingPaymentsCount: r.pending_payments_count,
+    pendingCreditsCount: r.pending_credits_count,
+    activePortfolioBalance: r.active_portfolio_balance,
+    overdueCount: r.overdue_count,
+    overdueAmount: r.overdue_amount,
+    upcoming7dCount: r.upcoming_7d_count,
+    upcoming7dAmount: r.upcoming_7d_amount,
+  };
+}
+
+function toUpcomingByDay(r: UpcomingByDayRaw): UpcomingByDay {
+  return {
+    dueDate: r.due_date,
+    count: r.count,
+    expectedAmount: r.expected_amount,
+  };
+}
+
+function toUpcomingByCustomer(r: UpcomingByCustomerRaw): UpcomingByCustomer {
+  return {
+    customerId: r.customer_id,
+    customerName: r.customer_name,
+    phone: r.phone,
+    assignedCollector: r.assigned_collector,
+    installmentsCount: r.installments_count,
+    expectedAmount: r.expected_amount,
+    nextDueDate: r.next_due_date,
+  };
+}
+
+function toUpcomingReport(r: UpcomingReportRaw): UpcomingReport {
+  return {
+    days: r.days,
+    summary: {
+      installmentsCount: r.summary.installments_count,
+      expectedAmount: r.summary.expected_amount,
+    },
+    byDay: r.by_day.map(toUpcomingByDay),
+    byCustomer: r.by_customer.map(toUpcomingByCustomer),
+  };
 }

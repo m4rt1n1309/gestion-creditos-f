@@ -4,28 +4,33 @@
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
     <div class="flex flex-col gap-1">
-      <label for="name" class="text-sm font-medium">Nombre *</label>
+      <label for="title" class="text-sm font-medium"
+        >Título (nombre corto) *</label
+      >
       <input
-        id="name"
+        id="title"
         pInputText
-        formControlName="name"
-        placeholder="Nombre del producto"
-        [class.ng-invalid]="isInvalid('name')"
-        [class.ng-dirty]="isInvalid('name')"
+        formControlName="title"
+        placeholder="Título del producto"
+        class="w-full h-11"
+        [class.ng-invalid]="isInvalid('title')"
+        [class.ng-dirty]="isInvalid('title')"
       />
-      @if (isInvalid("name")) {
-        <small class="text-red-500">{{ getError("name") }}</small>
+      @if (isInvalid("title")) {
+        <small class="text-red-500">{{ getError("title") }}</small>
       }
     </div>
 
     <div class="flex flex-col gap-1">
-      <label for="description" class="text-sm font-medium">Descripción</label>
+      <label for="description" class="text-sm font-medium"
+        >Descripción comercial</label
+      >
       <textarea
         pInputTextarea
         id="description"
         formControlName="description"
-        rows="4"
-        placeholder="Descripción opcional del producto"
+        rows="3"
+        placeholder="Nombre comercial o descripción del producto"
         [class.ng-invalid]="isInvalid('description')"
         [class.ng-dirty]="isInvalid('description')"
         class="w-full"
@@ -36,42 +41,46 @@
     </div>
 
     <div class="flex flex-col gap-1">
-      <label for="currentPrice" class="text-sm font-medium">Precio *</label>
-      <p-inputNumber
-        inputId="currentPrice"
-        formControlName="currentPrice"
-        [min]="0.01"
-        [max]="99999999"
-        [minFractionDigits]="2"
-        [maxFractionDigits]="2"
-        mode="decimal"
-        locale="es-AR"
-        placeholder="0,00"
-        [class.ng-invalid]="isInvalid('currentPrice')"
-        [class.ng-dirty]="isInvalid('currentPrice')"
+      <label for="model" class="text-sm font-medium">Modelo</label>
+      <input
+        id="model"
+        pInputText
+        formControlName="model"
+        placeholder="Modelo técnico (opcional)"
+        class="w-full h-11"
+        [class.ng-invalid]="isInvalid('model')"
+        [class.ng-dirty]="isInvalid('model')"
       />
-      @if (isInvalid("currentPrice")) {
-        <small class="text-red-500">{{ getError("currentPrice") }}</small>
+      @if (isInvalid("model")) {
+        <small class="text-red-500">{{ getError("model") }}</small>
       }
     </div>
 
-    <div class="flex flex-col gap-1">
-      <label for="availableStock" class="text-sm font-medium"
-        >Stock inicial *</label
-      >
-      <p-inputNumber
-        inputId="availableStock"
-        formControlName="availableStock"
-        [min]="0"
-        [max]="999999"
-        [maxFractionDigits]="0"
-        placeholder="0"
-        [class.ng-invalid]="isInvalid('availableStock')"
-        [class.ng-dirty]="isInvalid('availableStock')"
-      />
-      @if (isInvalid("availableStock")) {
-        <small class="text-red-500">{{ getError("availableStock") }}</small>
-      }
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Marca</label>
+        <p-dropdown
+          formControlName="brandId"
+          [options]="brandOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar marca"
+          [showClear]="true"
+          styleClass="w-full"
+        />
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium">Categoría</label>
+        <p-dropdown
+          formControlName="categoryId"
+          [options]="categoryOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar categoría"
+          [showClear]="true"
+          styleClass="w-full"
+        />
+      </div>
     </div>
 
     <div class="flex gap-3 pt-2">

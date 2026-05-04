@@ -49,6 +49,7 @@ export const NAV_CONFIG: NavItem[] = [
     route: `/${AppRoutes.ADMIN}/${AppRoutes.USERS}`,
     requiredRoles: ['ADMIN'],
   },
+  // TODO: implementar la cantidad de "aprobaciones" (falta que devuelve el backend en el me, la cantidad de aprobaciones)
   {
     label: 'Aprobaciones',
     icon: 'pi pi-check-square',
@@ -85,6 +86,12 @@ export const NAV_CONFIG: NavItem[] = [
     label: 'Caja',
     icon: 'pi pi-wallet',
     route: `/${AppRoutes.ADMIN}/${AppRoutes.CASH_REGISTER}`,
+    requiredRoles: ['ADMIN'],
+  },
+  {
+    label: 'Gastos',
+    icon: 'pi pi-minus-circle',
+    route: `/${AppRoutes.ADMIN}/${AppRoutes.ADMIN_EXPENSES}`,
     requiredRoles: ['ADMIN'],
   },
   {

@@ -136,5 +136,12 @@ export const ADMIN_ROUTES: Routes = [
         (c) => c.AdminPaymentsComponent,
       ),
   },
+  {
+    path: AppRoutes.ADMIN_EXPENSES,
+    loadComponent: () =>
+      import('./expenses/expenses.component').then(
+        (c) => c.ExpensesComponent,
+      ),
+  },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 ];

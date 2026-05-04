@@ -1,5 +1,6 @@
-import { CurrencyPipe, DatePipe, NgClass } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { CurrencyArsPipe } from '../../../core/pipes/currency-ars.pipe';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -28,7 +29,7 @@ import { CreditsService } from '../../seller/operations/credits.service';
   selector: 'approvals',
   standalone: true,
   imports: [
-    CurrencyPipe,
+    CurrencyArsPipe,
     DatePipe,
     NgClass,
     FormsModule,

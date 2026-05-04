@@ -149,7 +149,7 @@ export class ClientCreateComponent implements OnInit {
           });
           setTimeout(
             () => this.router.navigate([AppRoutes.CLIENTS, customer.id]),
-            1000,
+            2000,
           );
         },
         error: (err: AppError) => {

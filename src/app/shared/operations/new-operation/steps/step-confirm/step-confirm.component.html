@@ -51,7 +51,7 @@
         <div class="flex justify-between items-center text-sm">
           <span class="text-gray-500">Monto del crédito</span>
           <span class="font-bold text-gray-900"
-            >${{ form.capital() | number: "1.0-0" }}</span
+            >{{ form.capital() | currencyArs }}</span
           >
         </div>
         <div class="flex justify-between items-center text-sm">
@@ -79,7 +79,7 @@
         <div class="flex justify-between items-center text-sm pt-1">
           <span class="text-gray-500">Cuota estimada</span>
           <span class="font-bold text-blue-600 text-base"
-            >${{ form.installmentValue() | number: "1.0-0" }}</span
+            >{{ form.installmentValue() | currencyArs }}</span
           >
         </div>
       </div>
@@ -98,6 +98,7 @@
             (ngModelChange)="updateCheck('identity', $event)"
             [binary]="true"
             inputId="chk1"
+            data-cy="chk-identity"
             class="mt-0.5"
           />
           <label
@@ -114,6 +115,7 @@
             (ngModelChange)="updateCheck('conditions', $event)"
             [binary]="true"
             inputId="chk2"
+            data-cy="chk-conditions"
             class="mt-0.5"
           />
           <label
@@ -130,6 +132,7 @@
             (ngModelChange)="updateCheck('disbursement', $event)"
             [binary]="true"
             inputId="chk3"
+            data-cy="chk-disbursement"
             class="mt-0.5"
           />
           <label
@@ -146,6 +149,7 @@
             (ngModelChange)="updateCheck('capacity', $event)"
             [binary]="true"
             inputId="chk4"
+            data-cy="chk-capacity"
             class="mt-0.5"
           />
           <label

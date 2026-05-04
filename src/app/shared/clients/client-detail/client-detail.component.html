@@ -1,4 +1,6 @@
-@if (client) {
+@if (loading) {
+  <app-loading-state message="Cargando cliente..." />
+} @else if (client) {
   <div class="client-detail-wrapper">
     <div class="client-header">
       <div class="client-header-left">
@@ -86,7 +88,7 @@
       <app-client-contactar [client]="client" />
     }
   </div>
-} @else {
+} @else if (notFound) {
   <div class="p-6 text-center text-gray-500">
     <p>Cliente no encontrado.</p>
     <p-button
@@ -98,4 +100,6 @@
       (onClick)="goBack()"
     />
   </div>
+} @else {
+  <app-error-state [message]="errorMessage || 'Ocurrió un error al cargar el cliente.'" />
 }

@@ -222,5 +222,116 @@ describe('ReportsService', () => {
         done();
       });
     });
+
+    it('passes stock_threshold param when provided', () => {
+      apiSpy.get.and.returnValue(of([]));
+      service.getProductsReport(5).subscribe(() => {});
+      const [, params] = apiSpy.get.calls.mostRecent().args;
+      expect((params as Record<string, string>)['stock_threshold']).toBe('5');
+    });
+
+    it('does not pass stock_threshold when undefined', () => {
+      apiSpy.get.and.returnValue(of([]));
+      service.getProductsReport().subscribe(() => {});
+      const [, params] = apiSpy.get.calls.mostRecent().args;
+      expect((params as Record<string, string>)['stock_threshold']).toBeUndefined();
+    });
+  });
+
+  describe('getSummaryReport', () => {
+    const mockSummaryRaw = {
+      report_date: '2026-04-28',
+      today_collected: 50000,
+      today_cash: 30000,
+      today_transfer: 20000,
+      today_payments_count: 15,
+      today_down_payments: 5000,
+      today_down_payments_count: 3,
+      today_total: 55000,
+      pending_payments_count: 8,
+      pending_credits_count: 4,
+      active_portfolio_balance: 500000,
+      overdue_count: 12,
+      overdue_amount: 60000,
+      upcoming_7d_count: 20,
+      upcoming_7d_amount: 100000,
+    };
+
+    it('maps all fields to camelCase', (done) => {
+      apiSpy.get.and.returnValue(of(mockSummaryRaw));
+      service.getSummaryReport().subscribe((r) => {
+        expect(r.reportDate).toBe('2026-04-28');
+        expect(r.todayCollected).toBe(50000);
+        expect(r.todayCash).toBe(30000);
+        expect(r.todayTransfer).toBe(20000);
+        expect(r.todayPaymentsCount).toBe(15);
+        expect(r.todayDownPayments).toBe(5000);
+        expect(r.todayDownPaymentsCount).toBe(3);
+        expect(r.todayTotal).toBe(55000);
+        expect(r.pendingPaymentsCount).toBe(8);
+        expect(r.pendingCreditsCount).toBe(4);
+        expect(r.activePortfolioBalance).toBe(500000);
+        expect(r.overdueCount).toBe(12);
+        expect(r.overdueAmount).toBe(60000);
+        expect(r.upcoming7dCount).toBe(20);
+        expect(r.upcoming7dAmount).toBe(100000);
+        done();
+      });
+    });
+
+    it('calls GET reports/summary', () => {
+      apiSpy.get.and.returnValue(of(mockSummaryRaw));
+      service.getSummaryReport().subscribe(() => {});
+      const [path] = apiSpy.get.calls.mostRecent().args;
+      expect(path).toBe('reports/summary');
+    });
+  });
+
+  describe('getUpcomingReport', () => {
+    const mockUpcomingRaw = {
+      days: 30,
+      summary: { installments_count: 50, expected_amount: 250000 },
+      by_day: [{ due_date: '2026-05-01', count: 5, expected_amount: 25000 }],
+      by_customer: [{
+        customer_id: 'c1',
+        customer_name: 'Ana García',
+        phone: '1122334455',
+        assigned_collector: 'Pedro Cobrador',
+        installments_count: 2,
+        expected_amount: 10000,
+        next_due_date: '2026-05-01',
+      }],
+    };
+
+    it('maps all fields to camelCase', (done) => {
+      apiSpy.get.and.returnValue(of(mockUpcomingRaw));
+      service.getUpcomingReport(30).subscribe((r) => {
+        expect(r.days).toBe(30);
+        expect(r.summary.installmentsCount).toBe(50);
+        expect(r.summary.expectedAmount).toBe(250000);
+        expect(r.byDay.length).toBe(1);
+        expect(r.byDay[0].dueDate).toBe('2026-05-01');
+        expect(r.byDay[0].expectedAmount).toBe(25000);
+        expect(r.byCustomer.length).toBe(1);
+        expect(r.byCustomer[0].customerName).toBe('Ana García');
+        expect(r.byCustomer[0].assignedCollector).toBe('Pedro Cobrador');
+        expect(r.byCustomer[0].installmentsCount).toBe(2);
+        done();
+      });
+    });
+
+    it('passes days query param when provided', () => {
+      apiSpy.get.and.returnValue(of(mockUpcomingRaw));
+      service.getUpcomingReport(14).subscribe(() => {});
+      const [, params] = apiSpy.get.calls.mostRecent().args;
+      expect((params as Record<string, string>)['days']).toBe('14');
+    });
+
+    it('does not pass days param when undefined', () => {
+      apiSpy.get.and.returnValue(of(mockUpcomingRaw));
+      service.getUpcomingReport().subscribe(() => {});
+      const [, params] = apiSpy.get.calls.mostRecent().args;
+      expect((params as Record<string, string>)['days']).toBeUndefined();
+    });
   });
 });

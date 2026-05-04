@@ -13,8 +13,12 @@ import { AuthServiceBase } from './auth-service.base';
 const isBrowser = typeof localStorage !== 'undefined';
 
 // ── Usuarios mock ─────────────────────────────────────────────────────────────
-// DNIs usados como credencial de login (igual que el backend real).
+// MODO MOCK — solo para desarrollo/testing. NO usar en producción.
+// Credenciales: DNI + contraseña "1234" para todos los usuarios.
 // quickAccess en login.component usa estos DNIs.
+// 'mock123' — 6 chars, pasa Validators.minLength(6) del formulario de login
+export const MOCK_PASSWORD = 'mock123';
+
 export const MOCK_USERS: AuthUser[] = [
   {
     id: 'usr-001',
@@ -71,11 +75,11 @@ export class MockAuthService extends AuthServiceBase {
     super();
   }
 
-  // ── Login — autenticación por DNI (igual que el backend real) ────────────
+  // ── Login — autenticación por DNI + contraseña mock (igual que el backend real) ──
   login(credentials: LoginCredentials): Observable<AuthUser> {
     const match = MOCK_USERS.find((u) => u.dni === credentials.dni);
 
-    if (!match) {
+    if (!match || credentials.password !== MOCK_PASSWORD) {
       return throwError(
         (): AuthError => ({
           status: 401,
@@ -123,6 +127,14 @@ export class MockAuthService extends AuthServiceBase {
   // No-op: mock ya rehidrata sincronamente en el constructor.
   restoreSession(): Observable<void> {
     return of(undefined);
+  }
+
+  clearSession(): void {
+    if (isBrowser) {
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem(this.USER_KEY);
+    }
+    this._user$.next(null);
   }
 
   changePassword(

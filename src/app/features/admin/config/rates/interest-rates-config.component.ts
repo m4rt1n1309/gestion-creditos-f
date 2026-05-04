@@ -1,4 +1,4 @@
-import { CurrencyPipe, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
@@ -17,7 +17,8 @@ import {
   InterestRateCreatePayload,
   PaymentFrequency,
   RateGroup,
-} from '../models/interest-rate.model';
+} from '../models/interfaces/interest-rate.model';
+import { FormatService } from '../../../../core/services/format.service';
 import { InterestRatesService } from '../services/interest-rates.service';
 
 const FREQ_LABELS: Record<PaymentFrequency, string> = {
@@ -30,7 +31,6 @@ const FREQ_LABELS: Record<PaymentFrequency, string> = {
   selector: 'app-interest-rates-config',
   standalone: true,
   imports: [
-    CurrencyPipe,
     NgClass,
     FormsModule,
     ButtonModule,
@@ -48,6 +48,7 @@ const FREQ_LABELS: Record<PaymentFrequency, string> = {
 export class InterestRatesConfigComponent implements OnInit {
   private readonly svc = inject(InterestRatesService);
   private readonly msg = inject(MessageService);
+  private readonly fmt = inject(FormatService);
 
   loading = true;
   saving = false;
@@ -143,19 +144,14 @@ export class InterestRatesConfigComponent implements OnInit {
    * @returns
    */
   amountRange(rate: InterestRate): string {
-    const min = rate.minAmount.toLocaleString('es-AR');
+    const min = this.fmt.number(rate.minAmount);
     if (rate.maxAmount === null) return `$${min} en adelante`;
-    const max = rate.maxAmount.toLocaleString('es-AR');
+    const max = this.fmt.number(rate.maxAmount);
     return `$${min} – $${max}`;
   }
 
-  /**
-   * Devuelve la representación visual de una tasa de interés.
-   * @param rate
-   * @returns
-   */
   rateDisplay(rate: number): string {
-    return `${(rate * 100).toFixed(2)}%`;
+    return this.fmt.percent(rate);
   }
 
   /**

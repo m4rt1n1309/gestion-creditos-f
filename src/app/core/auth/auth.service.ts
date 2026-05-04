@@ -119,6 +119,10 @@ export class AuthService extends AuthServiceBase {
     );
   }
 
+  clearSession(): void {
+    this.clear();
+  }
+
   /**
    * Cambia la contraseña del usuario actual.
    * @param currentPassword
@@ -172,7 +176,6 @@ export class AuthService extends AuthServiceBase {
       id: data.user.id,
       full_name: data.user.full_name,
       name: data.user.full_name,
-      dni: data.user.dni,
       roles: [data.user.role as UserRole],
       avatar: this.initials(data.user.full_name),
       is_temp_password: data.user.is_temp_password,
@@ -192,7 +195,6 @@ export class AuthService extends AuthServiceBase {
       id: me.id,
       full_name: me.full_name,
       name: me.full_name,
-      dni: me.dni,
       roles: [me.role as UserRole],
       avatar: this.initials(me.full_name),
       is_temp_password: me.is_temp_password,

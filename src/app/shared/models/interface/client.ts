@@ -43,6 +43,7 @@ export interface HistorialEvent {
 }
 
 export interface Client {
+  id: string;
   dni: string;
   initials: string;
   avatarColor: string;
@@ -50,6 +51,17 @@ export interface Client {
   phone: string;
   credits: number;
   risk: 'Al dia' | 'Mora leve' | 'Mora alta';
+}
+
+export interface ClientOperation {
+  id: string;
+  name: string;
+  dni: string;
+  phone: string;
+  email: string;
+  previousCredits: number;
+  delinquency: string;
+  paymentCapacity: number;
 }
 
 export type ContactChannel = 'WhatsApp' | 'Correo' | 'Llamada';
@@ -72,6 +84,7 @@ export interface DocumentGroup {
 }
 
 export interface ClientDetail {
+  id: string;
   dni: string;
   initials: string;
   avatarColor: string;

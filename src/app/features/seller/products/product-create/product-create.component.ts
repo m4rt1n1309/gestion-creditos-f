@@ -9,12 +9,14 @@ import {
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
-import { InputNumberModule } from 'primeng/inputnumber';
+import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ToastModule } from 'primeng/toast';
 import { AppError } from '../../../../core/models/app-error';
 import { HeaderService } from '../../../../core/services/header.service';
+import { ProductBrandsService } from '../../../admin/config/services/product-brands.service';
+import { ProductCategoriesService } from '../../../admin/config/services/product-categories.service';
 import { ProductsService } from '../products.service';
 
 @Component({
@@ -25,9 +27,9 @@ import { ProductsService } from '../products.service';
     CommonModule,
     ReactiveFormsModule,
     ButtonModule,
+    DropdownModule,
     InputTextModule,
     InputTextareaModule,
-    InputNumberModule,
     ToastModule,
   ],
   templateUrl: './product-create.component.html',
@@ -35,12 +37,17 @@ import { ProductsService } from '../products.service';
 export class ProductCreateComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly productsService = inject(ProductsService);
+  private readonly categoriesService = inject(ProductCategoriesService);
+  private readonly brandsService = inject(ProductBrandsService);
   private readonly router = inject(Router);
   private readonly header = inject(HeaderService);
   private readonly messageService = inject(MessageService);
 
   form!: FormGroup;
   submitting = false;
+
+  categoryOptions: { label: string; value: string }[] = [];
+  brandOptions: { label: string; value: string }[] = [];
 
   ngOnInit(): void {
     this.header.set([
@@ -49,7 +56,7 @@ export class ProductCreateComponent implements OnInit {
     ]);
 
     this.form = this.fb.group({
-      name: [
+      title: [
         '',
         [
           Validators.required,
@@ -57,23 +64,29 @@ export class ProductCreateComponent implements OnInit {
           Validators.maxLength(150),
         ],
       ],
-      description: ['', [Validators.maxLength(1000)]],
-      currentPrice: [
-        null,
-        [Validators.required, Validators.min(0.01), Validators.max(99999999)],
-      ],
-      availableStock: [
-        null,
-        [Validators.required, Validators.min(0), Validators.max(999999)],
-      ],
+      description: ['', [Validators.maxLength(500)]],
+      model: ['', [Validators.maxLength(100)]],
+      brandId: [null],
+      categoryId: [null],
+    });
+
+    this.categoriesService.getAll().subscribe({
+      next: (r) =>
+        (this.categoryOptions = r
+          .filter((c) => c.active)
+          .map((c) => ({ label: c.name, value: c.id }))),
+      error: () => {},
+    });
+
+    this.brandsService.getAll().subscribe({
+      next: (r) =>
+        (this.brandOptions = r
+          .filter((b) => b.active)
+          .map((b) => ({ label: b.name, value: b.id }))),
+      error: () => {},
     });
   }
 
-  /**
-   * Verifica si un campo es inválido.
-   * @param field
-   * @returns
-   */
   isInvalid(field: string): boolean {
     const c = this.form.get(field);
     return !!(c && c.invalid && (c.dirty || c.touched));
@@ -93,8 +106,6 @@ export class ProductCreateComponent implements OnInit {
       return `Mínimo ${c.errors['minlength'].requiredLength} caracteres.`;
     if (c.errors['maxlength'])
       return `Máximo ${c.errors['maxlength'].requiredLength} caracteres.`;
-    if (c.errors['min']) return `El valor mínimo es ${c.errors['min'].min}.`;
-    if (c.errors['max']) return `El valor máximo es ${c.errors['max'].max}.`;
     return 'Campo inválido.';
   }
 
@@ -113,10 +124,11 @@ export class ProductCreateComponent implements OnInit {
 
     this.productsService
       .create({
-        name: raw.name,
+        title: raw.title,
         description: raw.description || undefined,
-        currentPrice: raw.currentPrice,
-        availableStock: raw.availableStock,
+        model: raw.model || undefined,
+        brandId: raw.brandId || undefined,
+        categoryId: raw.categoryId || undefined,
       })
       .subscribe({
         next: (product) => {
@@ -128,14 +140,14 @@ export class ProductCreateComponent implements OnInit {
           });
           setTimeout(
             () => this.router.navigate(['/seller/products', product.id]),
-            1000,
+            2000,
           );
         },
         error: (err: AppError) => {
           this.submitting = false;
           if (err.status === 409) {
-            this.form.get('name')!.setErrors({ serverError: err.message });
-            this.form.get('name')!.markAsDirty();
+            this.form.get('title')!.setErrors({ serverError: err.message });
+            this.form.get('title')!.markAsDirty();
           } else {
             this.messageService.add({
               severity: 'error',

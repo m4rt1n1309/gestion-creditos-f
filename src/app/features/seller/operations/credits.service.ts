@@ -15,11 +15,14 @@ import {
   CreditProductRaw,
   CreditRaw,
   CreditStatus,
+  CreditUnit,
+  CreditUnitRaw,
   EarlySettlementPayload,
   EarlySettlementResult,
   RejectPayload,
   SimulatePayload,
   SimulateResult,
+  SimulateResultItem,
 } from '../models/credit.model';
 
 /**
@@ -75,6 +78,29 @@ function toProduct(raw: CreditProductRaw): CreditProduct {
     historicalPrice: raw.historical_price,
     productId: raw.product_id,
     productName: raw.product_name,
+    historicalRate: raw.historical_rate,
+  };
+}
+
+/**
+ * Convierte un CreditUnitRaw (formato recibido de la API) a un CreditUnit (formato usado en la app).
+ * @param raw
+ * @returns
+ */
+function toCreditUnit(raw: CreditUnitRaw): CreditUnit {
+  return {
+    id: raw.id,
+    historicalPrice: raw.historical_price,
+    historicalRate: raw.historical_rate,
+    unitId: raw.unit_id,
+    unitCode: raw.unit_code,
+    unitStatus: raw.unit_status,
+    variantId: raw.variant_id,
+    color: raw.color,
+    size: raw.size,
+    capacity: raw.capacity,
+    productId: raw.product_id,
+    productName: raw.product_name,
   };
 }
 
@@ -84,6 +110,7 @@ function toProduct(raw: CreditProductRaw): CreditProduct {
  * @returns
  */
 function toCreditDetail(raw: CreditDetailRaw): CreditDetail {
+  const downPayment = raw.down_payment ?? 0;
   return {
     ...toCredit(raw),
     rejectionReason: raw.rejection_reason,
@@ -91,7 +118,15 @@ function toCreditDetail(raw: CreditDetailRaw): CreditDetail {
     approvedBy: raw.approved_by,
     customerPhone: raw.customer_phone,
     products: raw.products?.map(toProduct),
+    units: raw.units?.map(toCreditUnit),
     installments: raw.installments.map(toInstallment),
+    downPayment,
+    financedAmount: raw.financed_amount ?? Math.max(raw.total_amount - downPayment, 0),
+    downPaymentMethod: raw.down_payment_method,
+    downPaymentTransferReference: raw.down_payment_transfer_reference,
+    settledAt: raw.settled_at,
+    settlementAmount: raw.settlement_amount,
+    settlementType: raw.settlement_type,
   };
 }
 
@@ -106,14 +141,51 @@ function toSimulateBody(p: SimulatePayload): Record<string, unknown> {
     installments_count: p.installmentsCount,
     payment_frequency: p.paymentFrequency,
   };
-  if (p.totalAmount !== undefined) body['total_amount'] = p.totalAmount;
-  if (p.products) {
+  if (p.products !== undefined && p.products.length > 0) {
     body['products'] = p.products.map((pr) => ({
-      product_id: pr.productId,
+      variant_id: pr.variantId,
       quantity: pr.quantity,
     }));
   }
+  if (p.totalAmount !== undefined) body['total_amount'] = p.totalAmount;
+  if (p.downPayment !== undefined && p.downPayment > 0) {
+    body['down_payment'] = p.downPayment;
+  }
   return body;
+}
+
+function toSimulateResult(raw: Record<string, unknown>): SimulateResult {
+  const result: SimulateResult = {
+    type: raw['type'] as string,
+    paymentFrequency: raw['payment_frequency'] as string,
+    installmentsCount: raw['installments_count'] as number,
+    totalAmount: raw['total_amount'] as number,
+    installmentAmount: raw['installment_amount'] as number,
+    totalToReturn: raw['total_to_return'] as number,
+    note: (raw['note'] as string) ?? '',
+  };
+  if (Array.isArray(raw['items'])) {
+    result.items = (raw['items'] as Record<string, unknown>[]).map(
+      (item): SimulateResultItem => ({
+        productId: item['product_id'] as string,
+        productName: item['product_name'] as string,
+        quantity: item['quantity'] as number,
+        unitPrice: item['unit_price'] as number,
+        lineTotal: item['line_total'] as number,
+        rate: item['rate'] as number,
+        installmentContribution: item['installment_contribution'] as number,
+      }),
+    );
+  }
+  if (raw['down_payment'] !== undefined) {
+    result.downPayment = raw['down_payment'] as number;
+  }
+  if (raw['financed_amount'] !== undefined) {
+    result.financedAmount = raw['financed_amount'] as number;
+  } else if (result.downPayment !== undefined) {
+    result.financedAmount = Math.max(result.totalAmount - result.downPayment, 0);
+  }
+  return result;
 }
 
 /**
@@ -130,10 +202,15 @@ function toCreateBody(p: CreditCreatePayload): Record<string, unknown> {
   };
   if (p.notes) body['notes'] = p.notes;
   if (p.type === 'SALE') {
-    body['products'] = p.products.map((pr) => ({
-      product_id: pr.productId,
-      quantity: pr.quantity,
-    }));
+    body['unit_ids'] = p.units.map((u) => u.unitId);
+    if (p.downPayment !== undefined && p.downPayment > 0) {
+      body['down_payment'] = p.downPayment;
+      if (p.downPaymentMethod)
+        body['down_payment_method'] = p.downPaymentMethod;
+      if (p.downPaymentTransferReference)
+        body['down_payment_transfer_reference'] =
+          p.downPaymentTransferReference;
+    }
   } else {
     body['total_amount'] = p.totalAmount;
   }
@@ -150,10 +227,11 @@ export class CreditsService {
    * @returns
    */
   simulate(payload: SimulatePayload): Observable<SimulateResult> {
-    return this.api.post<SimulateResult>(
-      'credits/simulate',
-      toSimulateBody(payload),
-    );
+    return this.api
+      .post<
+        Record<string, unknown>
+      >('credits/simulate', toSimulateBody(payload))
+      .pipe(map(toSimulateResult));
   }
 
   /**

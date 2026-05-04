@@ -120,10 +120,18 @@
         >
         <p-calendar
           [(ngModel)]="firstDueDate"
+          [minDate]="minFirstDueDate"
           dateFormat="dd/mm/yy"
           [showIcon]="true"
           styleClass="op-calendar"
+          inputId="first-due-date"
+          data-cy="input-first-due-date"
         />
+        @if (hasInvalidFirstDueDate) {
+          <small class="text-red-600 text-xs font-medium" data-cy="first-due-date-error">
+            La fecha del primer pago no puede ser anterior a hoy.
+          </small>
+        }
       </div>
     </div>
   </div>
@@ -142,7 +150,7 @@
         >
           <span class="text-sm opacity-80">Total a devolver</span>
           <span class="text-2xl font-black">{{
-            form.totalToPay() | currency: "ARS" : "symbol" : "1.0-0"
+            form.totalToPay() | currencyArs
           }}</span>
         </div>
         <div class="flex justify-between items-center">
@@ -159,7 +167,7 @@
         </p>
         <div class="flex items-baseline gap-2">
           <span class="text-4xl font-black text-white">
-            {{ form.installmentValue() | currency: "ARS" : "symbol" : "1.0-0" }}
+            {{ form.installmentValue() | currencyArs }}
           </span>
         </div>
       </div>

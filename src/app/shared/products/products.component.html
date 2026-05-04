@@ -1,3 +1,5 @@
+<p-toast />
+
 <div class="p-6">
   <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-semibold text-gray-800">Gestión de Productos</h1>
@@ -35,6 +37,7 @@
         <th class="text-xs font-semibold text-gray-500 uppercase">Stock</th>
         <th class="text-xs font-semibold text-gray-500 uppercase">Categoría</th>
         <th class="text-xs font-semibold text-gray-500 uppercase">Estado</th>
+        <th class="text-xs font-semibold text-gray-500 uppercase">Acciones</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-product>
@@ -99,6 +102,16 @@
               </span>
             }
           }
+        </td>
+        <td>
+          <p-button
+            label="Editar"
+            icon="pi pi-pencil"
+            severity="secondary"
+            [outlined]="true"
+            styleClass="h-10 px-4 rounded-xl"
+            (onClick)="navigateToEdit(product.id)"
+          />
         </td>
       </tr>
     </ng-template>
@@ -211,7 +224,7 @@
         icon="pi pi-save"
         severity="primary"
         styleClass="h-11 px-5 rounded-xl"
-        [disabled]="form.invalid && submitted"
+        [disabled]="isCreateDisabled"
         (onClick)="saveProduct()"
       />
     </div>

@@ -26,6 +26,7 @@ export abstract class AuthServiceBase {
    * Usado en APP_INITIALIZER.
    */
   abstract restoreSession(): Observable<void>;
+  abstract clearSession(): void;
   abstract changePassword(
     currentPassword: string,
     newPassword: string,

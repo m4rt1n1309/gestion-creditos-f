@@ -1,3 +1,4 @@
+<p-toast />
 <div class="p-6">
   <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-semibold text-gray-800">Gestión de Clientes</h1>
@@ -7,6 +8,7 @@
         icon="pi pi-plus"
         severity="primary"
         styleClass="h-11 px-5 rounded-xl shadow-sm"
+        data-cy="btn-nuevo-cliente"
         (onClick)="showCreateModal = true"
       />
       <p-dropdown
@@ -16,6 +18,7 @@
         optionValue="value"
         placeholder="Todos"
         styleClass="w-full md:w-44 h-11 rounded-xl border-gray-200 flex items-center"
+        data-cy="dropdown-filtro-clientes"
       />
       <p-iconField iconPosition="left">
         <p-inputIcon styleClass="pi pi-search text-gray-400 z-10" />
@@ -24,6 +27,7 @@
           type="text"
           [(ngModel)]="searchTerm"
           placeholder="Buscar cliente..."
+          data-cy="input-buscar-cliente"
           class="w-full md:w-64 h-11 pl-10 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all"
         />
       </p-iconField>
@@ -68,43 +72,36 @@
         </td>
         <td>
           <div class="flex items-center gap-2">
-            <button
-              pButton
+            <p-button
               label="Ver"
-              class="p-button-outlined p-button-sm p-button-secondary"
-              style="
-                padding: 0.25rem 0.75rem;
-                font-size: 0.8rem;
-                background: #dbeafe;
-                color: #2563eb;
-              "
-              (click)="openView(client)"
-            ></button>
-            <button
-              pButton
-              label="Editar"
-              class="p-button-outlined p-button-sm p-button-secondary"
-              style="
-                padding: 0.25rem 0.75rem;
-                font-size: 0.8rem;
-                background: #dbeafe;
-                color: #006432;
-              "
-              (click)="openEdit(client)"
-            ></button>
+              severity="info"
+              size="small"
+              [outlined]="true"
+              styleClass="text-xs"
+              [attr.data-cy]="'btn-ver-' + client.dni"
+              (onClick)="openView(client)"
+            />
+            @if (canEditClients) {
+              <p-button
+                label="Editar"
+                severity="success"
+                size="small"
+                [outlined]="true"
+                styleClass="text-xs"
+                [attr.data-cy]="'btn-editar-' + client.dni"
+                (onClick)="openEdit(client)"
+              />
+            }
             @if (client.credits > 0) {
-              <button
-                pButton
+              <p-button
                 label="Créditos"
-                class="p-button-outlined p-button-sm p-button-secondary"
-                style="
-                  padding: 0.25rem 0.75rem;
-                  font-size: 0.8rem;
-                  background: #f7ffcc;
-                  color: #202400;
-                "
-                (click)="openCredits(client)"
-              ></button>
+                severity="warning"
+                size="small"
+                [outlined]="true"
+                styleClass="text-xs"
+                [attr.data-cy]="'btn-creditos-' + client.dni"
+                (onClick)="openCredits(client)"
+              />
             }
           </div>
         </td>
@@ -197,39 +194,10 @@
       <label class="text-sm font-medium text-gray-700">Teléfono</label>
       <input pInputText formControlName="phone" class="client-input" />
     </div>
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Riesgo</label>
-      <p-dropdown
-        [options]="riskOptions"
-        formControlName="risk"
-        optionLabel="label"
-        optionValue="value"
-        styleClass="w-full"
-      />
-    </div>
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Estado</label>
-      <div class="flex gap-4">
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input
-            type="radio"
-            formControlName="estado"
-            [value]="true"
-            class="accent-blue-500"
-          />
-          <span class="text-sm text-gray-700">Activo</span>
-        </label>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input
-            type="radio"
-            formControlName="estado"
-            [value]="false"
-            class="accent-blue-500"
-          />
-          <span class="text-sm text-gray-700">Inactivo</span>
-        </label>
-      </div>
-    </div>
+    <p class="text-sm text-gray-500">
+      Solo podés editar nombre, apellido y teléfono desde esta vista porque son
+      los datos que hoy persisten en este flujo.
+    </p>
   </form>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-3 pt-2">
@@ -244,46 +212,6 @@
         [disabled]="editForm.invalid"
         (onClick)="saveEdit()"
       />
-    </div>
-  </ng-template>
-</p-dialog>
-
-<p-dialog
-  [(visible)]="showCreditsModal"
-  [modal]="true"
-  [draggable]="false"
-  [resizable]="false"
-  [style]="{ width: '480px' }"
-  styleClass="rounded-2xl overflow-hidden"
->
-  <ng-template pTemplate="header">
-    <div class="flex items-center gap-2">
-      <i class="pi pi-credit-card text-blue-500 text-lg"></i>
-      <span class="font-semibold text-gray-800 text-base">Créditos</span>
-      @if (selectedClient) {
-        <span class="text-gray-500 text-sm">— {{ selectedClient.name }}</span>
-      }
-    </div>
-  </ng-template>
-  @if (selectedClient) {
-    <div class="py-2 text-center text-gray-500 text-sm">
-      <i class="pi pi-info-circle text-2xl text-blue-300 mb-2 block"></i>
-      Cliente tiene
-      <strong class="text-gray-800">{{ selectedClient.credits }}</strong>
-      crédito(s) activo(s).
-      <br />
-      <span class="text-xs mt-1 block">Detalle de créditos próximamente.</span>
-    </div>
-  }
-  <ng-template pTemplate="footer">
-    <div class="flex justify-end pt-2">
-      <button
-        type="button"
-        class="cancel-btn"
-        (click)="showCreditsModal = false"
-      >
-        Cerrar
-      </button>
     </div>
   </ng-template>
 </p-dialog>
@@ -340,12 +268,12 @@
 
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium text-gray-700"
-        >Número de Cédula / DUI</label
+        >DNI</label
       >
       <input
         pInputText
         formControlName="dni"
-        placeholder="1023456789"
+        placeholder="12345678"
         [class]="
           'client-input' + (isInvalid('dni') ? ' client-input--error' : '')
         "
@@ -363,7 +291,7 @@
         <input
           pInputText
           formControlName="telefonoPrincipal"
-          placeholder="300-123-4567"
+          placeholder="3811234567"
           [class]="
             'client-input' +
             (isInvalid('telefonoPrincipal') ? ' client-input--error' : '')
@@ -382,7 +310,7 @@
         <input
           pInputText
           formControlName="telefonoAlterno"
-          placeholder="311-987-6543"
+          placeholder="3817654321"
           [class]="
             'client-input' +
             (isInvalid('telefonoAlterno') ? ' client-input--error' : '')

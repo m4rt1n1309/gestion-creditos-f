@@ -68,9 +68,17 @@
       <div>
         <div class="text-xs text-gray-500">Monto total</div>
         <div class="font-semibold">
-          {{ credit.totalAmount | currency: "ARS" : "symbol-narrow" : "1.0-2" }}
+          {{ credit.totalAmount | currencyArs: 2 }}
         </div>
       </div>
+      @if (credit.type === "SALE") {
+        <div>
+          <div class="text-xs text-gray-500">Monto financiado</div>
+          <div class="font-semibold">
+            {{ credit.financedAmount | currencyArs: 2 }}
+          </div>
+        </div>
+      }
       <div>
         <div class="text-xs text-gray-500">Cuotas</div>
         <div class="font-semibold">
@@ -138,35 +146,101 @@
       </div>
     </div>
 
-    @if (
-      credit.type === "SALE" && credit.products && credit.products.length > 0
-    ) {
+    @if (credit.type === "SALE") {
       <div class="mb-6 p-4 bg-white border rounded">
-        <h3 class="font-semibold mb-3">Productos</h3>
-        <p-table [value]="credit.products" styleClass="p-datatable-sm">
+        <h3 class="font-semibold mb-3">Condiciones iniciales</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <div class="text-xs text-gray-500">Monto financiado</div>
+            <div class="font-semibold">
+              {{ credit.financedAmount | currencyArs: 2 }}
+            </div>
+          </div>
+          @if (credit.downPayment > 0) {
+            <div>
+              <div class="text-xs text-gray-500">Enganche</div>
+              <div class="font-semibold">
+                {{ credit.downPayment | currencyArs: 2 }}
+              </div>
+              @if (credit.downPaymentMethod) {
+                <div class="text-xs text-gray-400">
+                  {{
+                    credit.downPaymentMethod === "CASH"
+                      ? "Efectivo"
+                      : "Transferencia"
+                  }}
+                </div>
+              }
+              @if (credit.downPaymentTransferReference) {
+                <div class="text-xs text-gray-400">
+                  Ref: {{ credit.downPaymentTransferReference }}
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (credit.settledAt) {
+      <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded">
+        <h3 class="font-semibold mb-3 text-green-800">
+          Cancelación anticipada
+        </h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <div class="text-xs text-green-700">Fecha</div>
+            <div class="font-semibold">
+              {{ credit.settledAt | date: "dd/MM/yyyy" }}
+            </div>
+          </div>
+          @if (credit.settlementAmount) {
+            <div>
+              <div class="text-xs text-green-700">Monto</div>
+              <div class="font-semibold">
+                {{ credit.settlementAmount | currencyArs: 2 }}
+              </div>
+            </div>
+          }
+          @if (credit.settlementType) {
+            <div>
+              <div class="text-xs text-green-700">Tipo</div>
+              <div class="font-semibold">{{ credit.settlementType }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (credit.type === "SALE" && credit.units && credit.units.length > 0) {
+      <div class="mb-6 p-4 bg-white border rounded">
+        <h3 class="font-semibold mb-3">Unidades</h3>
+        <p-table [value]="credit.units" styleClass="p-datatable-sm">
           <ng-template pTemplate="header">
             <tr>
               <th>Producto</th>
-              <th class="text-right">Cantidad</th>
+              <th>Variante</th>
+              <th>Código de unidad</th>
               <th class="text-right">Precio histórico</th>
-              <th class="text-right">Subtotal</th>
+              <th class="text-right">Tasa aplicada</th>
             </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-p>
+          <ng-template pTemplate="body" let-u>
             <tr>
-              <td>{{ p.productName }}</td>
-              <td class="text-right">{{ p.quantity }}</td>
+              <td>{{ u.productName }}</td>
+              <td class="text-sm text-gray-600">
+                {{ variantLabel(u) }}
+              </td>
+              <td class="font-mono font-semibold">{{ u.unitCode }}</td>
               <td class="text-right">
-                {{
-                  p.historicalPrice
-                    | currency: "ARS" : "symbol-narrow" : "1.0-2"
-                }}
+                {{ u.historicalPrice | currencyArs: 2 }}
               </td>
               <td class="text-right">
-                {{
-                  p.historicalPrice * p.quantity
-                    | currency: "ARS" : "symbol-narrow" : "1.0-2"
-                }}
+                @if (u.historicalRate !== null) {
+                  {{ (u.historicalRate * 100).toFixed(2) }}%
+                } @else {
+                  <span class="text-gray-400 text-xs">Pendiente</span>
+                }
               </td>
             </tr>
           </ng-template>
@@ -195,20 +269,16 @@
             <td>{{ inst.installmentNumber }}</td>
             <td>{{ inst.dueDate | date: "dd/MM/yyyy" }}</td>
             <td class="text-right">
-              {{ inst.amountDue | currency: "ARS" : "symbol-narrow" : "1.0-2" }}
+              {{ inst.amountDue | currencyArs: 2 }}
             </td>
             <td class="text-right">
-              {{
-                inst.amountPaid | currency: "ARS" : "symbol-narrow" : "1.0-2"
-              }}
+              {{ inst.amountPaid | currencyArs: 2 }}
             </td>
             <td
               class="text-right"
               [class.text-red-600]="inst.penaltyAmount > 0"
             >
-              {{
-                inst.penaltyAmount | currency: "ARS" : "symbol-narrow" : "1.0-2"
-              }}
+              {{ inst.penaltyAmount | currencyArs: 2 }}
             </td>
             <td>
               <p-tag
@@ -521,10 +591,7 @@
   <div class="flex flex-col gap-4 py-2">
     <p class="text-sm text-gray-700">
       Cuota #{{ earlyPayInstallment?.installmentNumber }} —
-      {{
-        earlyPayInstallment?.amountDue
-          | currency: "ARS" : "symbol-narrow" : "1.0-2"
-      }}
+      {{ earlyPayInstallment?.amountDue | currencyArs: 2 }}
     </p>
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium text-gray-700">Método de pago</label>
