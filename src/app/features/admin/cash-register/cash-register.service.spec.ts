@@ -8,7 +8,7 @@ const mockDashboardRaw = {
   cash_amount: 30000,
   transfer_amount: 15000,
   total_collected: 45000,
-  total_egreses: 5000,
+  total_outflows: 5000,
   approved_count: 12,
   pending_count: 3,
   net_balance: 40000,
@@ -49,7 +49,7 @@ describe('CashRegisterService', () => {
       expect(d.cashAmount).toBe(30000);
       expect(d.transferAmount).toBe(15000);
       expect(d.totalCollected).toBe(45000);
-      expect(d.totalEgreses).toBe(5000);
+      expect(d.totalOutflows).toBe(5000);
       expect(d.approvedCount).toBe(12);
       expect(d.pendingCount).toBe(3);
       expect(d.netBalance).toBe(40000);

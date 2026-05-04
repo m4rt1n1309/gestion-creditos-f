@@ -5,7 +5,7 @@ export interface CashRegisterDashboard {
   cashAmount: number;
   transferAmount: number;
   totalCollected: number;
-  totalEgreses: number;
+  totalOutflows: number;
   approvedCount: number;
   pendingCount: number;
   netBalance: number;
@@ -38,6 +38,8 @@ export interface CashRegisterClosePayload {
   declaredCash: number;
   observations?: string;
   force?: boolean;
+  /** Fecha para cierre retroactivo (YYYY-MM-DD). Opcional. */
+  registerDate?: string;
 }
 
 export interface CashRegisterDashboardRaw {
@@ -45,7 +47,7 @@ export interface CashRegisterDashboardRaw {
   cash_amount: number;
   transfer_amount: number;
   total_collected: number;
-  total_egreses: number;
+  total_outflows: number;
   approved_count: number;
   pending_count: number;
   net_balance: number;

@@ -22,7 +22,7 @@ function toDashboard(r: CashRegisterDashboardRaw): CashRegisterDashboard {
     cashAmount: r.cash_amount,
     transferAmount: r.transfer_amount,
     totalCollected: r.total_collected,
-    totalEgreses: r.total_egreses,
+    totalOutflows: r.total_outflows,
     approvedCount: r.approved_count,
     pendingCount: r.pending_count,
     netBalance: r.net_balance ?? 0,
@@ -59,11 +59,14 @@ export class CashRegisterService {
 
   /**
    * Obtiene el panel de control de cajas.
+   * @param date - Fecha opcional en formato YYYY-MM-DD para filtrar el dashboard.
    * @returns
    */
-  getDashboard(): Observable<CashRegisterDashboard> {
+  getDashboard(date?: string): Observable<CashRegisterDashboard> {
+    const params: Record<string, string> = {};
+    if (date) params['date'] = date;
     return this.api
-      .get<CashRegisterDashboardRaw>('cash-register/dashboard')
+      .get<CashRegisterDashboardRaw>('cash-register/dashboard', params)
       .pipe(map(toDashboard));
   }
 
@@ -105,6 +108,7 @@ export class CashRegisterService {
     };
     if (payload.observations) body['observations'] = payload.observations;
     if (payload.force) body['force'] = true;
+    if (payload.registerDate) body['register_date'] = payload.registerDate;
     return this.api
       .post<CashRegisterRaw>('cash-register/close', body)
       .pipe(map(toCashRegister));
