@@ -172,12 +172,20 @@ export class CreditCreateComponent implements OnInit {
   /**
    * Resetea los estados relacionados con la simulación y el carrito cada vez que se cambia el tipo de crédito, para asegurar que la información mostrada sea relevante al tipo seleccionado y evitar inconsistencias en la interfaz. Esto incluye limpiar los resultados de simulación anteriores, errores, y vaciar el carrito, además de ocultar secciones adicionales que solo aplican a ciertos tipos de crédito.
    */
-  onTypeChange(): void {
+  onTypeChange(newType: string): void {
     this.simulateResult = null;
     this.simulateError = null;
     this.submitError = null;
     this.unitsError = null;
     this.showExtraSection = false;
+    const totalAmount = this.form.get('totalAmount');
+    if (newType === 'LOAN') {
+      totalAmount?.setValidators([Validators.required, Validators.min(1)]);
+    } else {
+      totalAmount?.clearValidators();
+      totalAmount?.setValue(null);
+    }
+    totalAmount?.updateValueAndValidity();
   }
 
   /**
@@ -250,6 +258,7 @@ export class CreditCreateComponent implements OnInit {
       productName: product?.title ?? unit.productName,
       variantLabel,
       price: unit.currentPrice,
+      variantId: this.selectedVariantId,
     });
     this.selectedUnitId = '';
     this.unitsError = null;
@@ -270,6 +279,7 @@ export class CreditCreateComponent implements OnInit {
   simulate(): void {
     const v = this.form.getRawValue();
     if (!v.installmentsCount || !v.paymentFrequency) return;
+    if (v.type === 'SALE' && this.cart.length === 0) return;
 
     this.simulating = true;
     this.simulateResult = null;
@@ -279,7 +289,7 @@ export class CreditCreateComponent implements OnInit {
       v.type === 'SALE'
         ? {
             type: 'SALE' as const,
-            totalAmount: this.cartTotal,
+            products: this.buildProductsForSimulate(),
             installmentsCount: v.installmentsCount,
             paymentFrequency: v.paymentFrequency as PaymentFrequency,
             ...(v.downPayment > 0 ? { downPayment: v.downPayment } : {}),
@@ -409,9 +419,14 @@ export class CreditCreateComponent implements OnInit {
     return !!(c && c.invalid && (c.dirty || c.touched));
   }
 
-  /**
-   * Resetea los estados relacionados con la simulación y el carrito cada vez que se cambia el tipo de crédito, para asegurar que la información mostrada sea relevante al tipo seleccionado y evitar inconsistencias en la interfaz. Esto incluye limpiar los resultados de simulación anteriores, errores, y vaciar el carrito, además de ocultar secciones adicionales que solo aplican a ciertos tipos de crédito.
-   */
+  private buildProductsForSimulate(): Array<{ variantId: string; quantity: number }> {
+    const map = new Map<string, number>();
+    for (const unit of this.cart) {
+      map.set(unit.variantId, (map.get(unit.variantId) ?? 0) + 1);
+    }
+    return Array.from(map.entries()).map(([variantId, quantity]) => ({ variantId, quantity }));
+  }
+
   private buildForm(): void {
     this.form = this.fb.group({
       type: ['SALE'],

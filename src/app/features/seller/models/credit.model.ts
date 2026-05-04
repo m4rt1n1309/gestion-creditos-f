@@ -86,6 +86,7 @@ export interface CreditListFilters {
 export interface SimulatePayload {
   type: CreditType;
   totalAmount?: number;
+  products?: Array<{ variantId: string; quantity: number }>;
   installmentsCount: number;
   paymentFrequency: PaymentFrequency;
   downPayment?: number;
@@ -235,4 +236,5 @@ export interface CartUnit {
   productName: string;
   variantLabel: string;
   price: number;
+  variantId: string;
 }
