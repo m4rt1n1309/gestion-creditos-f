@@ -107,6 +107,10 @@ export class ProductsListComponent implements OnInit, OnDestroy {
     this.router.navigate([AppRoutes.SELLER_PRODUCTS, id]);
   }
 
+  navigateToEdit(id: string): void {
+    this.router.navigate([`/seller/products/${id}/edit`]);
+  }
+
   navigateToCreate(): void {
     this.router.navigate([AppRoutes.SELLER_PRODUCTS_NEW]);
   }

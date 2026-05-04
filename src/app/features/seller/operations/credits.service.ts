@@ -141,6 +141,12 @@ function toSimulateBody(p: SimulatePayload): Record<string, unknown> {
     installments_count: p.installmentsCount,
     payment_frequency: p.paymentFrequency,
   };
+  if (p.products !== undefined && p.products.length > 0) {
+    body['products'] = p.products.map((pr) => ({
+      variant_id: pr.variantId,
+      quantity: pr.quantity,
+    }));
+  }
   if (p.totalAmount !== undefined) body['total_amount'] = p.totalAmount;
   if (p.downPayment !== undefined && p.downPayment > 0) {
     body['down_payment'] = p.downPayment;
