@@ -49,6 +49,33 @@ http://localhost:3000/api/credits - POST
     "message": "Pre-operación registrada. Pendiente de aprobación."
 }
 ```
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Hice click en "Enviar para Aprobación"]
+* **Resultado Esperado:** [Debería enviar la operación para ser aprobada.]
+* **Resultado Obtenido (Actual):** [Cuando eligo un producto que dice que posee 5 unidades sale error de no encontrado.]
+### 2. Evidencia Técnica
+
+**Payload Enviado (Request):**
+```json
+{
+{customer_id: "9da1f6c7-8297-44c9-858e-a5d3918deccf", type: "SALE", installments_count: 6,…}
+customer_id:"9da1f6c7-8297-44c9-858e-a5d3918deccf"
+installments_count:6
+payment_frequency:"MONTHLY"
+type:"SALE"
+unit_ids:["c8e8ef31-eec0-4e8f-a09c-d921a368d84d"]
+0:"c8e8ef31-eec0-4e8f-a09c-d921a368d84d"
+}
+
+```
+
+**Respuesta esperada actual:**
+```json
+{
+    "ok": false,
+    "message": "Unidad c8e8ef31-eec0-4e8f-a09c-d921a368d84d no encontrada."
+}
+```
 ---
 
 **Módulo:** [Crédito]
@@ -89,6 +116,10 @@ http://localhost:3000/api/credits - POST
 * **Acción Realizada:** [Hice click en "Siguiente" sin elegir "Fecha del primer pago".]
 * **Resultado Esperado:** [Debería estar deshabilitado el botón "Siguiente" hasta elegir la "Fecha del primer pago".]
 * **Resultado Obtenido (Actual):** [Corregido. En paso Condiciones, `canNext` bloquea avanzar cuando `firstDueDate` está vacío o es inválido. Validado con `new-operation.component.spec.ts` (caso CR-05) y `cypress/e2e/07-negative-nueva-operacion.cy.ts`.]
+* **Acción Realizada:** [Hice click para elegir la fecha con el mouse.]
+* **Resultado Esperado:** [Debería poder elegir la fecha con el click.]
+* **Resultado Obtenido (Actual):** [Al hacer click con el mouse sobre una fecha del calendario no hace nada, escribiendo la fecha me permite seguir.]
+
 
 ---
 
