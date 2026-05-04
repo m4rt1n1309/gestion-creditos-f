@@ -68,6 +68,7 @@ http://localhost:3000/api/credits - POST
 * **Acción Realizada:** [Hice click en "Tipo de operación" y elegi "Préstamo personal".]
 * **Resultado Esperado:** [Debería desaparecer los productos.]
 * **Resultado Obtenido (Error):** [Los productos continúan visibles.]
+* **Resultado Obtenido (Actual):** [Corregido. Al elegir "Préstamo personal" se ocultan buscador/listados/selección de productos y además se limpia el estado (`searchProduct`, `selectedProducts`) para evitar datos residuales. Validado con `step-products.component.spec.ts` y `new-operation.component.spec.ts` (caso LOAN sin productos).]
 
 ---
 

@@ -55,6 +55,20 @@ export class OperationFormService {
     { label: 'Préstamo Personal', value: 'PRESTAMO' },
   ];
 
+  /**
+   * Actualiza el tipo de operación y limpia el estado de productos cuando es préstamo.
+   * Evita arrastrar datos residuales de búsqueda o selección al flujo sin productos.
+   * @param {'VENTA' | 'PRESTAMO'} type - Tipo elegido en el wizard.
+   */
+  setOperationType(type: 'VENTA' | 'PRESTAMO') {
+    this.selectedType.set(type);
+
+    if (type === 'PRESTAMO') {
+      this.searchProduct.set('');
+      this.selectedProducts.set([]);
+    }
+  }
+
   firstDueDate = signal<Date | undefined>(undefined);
   installmentsOptions = [
     { label: '1 cuota', value: 1 },

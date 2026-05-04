@@ -30,9 +30,34 @@ import { OperationFormService } from '../../operation-form.service';
 export class StepProductsComponent {
   form = inject(OperationFormService);
 
+  /**
+   * Devuelve si la operación actual usa productos (solo venta a crédito).
+   * @returns {boolean} true cuando corresponde mostrar y habilitar productos.
+   */
+  get usesProducts(): boolean {
+    return this.form.selectedType() === 'VENTA';
+  }
+
+  /**
+   * Cambia el tipo de operación delegando la limpieza de estado al servicio.
+   * @param {'VENTA' | 'PRESTAMO'} type - Tipo elegido por el usuario.
+   */
+  changeOperationType(type: 'VENTA' | 'PRESTAMO') {
+    this.form.setOperationType(type);
+  }
+
+  /**
+   * Agrega un producto al listado seleccionado del flujo de venta.
+   * @param {ProductOperation} prod - Producto elegido.
+   */
   addProduct(prod: ProductOperation) {
     this.form.addProduct(prod);
   }
+
+  /**
+   * Quita un producto del listado seleccionado del flujo de venta.
+   * @param {ProductOperation} prod - Producto a remover.
+   */
   removeProduct(prod: ProductOperation) {
     this.form.removeProduct(prod);
   }

@@ -108,6 +108,26 @@ describe('NewOperationComponent', () => {
     });
   });
 
+  describe('finish() — LOAN sin productos (CR-03)', () => {
+    it('permite enviar préstamo personal sin exigir unidades/productos', () => {
+      formService.selectedClient.set(mockClient);
+      formService.selectedType.set('PRESTAMO');
+      formService.selectedProducts.set([]);
+      formService.loanCapital.set(250000);
+      formService.loanMonths.set(6);
+
+      component.finish();
+
+      expect(creditsServiceSpy.create).toHaveBeenCalledOnceWith(
+        jasmine.objectContaining({
+          type: 'LOAN',
+          totalAmount: 250000,
+        }),
+      );
+      expect(component.unitsError).toBeNull();
+    });
+  });
+
   describe('canNext — validación fecha primer pago (CR-02)', () => {
     it('en Paso 3 bloquea avanzar cuando no hay fecha de primer pago', () => {
       component.activeIndex = 2;

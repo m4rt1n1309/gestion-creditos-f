@@ -5,11 +5,12 @@
       <p-dropdown
         [options]="form.operationTypes"
         [ngModel]="form.selectedType()"
-        (ngModelChange)="form.selectedType.set($event)"
+        (ngModelChange)="changeOperationType($event)"
         styleClass="w-full h-11 rounded-xl border-gray-200 flex items-center bg-white"
         data-cy="dropdown-tipo-operacion"
       />
     </div>
+    @if (usesProducts) {
     <div class="flex flex-col gap-2">
       <label class="text-sm font-bold text-gray-700">Buscar Producto</label>
       <p-iconField iconPosition="left">
@@ -25,8 +26,10 @@
         />
       </p-iconField>
     </div>
+    }
   </div>
 
+  @if (usesProducts) {
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
     <div class="lg:col-span-7 flex flex-col gap-4">
       <div class="flex justify-between items-center px-1">
@@ -111,4 +114,5 @@
       </div>
     </div>
   </div>
+  }
 </div>
