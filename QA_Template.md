@@ -321,3 +321,34 @@ variants:[]
 ## Evidencia automatizada
 
 - `cypress/e2e/33-product-create-modal-regression.cy.ts` → passing
+
+---
+
+Módulo Planilla
+
+**Módulo:** [Planilla]
+**ID de Prueba:** [PL-01]
+**Título / Descripción:** [Generar Planilla]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Se hizo click en "Generar Planilla para todos" y se seleccionó un cobrador y se hizo click en "Generar Planilla".]
+* **Resultado Esperado:** [Deberia aparecer las planillas generadas y deshabilitar el botón "Generar Planilla para todos" y dehabilitar el botón "Generar Planilla" cuando se selecciona un cobrador.]
+* **Resultado Obtenido (Actual):** [Permite apretar el boton las veces que uno quiera.]
+
+**Módulo:** [Planilla]
+**ID de Prueba:** [PL-02]
+**Título / Descripción:** [Botones]
+### 1. Contexto de la Prueba
+* **Resultado Obtenido (Actual):** [Botones no están alineados al resto de la página.]
+
+---
+
+
+Módulo Gastos
+
+**Módulo:** [Gastos]
+**ID de Prueba:** [GA-01]
+**Título / Descripción:** [Gastos]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Se hizo click en desactivar gasto "Alquiler".]
+* **Resultado Esperado:** [Deberia poder activarlo de nuevo si quisiera.]
+* **Resultado Obtenido (Actual):** [No existe el botón "Activar".]
