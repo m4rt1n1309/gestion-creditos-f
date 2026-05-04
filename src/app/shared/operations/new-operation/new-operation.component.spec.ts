@@ -154,4 +154,37 @@ describe('NewOperationComponent', () => {
       expect(component.canNext).toBeTrue();
     });
   });
+
+  describe('canNext — bloqueo explícito sin fecha de primer pago (CR-05)', () => {
+    it('en Paso 3 deshabilita avanzar cuando firstDueDate está vacío', () => {
+      component.activeIndex = 2;
+      formService.firstDueDate.set(undefined);
+
+      expect(component.canNext).toBeFalse();
+    });
+  });
+
+  describe('isConfirmed — validación de desembolso inmediato (CR-06)', () => {
+    it('mantiene enviar deshabilitado si falta marcar disbursement', () => {
+      formService.checks.set({
+        identity: true,
+        conditions: true,
+        disbursement: false,
+        capacity: true,
+      });
+
+      expect(component.isConfirmed).toBeFalse();
+    });
+
+    it('habilita enviar solo cuando también se marca disbursement', () => {
+      formService.checks.set({
+        identity: true,
+        conditions: true,
+        disbursement: true,
+        capacity: true,
+      });
+
+      expect(component.isConfirmed).toBeTrue();
+    });
+  });
 });

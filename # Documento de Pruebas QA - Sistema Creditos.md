@@ -9,9 +9,9 @@
 | **CR-01** | Operación Crédito | Click en "Enviar para Aprobación". | Debería enviar la operación para ser aprobada. | Corregido / Validado |
 | **CR-02** | Operación Crédito | En fecha de primer pago puse una fecha anterior a la actual. | Debería estar deshabilitadas las fechas fechas anteriores a la actual. | Corregido / Validado |
 | **CR-03** | Operación Crédito | Click en "Tipo de operación" y "Préstamo personal". | Debería desaparecer los productos. | Corregido / Validado |
-| **CR-04** | Operación Crédito | Escribí "aire" en "Buscar productos". | Debería filtrar la búsqueda por el nombre. | Error 
-| **CR-05** | Configuración del Crédito | Click en "Siguiente" sin elegir "Fecha de primer pago". | Debería estar deshabilitado el botón "Siguiente". | Error 
-| **CR-06** | Operación Crédito - Declaraciones y Autorizaciones | Dejé sin marcar la casilla "Autorizo el desembolso inmediato". | Debería estar deshabilitado el botón "Siguiente" hasta marcar la casilla. | Error
+| **CR-04** | Operación Crédito | Escribí "aire" en "Buscar productos". | Debería filtrar la búsqueda por el nombre. | Corregido / Validado |
+| **CR-05** | Configuración del Crédito | Click en "Siguiente" sin elegir "Fecha de primer pago". | Debería estar deshabilitado el botón "Siguiente". | Corregido / Validado |
+| **CR-06** | Operación Crédito - Declaraciones y Autorizaciones | Dejé sin marcar la casilla "Autorizo el desembolso inmediato". | Debería estar deshabilitado el botón "Siguiente" hasta marcar la casilla. | Corregido / Validado |
 | **CR-07** | Operación Crédito - Operaciones | Click en "Activo" para filtrar las operaciones. | Debería filtrar las operaciones. | Error
 | **CR-08** | Operación Crédito - Operaciones | Escribí "Perez" en el buscador. | Debería filtrar los clientes. | Error
 
@@ -41,6 +41,9 @@
 - **CR-01**: el flujo SALE quedó alineado al contrato actual (`unit_ids`, `down_payment`, sin `prepaid_installments` en alta).
 - **CR-02**: el calendario de "Fecha del Primer Pago" ahora bloquea días anteriores con `minDate`, input de solo lectura y validación del wizard para impedir avanzar con fecha inválida.
 - **CR-03**: al elegir "Préstamo personal" se ocultan buscador/listados de productos y se limpia la selección previa para evitar datos residuales en el envío.
+- **CR-04**: el buscador de productos ahora filtra por nombre (`filteredAvailableProducts`) en el paso "Tipo y Producto".
+- **CR-05**: el botón "Siguiente" en el paso de Condiciones permanece deshabilitado sin fecha de primer pago válida (cobertura explícita dedicada).
+- **CR-06**: el envío final ahora exige marcar también "Autorizo el desembolso inmediato" (`checks.disbursement`).
 - **CL-02**: el detalle del cliente ya carga por `id` real y no depende de mocks locales.
 - **CL-03**: la edición de cliente persiste los campos soportados actualmente (`full_name`, `phone`) y se refleja tras recargar.
 - **PR-01**: el formulario de `seller/products/new` ya bloquea el alta vacía; el problema era un spec Cypress buscando el label viejo del botón.
@@ -54,9 +57,12 @@
 
 - `cypress/e2e/31-qa-regression-issues.cy.ts` → flujo SALE integrado: **passing**
 - `src/app/shared/operations/new-operation/new-operation.component.spec.ts` → CR-02 validación fecha primer pago (pasado bloqueado / futuro permitido): **passing**
+- `src/app/shared/operations/new-operation/steps/step-products/step-products.component.spec.ts` → CR-04 buscador filtra por nombre: **passing**
+- `src/app/shared/operations/new-operation/new-operation.component.spec.ts` → CR-05 bloqueo explícito sin fecha de primer pago: **passing**
+- `src/app/shared/operations/new-operation/new-operation.component.spec.ts` → CR-06 confirmación exige desembolso inmediato: **passing**
 - `src/app/shared/operations/new-operation/steps/step-products/step-products.component.spec.ts` → CR-03 ocultar productos + limpieza de estado al pasar a préstamo personal: **passing**
 - `src/app/shared/operations/new-operation/new-operation.component.spec.ts` → CR-03 préstamo personal se envía sin exigir productos/unidades: **passing**
-- `cypress/e2e/07-negative-nueva-operacion.cy.ts` → CR-02/CR-05 navegación bloqueada sin fecha primer pago: **passing**
+- `cypress/e2e/07-negative-nueva-operacion.cy.ts` → CR-02/CR-05 navegación bloqueada sin fecha primer pago y CR-06 desembolso obligatorio: **passing**
 - `src/app/shared/clients/clients.component.spec.ts` → CL-01 toast de éxito al crear cliente: **passing**
 - `cypress/e2e/32-client-detail-regression.cy.ts` → CL-02 detalle cliente: **passing**
 - `cypress/e2e/04-clientes.cy.ts` → módulo clientes / CL-03 persistencia: **passing**

@@ -85,6 +85,27 @@ describe('Wizard Nueva Operación — Unhappy Paths', () => {
     cy.get('[data-cy="btn-enviar-aprobacion"]').should('have.attr', 'ng-reflect-disabled', 'true');
   });
 
+  it('Step 4: sin marcar "Autorizo el desembolso inmediato" mantiene enviar deshabilitado (CR-06)', () => {
+    cy.get('[data-cy^="cliente-item-"]').first().click();
+    cy.get('[data-cy="btn-siguiente-wizard"]').click();
+    cy.contains('Paso 2 de 4').scrollIntoView().should('be.visible');
+
+    cy.get('[data-cy="btn-siguiente-wizard"]').click();
+    cy.contains('Paso 3 de 4').scrollIntoView().should('be.visible');
+
+    cy.get('input#first-due-date').clear().type('31/12/2099').blur();
+
+    cy.get('[data-cy="btn-siguiente-wizard"]').click();
+    cy.contains('Paso 4 de 4').scrollIntoView().should('be.visible');
+
+    cy.get('[data-cy="chk-identity"] .p-checkbox-box').click();
+    cy.get('[data-cy="chk-conditions"] .p-checkbox-box').click();
+    cy.get('[data-cy="chk-capacity"] .p-checkbox-box').click();
+    // No marcar chk-disbursement
+
+    cy.get('[data-cy="btn-enviar-aprobacion"]').should('have.attr', 'ng-reflect-disabled', 'true');
+  });
+
   it('Step 4: marcar los 4 checkboxes habilita el botón enviar', () => {
     cy.get('.h-\\[380px\\]').first().children().first().click();
     cy.get('[data-cy="btn-siguiente-wizard"]').click();

@@ -42,4 +42,17 @@ describe('StepProductsComponent (CR-03)', () => {
     ).toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain('Productos Disponibles');
   });
+
+  it('filtra productos por nombre al escribir en el buscador (CR-04)', () => {
+    formService.availableProducts = [
+      { id: 'p1', name: 'Aire Acondicionado', price: 1200, stock: 2 },
+      { id: 'p2', name: 'Heladera', price: 900, stock: 3 },
+    ];
+
+    formService.searchProduct.set('aire');
+
+    expect(formService.filteredAvailableProducts()).toEqual([
+      { id: 'p1', name: 'Aire Acondicionado', price: 1200, stock: 2 },
+    ]);
+  });
 });

@@ -21,6 +21,21 @@ export class OperationFormService {
   availableProducts: ProductOperation[] = [];
 
   /**
+   * Lista de productos filtrada por nombre según el texto del buscador.
+   * @returns {ProductOperation[]} Productos cuyo nombre contiene el término buscado.
+   */
+  filteredAvailableProducts = computed(() => {
+    const searchTerm = this.searchProduct().trim().toLowerCase();
+    if (!searchTerm) {
+      return this.availableProducts;
+    }
+
+    return this.availableProducts.filter((product) =>
+      product.name.toLowerCase().includes(searchTerm),
+    );
+  });
+
+  /**
    *
    * @returns
    */
@@ -124,9 +139,13 @@ export class OperationFormService {
     return count > 0 ? this.totalToPay() / count : 0;
   });
 
+  /**
+   * Indica si se completaron todas las declaraciones obligatorias del paso final.
+   * @returns {boolean} true solo cuando las 4 casillas requeridas están marcadas.
+   */
   isConfirmed = computed(() => {
     const c = this.checks();
-    return c.identity && c.conditions && c.capacity;
+    return c.identity && c.conditions && c.disbursement && c.capacity;
   });
 
   /**
@@ -145,6 +164,11 @@ export class OperationFormService {
     this.selectedProducts.update((list) => list.filter((p) => p !== product));
   }
 
+  /**
+   * Actualiza el estado de una casilla de confirmación del paso final.
+   * @param {keyof ReturnType<typeof this.checks>} key - Clave de la casilla a modificar.
+   * @param {boolean} value - Valor booleano seleccionado por el usuario.
+   */
   updateCheck(key: keyof ReturnType<typeof this.checks>, value: boolean) {
     this.checks.update((c) => ({ ...c, [key]: value }));
   }

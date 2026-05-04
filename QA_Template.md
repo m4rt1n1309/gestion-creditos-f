@@ -78,7 +78,7 @@ http://localhost:3000/api/credits - POST
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Escribí "aire" en "Buscar Producto".]
 * **Resultado Esperado:** [Debería filtrar los productos por el nombre.]
-* **Resultado Obtenido (Error):** [No funciona el buscador.]
+* **Resultado Obtenido (Actual):** [Corregido. El listado del paso "Tipo y Producto" ahora se filtra por nombre usando el texto de `searchProduct`. Validado con `step-products.component.spec.ts` (caso CR-04).]
 
 ---
 
@@ -88,7 +88,7 @@ http://localhost:3000/api/credits - POST
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Hice click en "Siguiente" sin elegir "Fecha del primer pago".]
 * **Resultado Esperado:** [Debería estar deshabilitado el botón "Siguiente" hasta elegir la "Fecha del primer pago".]
-* **Resultado Obtenido (Error):** [Permite continuar aunque no se haya elegido la "Fecha del primer pago".]
+* **Resultado Obtenido (Actual):** [Corregido. En paso Condiciones, `canNext` bloquea avanzar cuando `firstDueDate` está vacío o es inválido. Validado con `new-operation.component.spec.ts` (caso CR-05) y `cypress/e2e/07-negative-nueva-operacion.cy.ts`.]
 
 ---
 
@@ -98,7 +98,7 @@ http://localhost:3000/api/credits - POST
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Dejé sin marcar la casilla "Autorizo el desembolso inmediato al finalizar la aprobación del crédito".]
 * **Resultado Esperado:** [Debería estar deshabilitado el botón "Siguiente" hasta marcar la casilla.]
-* **Resultado Obtenido (Error):** [Permite continuar aunque no se haya tildado la casilla.]
+* **Resultado Obtenido (Actual):** [Corregido. El botón final de envío queda deshabilitado hasta marcar también `disbursement` junto con las demás declaraciones obligatorias. Validado con `new-operation.component.spec.ts` y `cypress/e2e/07-negative-nueva-operacion.cy.ts` (caso CR-06).]
 
 ---
 
