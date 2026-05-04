@@ -28,6 +28,17 @@ export class ProductCategoriesService {
       .pipe(map(toCategory));
   }
 
+  /**
+   * Actualiza el nombre de una categoría existente.
+   * @param id - ID de la categoría a actualizar.
+   * @param name - Nuevo nombre.
+   */
+  update(id: string, name: string): Observable<ProductCategory> {
+    return this.api
+      .put<ProductCategoryRaw>(`product-categories/${id}`, { name })
+      .pipe(map(toCategory));
+  }
+
   activate(id: string): Observable<void> {
     return this.api
       .patch<void>(`product-categories/${id}/activate`)

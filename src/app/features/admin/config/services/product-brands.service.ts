@@ -32,6 +32,17 @@ export class ProductBrandsService {
       .pipe(map(toBrand));
   }
 
+  /**
+   * Actualiza el nombre de una marca existente.
+   * @param id - ID de la marca a actualizar.
+   * @param name - Nuevo nombre.
+   */
+  update(id: string, name: string): Observable<ProductBrand> {
+    return this.api
+      .put<ProductBrandRaw>(`product-brands/${id}`, { name })
+      .pipe(map(toBrand));
+  }
+
   activate(id: string): Observable<void> {
     return this.api
       .patch<void>(`product-brands/${id}/activate`)

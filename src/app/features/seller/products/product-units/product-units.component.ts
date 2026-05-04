@@ -2,8 +2,10 @@ import { CommonModule, Location } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import {
   FormBuilder,
-  FormGroup, FormsModule, ReactiveFormsModule,
-  Validators
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
 } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -88,7 +90,7 @@ export class ProductUnitsComponent implements OnInit {
   singleForm!: FormGroup;
   bulkForm!: FormGroup;
 
-    // TODO: agregar documentacion de las funciones
+  // TODO: agregar documentacion de las funciones
 
   get isAdmin(): boolean {
     return this.auth.hasRole(UserRoleEnum.ADMIN);
@@ -290,7 +292,15 @@ export class ProductUnitsComponent implements OnInit {
 
   private buildForms(): void {
     this.singleForm = this.fb.group({
-      unitCode: ['', [Validators.required, Validators.maxLength(100)]],
+      unitCode: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(2),
+          Validators.maxLength(100),
+          Validators.pattern(/^[A-Za-z0-9\-_]+$/),
+        ],
+      ],
       notes: ['', Validators.maxLength(500)],
     });
     this.bulkForm = this.fb.group({
