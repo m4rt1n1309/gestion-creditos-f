@@ -20,6 +20,8 @@ import { TagModule } from 'primeng/tag';
 
 import { CustomersService } from '../../features/seller/clients/customers.service';
 import { Customer } from '../../features/seller/models/customer.model';
+import { MockAuthService } from '../../core/auth/mock-auth.service';
+import { UserRoleEnum } from '../../core/models/types/user-role';
 import { FormatService } from '../../core/services/format.service';
 import { Client } from '../models/interface/client';
 import { AppRoutes } from '../models/enums/routes.enum';
@@ -74,6 +76,7 @@ function toClient(c: Customer): Client {
 })
 export class ClientsComponent implements OnInit {
   private readonly customersService = inject(CustomersService);
+  private readonly auth = inject(MockAuthService);
 
   clients: Client[] = [];
   loading = false;
@@ -97,12 +100,6 @@ export class ClientsComponent implements OnInit {
   form: FormGroup;
   editForm: FormGroup;
 
-  riskOptions = [
-    { label: 'Al día', value: 'Al dia' },
-    { label: 'Mora leve', value: 'Mora leve' },
-    { label: 'Mora alta', value: 'Mora alta' },
-  ];
-
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -114,6 +111,14 @@ export class ClientsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadClients();
+  }
+
+  /**
+   * Indica si el usuario actual puede editar clientes según el permiso real del backend.
+   * Se usa para no ofrecer una acción que el endpoint rechaza con 403.
+   */
+  get canEditClients(): boolean {
+    return this.auth.hasRole(UserRoleEnum.ADMIN);
   }
 
   /**
@@ -223,12 +228,14 @@ export class ClientsComponent implements OnInit {
   }
 
   /**
-   *  Abre un modal de edición para el cliente seleccionado, permitiendo modificar su información básica como nombre, teléfono y nivel de riesgo.
+   *  Abre el modal de edición solo para administradores, limitando los campos a los que hoy persiste el backend desde este flujo.
    * @param client
    */
   openEdit(client: Client): void {
+    if (!this.canEditClients) return;
     this.selectedClient = client;
     this.editForm = this.buildEditForm(client);
+    this.editError = '';
     this.showEditModal = true;
   }
 
@@ -247,6 +254,10 @@ export class ClientsComponent implements OnInit {
    * muestra un mensaje sin cerrar el modal.
    */
   saveEdit(): void {
+    if (!this.canEditClients) {
+      this.editError = 'No tenés permisos para editar clientes';
+      return;
+    }
     if (this.editForm.invalid || !this.selectedClient) return;
     this.editError = '';
     const { nombre, apellido, phone } = this.editForm.value;
@@ -315,7 +326,7 @@ export class ClientsComponent implements OnInit {
   }
 
   /**
-   *  Construye un formulario de edición prellenado con los datos del cliente seleccionado.
+   *  Construye un formulario de edición alineado con los campos que hoy persisten y se reflejan al recargar.
    * @param client
    * @returns
    */
@@ -330,8 +341,6 @@ export class ClientsComponent implements OnInit {
         client?.phone ?? '',
         [Validators.required, Validators.pattern(/^[\d\s\+\-]+$/)],
       ],
-      risk: [client?.risk ?? 'Al dia', Validators.required],
-      estado: [true],
     });
   }
 

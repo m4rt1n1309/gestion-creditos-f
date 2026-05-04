@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ClientsComponent } from './clients.component';
+import { MockAuthService } from '../../core/auth/mock-auth.service';
 import { CustomersService } from '../../features/seller/clients/customers.service';
 import { FormatService } from '../../core/services/format.service';
 
@@ -45,16 +46,20 @@ describe('ClientsComponent', () => {
   let fixture: ComponentFixture<ClientsComponent>;
   let routerSpy: jasmine.SpyObj<Router>;
   let customersServiceSpy: jasmine.SpyObj<CustomersService>;
+  let authSpy: jasmine.SpyObj<MockAuthService>;
 
   beforeEach(async () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate'], { url: '/admin/clients' });
     customersServiceSpy = jasmine.createSpyObj('CustomersService', ['list', 'create', 'update']);
+    authSpy = jasmine.createSpyObj('MockAuthService', ['hasRole']);
     customersServiceSpy.list.and.returnValue(of(MOCK_CUSTOMERS));
+    authSpy.hasRole.and.returnValue(true);
 
     await TestBed.configureTestingModule({
       imports: [ClientsComponent],
       providers: [
         { provide: Router, useValue: routerSpy },
+        { provide: MockAuthService, useValue: authSpy },
         { provide: CustomersService, useValue: customersServiceSpy },
         { provide: FormatService, useValue: { currency: (n: number) => `$${n}` } },
       ],
@@ -79,6 +84,7 @@ describe('ClientsComponent', () => {
       component.openView(client);
 
       const navegacion = routerSpy.navigate.calls.mostRecent().args[0];
+      expect(navegacion).toEqual(['/admin', 'clients', 'uuid-001']);
       // El último segmento debe ser el UUID, no el DNI
       expect(navegacion[navegacion.length - 1]).toBe('uuid-001');
       expect(navegacion[navegacion.length - 1]).not.toBe('27123456');
@@ -109,8 +115,6 @@ describe('ClientsComponent', () => {
         nombre: 'Juan',
         apellido: 'Pérez',
         phone: '1123456789',
-        risk: 'Al dia',
-        estado: true,
       });
 
       component.saveEdit();
@@ -166,6 +170,26 @@ describe('ClientsComponent', () => {
       expect(component.clients[0].dni).toBe('11111111');
       expect(component.clients[1].id).toBe('uuid-bbb');
       expect(component.clients[1].dni).toBe('22222222');
+    });
+  });
+
+  describe('permisos de edición', () => {
+    it('solo debería permitir editar cuando el usuario es ADMIN', () => {
+      authSpy.hasRole.and.returnValue(false);
+
+      expect(component.canEditClients).toBeFalse();
+    });
+
+    it('no debería abrir el modal ni llamar a update si el usuario no tiene permisos', () => {
+      authSpy.hasRole.and.returnValue(false);
+      const client = component.clients[0];
+
+      component.openEdit(client);
+      component.saveEdit();
+
+      expect(component.showEditModal).toBeFalse();
+      expect(component.editError).toContain('permisos');
+      expect(customersServiceSpy.update).not.toHaveBeenCalled();
     });
   });
 });

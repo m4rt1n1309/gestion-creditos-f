@@ -80,15 +80,17 @@
               [attr.data-cy]="'btn-ver-' + client.dni"
               (onClick)="openView(client)"
             />
-            <p-button
-              label="Editar"
-              severity="success"
-              size="small"
-              [outlined]="true"
-              styleClass="text-xs"
-              [attr.data-cy]="'btn-editar-' + client.dni"
-              (onClick)="openEdit(client)"
-            />
+            @if (canEditClients) {
+              <p-button
+                label="Editar"
+                severity="success"
+                size="small"
+                [outlined]="true"
+                styleClass="text-xs"
+                [attr.data-cy]="'btn-editar-' + client.dni"
+                (onClick)="openEdit(client)"
+              />
+            }
             @if (client.credits > 0) {
               <p-button
                 label="Créditos"
@@ -191,39 +193,10 @@
       <label class="text-sm font-medium text-gray-700">Teléfono</label>
       <input pInputText formControlName="phone" class="client-input" />
     </div>
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Riesgo</label>
-      <p-dropdown
-        [options]="riskOptions"
-        formControlName="risk"
-        optionLabel="label"
-        optionValue="value"
-        styleClass="w-full"
-      />
-    </div>
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Estado</label>
-      <div class="flex gap-4">
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input
-            type="radio"
-            formControlName="estado"
-            [value]="true"
-            class="accent-blue-500"
-          />
-          <span class="text-sm text-gray-700">Activo</span>
-        </label>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input
-            type="radio"
-            formControlName="estado"
-            [value]="false"
-            class="accent-blue-500"
-          />
-          <span class="text-sm text-gray-700">Inactivo</span>
-        </label>
-      </div>
-    </div>
+    <p class="text-sm text-gray-500">
+      Solo podés editar nombre, apellido y teléfono desde esta vista porque son
+      los datos que hoy persisten en este flujo.
+    </p>
   </form>
   <ng-template pTemplate="footer">
     <div class="flex justify-end gap-3 pt-2">

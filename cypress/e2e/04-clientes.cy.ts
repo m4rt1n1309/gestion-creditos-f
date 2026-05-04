@@ -6,7 +6,7 @@
  *  - Búsqueda de clientes en tiempo real
  *  - Filtro por estado (dropdown)
  *  - Modal "Ver" muestra detalles del cliente seleccionado
- *  - Modal "Editar" permite modificar datos y guardar
+ *  - Modal "Editar" permite modificar solo campos persistidos y guardar
  *  - Modal "Créditos" muestra cantidad de créditos activos
  *  - Modal "Crear Cliente" con validaciones de formulario
  *  - Crear cliente exitoso agrega registro a la tabla
@@ -66,7 +66,7 @@ describe('Gestión de Clientes — Admin', () => {
   // ── Ver Cliente (navega a detalle) ───────────────────────────────────────────
   it('clic en Ver navega a la ruta de detalle del cliente', () => {
     cy.get('p-table tbody tr').first().find('[data-cy^="btn-ver-"]').click();
-    cy.url().should('match', /\/clients\/[\d.]+$/);
+    cy.url().should('match', /\/clients\/[^/]+$/);
   });
 
   // ── Modal Editar ──────────────────────────────────────────────────────────────
@@ -75,15 +75,13 @@ describe('Gestión de Clientes — Admin', () => {
     cy.contains('Editar Cliente').should('be.visible');
   });
 
-  it('el formulario de edición tiene campos: Nombre, Apellido, Teléfono, Riesgo, Estado', () => {
+  it('el formulario de edición tiene campos: Nombre, Apellido y Teléfono', () => {
     cy.get('p-table tbody tr').first().find('[data-cy^="btn-editar-"]').click();
     cy.get('p-dialog').eq(1).within(() => {
       cy.get('input[formControlName="nombre"]').should('exist');
       cy.get('input[formControlName="apellido"]').should('exist');
       cy.get('input[formControlName="phone"]').should('exist');
-      cy.get('p-dropdown').should('exist');
-      cy.contains('Activo').should('exist');
-      cy.contains('Inactivo').should('exist');
+      cy.contains('Solo podés editar nombre, apellido y teléfono').should('exist');
     });
   });
 
@@ -95,13 +93,116 @@ describe('Gestión de Clientes — Admin', () => {
   });
 
   it('editar teléfono y guardar actualiza la fila en la tabla', () => {
+    let customer = {
+      id: 'cust-001',
+      full_name: 'Ana García',
+      dni: '12345678',
+      address: null,
+      phone: '3811234567',
+      email: null,
+      status: 'ACTIVE',
+      portal_enabled: false,
+      created_at: '2024-01-15T00:00:00Z',
+      collector_id: null,
+      collector_name: null,
+    };
+
+    cy.intercept('GET', '**/api/customers*', (req) => {
+      req.reply({ ok: true, data: [customer] });
+    }).as('getCustomersAfterEdit');
+
+    cy.intercept('PUT', '**/api/customers/cust-001', (req) => {
+      customer = {
+        ...customer,
+        full_name: req.body.full_name,
+        phone: req.body.phone,
+      };
+
+      req.reply({
+        ok: true,
+        data: {
+          ...customer,
+          portal_is_temp_password: false,
+          portal_failed_attempts: 0,
+          portal_locked_at: null,
+          updated_at: '2025-01-02T00:00:00Z',
+        },
+      });
+    }).as('updateCustomerPhone');
+
     cy.get('p-table tbody tr').first().find('[data-cy^="btn-editar-"]').click();
     cy.get('p-dialog').eq(1).within(() => {
-      cy.get('input[formControlName="phone"]').clear().type('300-999-8888');
+      cy.get('input[formControlName="phone"]')
+        .clear()
+        .type('300-999-8888')
+        .blur();
+      cy.contains('button', 'Guardar Cambios').should('not.be.disabled');
     });
     cy.get('p-dialog').find('p-button[label="Guardar Cambios"]').click();
+    cy.wait('@updateCustomerPhone');
+    cy.wait('@getCustomersAfterEdit');
     cy.get('p-dialog[ng-reflect-visible="true"]').should('not.exist');
     cy.get('p-table tbody').contains('300-999-8888').should('exist');
+  });
+
+  it('guardar cambios persistidos se refleja tras recargar la lista', () => {
+    let customer = {
+      id: 'cust-001',
+      full_name: 'Ana García',
+      dni: '12345678',
+      address: null,
+      phone: '3811234567',
+      email: null,
+      status: 'ACTIVE',
+      portal_enabled: false,
+      created_at: '2024-01-15T00:00:00Z',
+      collector_id: null,
+      collector_name: null,
+    };
+
+    cy.intercept('GET', '**/api/customers*', (req) => {
+      req.reply({ ok: true, data: [customer] });
+    }).as('getCustomersPersisted');
+
+    cy.intercept('PUT', '**/api/customers/cust-001', (req) => {
+      customer = {
+        ...customer,
+        full_name: req.body.full_name,
+        phone: req.body.phone,
+      };
+
+      req.reply({
+        ok: true,
+        data: {
+          ...customer,
+          portal_is_temp_password: false,
+          portal_failed_attempts: 0,
+          portal_locked_at: null,
+          updated_at: '2025-01-02T00:00:00Z',
+        },
+      });
+    }).as('updateCustomerPersisted');
+
+    cy.get('p-table tbody tr').first().find('[data-cy^="btn-editar-"]').click();
+    cy.get('p-dialog').eq(1).within(() => {
+      cy.get('input[formControlName="nombre"]').clear().type('Ana María');
+      cy.get('input[formControlName="apellido"]').clear().type('García');
+      cy.get('input[formControlName="phone"]').clear().type('3810001111');
+    });
+    cy.get('p-dialog').find('p-button[label="Guardar Cambios"]').click();
+
+    cy.wait('@updateCustomerPersisted')
+      .its('request.body')
+      .should('deep.equal', { full_name: 'Ana María García', phone: '3810001111' });
+    cy.wait('@getCustomersPersisted');
+
+    cy.get('p-table tbody').contains('Ana María García').should('exist');
+    cy.get('p-table tbody').contains('3810001111').should('exist');
+
+    cy.reload();
+    cy.wait('@getCustomersPersisted');
+    cy.get('p-table tbody').contains('Ana María García').should('exist');
+    cy.get('p-table tbody').contains('3810001111').should('exist');
   });
 
   // ── Créditos (navega a detalle) ───────────────────────────────────────────────
@@ -199,5 +300,9 @@ describe('Gestión de Clientes — Seller', () => {
   it('Seller puede acceder a /seller/clients y ve la tabla', () => {
     cy.url().should('include', '/seller/clients');
     cy.get('p-table').should('be.visible');
+  });
+
+  it('Seller no ve acciones de edición que el backend rechaza por permisos', () => {
+    cy.get('[data-cy^="btn-editar-"]').should('not.exist');
   });
 });
