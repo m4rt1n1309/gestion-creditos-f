@@ -185,7 +185,7 @@ Módulo Producto
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Quisiera editar el producto para agregar mas unidades por ejemplo.]
 * **Resultado Esperado:** [No se encuentra el botón para editar el producto.]
-* **Resultado Obtenido (Error):** [No existe el botón editar producto.]
+* **Resultado Obtenido (Actual):** [Corregido. El listado compartido de `/admin/products` ahora muestra el botón "Editar" por fila y permite navegar al formulario `seller/products/:id/edit`. Validado con `36-product-edit-category-regression.cy.ts`.]
 
 ---
 
@@ -195,7 +195,7 @@ Módulo Producto
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Quiero ver la categoría del producto.]
 * **Resultado Esperado:** [Los productos no poseen la categoría.]
-* **Resultado Obtenido (Error):** [La columna de categoría esta vacía.]
+* **Resultado Obtenido (Actual):** [Corregido. La columna categoría ya muestra el valor real (`categoryName`) devuelto por backend en el listado compartido de productos. Validado con `36-product-edit-category-regression.cy.ts`.]
 
 ---
 
@@ -205,7 +205,7 @@ Módulo Producto
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Se realizó la operación de "Crear Producto".]
 * **Resultado Esperado:** [Los productos deberían mostrarse luego de confirmar la creación.]
-* **Resultado Obtenido (Error):** [Algunos campos salen vacíos a pesar de haberlos cargados, por ejemplo: stock, precio.]
+* **Resultado Obtenido (Actual):** [Corregido. El modal compartido ahora crea el producto base, su variante con precio y las unidades iniciales según el stock cargado, por lo que el listado ya muestra precio y stock después de confirmar. Validado con `34-product-list-regression.cy.ts`.]
 
 ### 2. Evidencia Técnica
 **Payload Enviado (Request):**
@@ -229,7 +229,7 @@ variants:[]
 }
 ```
 
-**Respuesta del servidor:**
+**Respuesta esperada actual:**
 ```json
 {
     "ok": true,
@@ -251,6 +251,11 @@ variants:[]
 }
 ```
 
+**Comportamiento integrado posterior esperado:**
+- Alta de `product_variant` con `current_price`
+- Alta de `product_units` según `stockInicial`
+- Refresh del listado con precio y stock visibles
+
 ---
 
 **Módulo:** [Producto]
@@ -259,7 +264,7 @@ variants:[]
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Se hizo click en confirmar la operación de "Crear Producto".]
 * **Resultado Esperado:** [Debería salir un cartel que el producto fué creado exitosamente.]
-* **Resultado Obtenido (Error):** [No aparece ningún cartel que el producto fué creado exitosamente.]
+* **Resultado Obtenido (Actual):** [Corregido. El modal compartido de `/admin/products` ahora muestra un toast con el mensaje "Producto registrado correctamente." después de completar el alta integrada. Validado con `35-product-success-toast-regression.cy.ts`.]
 
 ---
 

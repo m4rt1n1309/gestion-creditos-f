@@ -7,7 +7,11 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Router } from '@angular/router';
+import { of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
+import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
@@ -18,12 +22,15 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
 
-import { ProductsService } from '../../features/seller/products/products.service';
-import { Product as ApiProduct } from '../../features/seller/models/product.model';
 import { FormatService } from '../../core/services/format.service';
+import { Product as ApiProduct } from '../../features/seller/models/product.model';
+import { ProductUnitsService } from '../../features/seller/products/product-units.service';
+import { ProductVariantsService } from '../../features/seller/products/product-variants.service';
+import { ProductsService } from '../../features/seller/products/products.service';
+import { AppRoutes } from '../models/enums/routes.enum';
 import { Product } from '../models/interface/product';
-
 
 function toProduct(p: ApiProduct): Product {
   return {
@@ -32,7 +39,7 @@ function toProduct(p: ApiProduct): Product {
     name: p.title,
     price: p.variants[0]?.currentPrice ?? 0,
     stock: p.availableCount,
-    category: '',
+    category: p.categoryName ?? '—',
     icon: 'pi-box',
     iconColor: '#6366f1',
   };
@@ -41,6 +48,7 @@ function toProduct(p: ApiProduct): Product {
 @Component({
   selector: 'app-products',
   standalone: true,
+  providers: [MessageService],
   imports: [
     CommonModule,
     FormsModule,
@@ -55,12 +63,17 @@ function toProduct(p: ApiProduct): Product {
     DropdownModule,
     InputNumberModule,
     InputTextareaModule,
+    ToastModule,
   ],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss',
 })
 export class ProductsComponent implements OnInit {
   private readonly productsService = inject(ProductsService);
+  private readonly productVariantsService = inject(ProductVariantsService);
+  private readonly productUnitsService = inject(ProductUnitsService);
+  private readonly messageService = inject(MessageService);
+  private readonly router = inject(Router);
 
   products: Product[] = [];
   loading = false;
@@ -95,7 +108,7 @@ export class ProductsComponent implements OnInit {
     this.loadProducts();
   }
 
-    // TODO: agregar documentacion de las funciones
+  // TODO: agregar documentacion de las funciones
 
   private loadProducts(): void {
     this.loading = true;
@@ -167,6 +180,16 @@ export class ProductsComponent implements OnInit {
   }
 
   /**
+   * Navega a la pantalla de edición del producto seleccionado para completar cambios más avanzados.
+   * @param {string} productId - Identificador del producto a editar.
+   */
+  navigateToEdit(productId: string): void {
+    this.router.navigate([
+      AppRoutes.SELLER_PRODUCTS_EDIT.replace(':id', productId),
+    ]);
+  }
+
+  /**
    * Crea un producto nuevo usando los campos válidos del modal y refresca el listado al confirmar.
    */
   saveProduct(): void {
@@ -178,23 +201,81 @@ export class ProductsComponent implements OnInit {
     const nameParts = [codigo, marca, modelo].filter(Boolean);
     const name = nameParts.join(' ') || descripcion || codigo;
     const description = descripcion || name;
+    const initialUnits = this.buildInitialUnits(codigo, stockInicial);
 
     this.productsService
       .create({
         title: name,
         description,
       })
+      .pipe(
+        switchMap((product) =>
+          this.productVariantsService
+            .create({
+              productId: product.id,
+              currentPrice: Number(precioVenta),
+            })
+            .pipe(
+              switchMap((variant) =>
+                initialUnits.length > 0
+                  ? this.productUnitsService.createBulk({
+                      variantId: variant.id,
+                      units: initialUnits,
+                    })
+                  : of(null),
+              ),
+            ),
+        ),
+      )
       .subscribe({
         next: () => {
           this.showCreateModal = false;
           this.submitted = false;
           this.form = this.buildForm();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Producto registrado correctamente.',
+          });
           this.loadProducts();
         },
         error: (err) => {
           console.error('Error al crear producto', err);
         },
       });
+  }
+
+  /**
+   * Genera las unidades iniciales del producto usando un prefijo estable y un correlativo de tres dígitos.
+   * @param {string} codigoBase - Código ingresado por el usuario para el producto.
+   * @param {number} stockInicial - Cantidad inicial de unidades a crear.
+   * @returns {Array<{ unitCode: string }>} Unidades listas para enviar al alta masiva.
+   */
+  private buildInitialUnits(
+    codigoBase: string,
+    stockInicial: number,
+  ): Array<{ unitCode: string }> {
+    const total = Number(stockInicial ?? 0);
+    if (!Number.isFinite(total) || total <= 0) return [];
+
+    const prefix = this.sanitizeUnitCode(codigoBase);
+    return Array.from({ length: total }, (_, index) => ({
+      unitCode: `${prefix}-${String(index + 1).padStart(3, '0')}`,
+    }));
+  }
+
+  /**
+   * Normaliza el código base para que pueda reutilizarse como prefijo de unidades sin caracteres inválidos.
+   * @param {string} value - Texto original ingresado en el formulario.
+   * @returns {string} Prefijo seguro para códigos de unidad.
+   */
+  private sanitizeUnitCode(value: string): string {
+    const normalized = String(value ?? '')
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9_-]+/g, '-');
+
+    return normalized || 'PROD';
   }
 
   /**
