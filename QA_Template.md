@@ -269,4 +269,14 @@ variants:[]
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Se hizo click en "Crear Producto".]
 * **Resultado Esperado:** [Debería estar deshabilitado el botón de "Guardar Producto" hasta llenar los campos.]
-* **Resultado Obtenido (Error):** [El botón de "Guardar Cambios" esta habilitado aunque no se hayan completado los cambios.]
+* **Resultado Obtenido (Actual):** [Corregido. El modal mantiene deshabilitado "Guardar Producto" mientras falten campos obligatorios o el formulario siga inválido. Validado con Cypress en `33-product-create-modal-regression.cy.ts`.]
+
+---
+
+## Resumen de correcciones validadas en Producto
+
+- **PR-06** → Corregido / validado
+
+## Evidencia automatizada
+
+- `cypress/e2e/33-product-create-modal-regression.cy.ts` → passing

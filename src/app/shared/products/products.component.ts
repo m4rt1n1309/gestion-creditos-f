@@ -149,12 +149,26 @@ export class ProductsComponent implements OnInit {
     return !!ctrl && ctrl.invalid && (ctrl.touched || this.submitted);
   }
 
+  /**
+   * Indica si la acción de guardar debe permanecer deshabilitada según el estado actual del formulario.
+   * @returns {boolean} `true` cuando faltan campos requeridos o contienen valores inválidos.
+   */
+  get isCreateDisabled(): boolean {
+    return this.form.invalid;
+  }
+
+  /**
+   * Cancela la creación del producto, cierra el modal y reinicia el formulario a su estado inicial.
+   */
   cancelCreate(): void {
     this.showCreateModal = false;
     this.submitted = false;
     this.form = this.buildForm();
   }
 
+  /**
+   * Crea un producto nuevo usando los campos válidos del modal y refresca el listado al confirmar.
+   */
   saveProduct(): void {
     this.submitted = true;
     if (this.form.invalid) return;
@@ -183,6 +197,10 @@ export class ProductsComponent implements OnInit {
       });
   }
 
+  /**
+   * Construye el formulario de alta del modal con las validaciones mínimas necesarias para habilitar el guardado.
+   * @returns {FormGroup} Formulario reactivo listo para crear productos.
+   */
   private buildForm(): FormGroup {
     return this.fb.group({
       codigo: ['', Validators.required],

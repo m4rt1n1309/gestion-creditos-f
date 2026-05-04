@@ -211,7 +211,7 @@
         icon="pi pi-save"
         severity="primary"
         styleClass="h-11 px-5 rounded-xl"
-        [disabled]="form.invalid && submitted"
+        [disabled]="isCreateDisabled"
         (onClick)="saveProduct()"
       />
     </div>

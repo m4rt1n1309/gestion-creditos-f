@@ -34,19 +34,21 @@
 | **PR-03** | Categoría Producto | Los campos de categoría están vacíos. | No está la categoría de los productos. | Error
 | **PR-04** | Crear Producto | Se hizo click en "Crear Producto". | Los productos deberían mostrarse luego de confirmar la creación. | Error
 | **PR-05** | Crear Producto | Se hizo click en confirmar al "Crear Producto". | Debería salir un cartel que el producto fué creado exitosamente. | Error
-| **PR-06** | Crear Producto | Se hizo click en "Crear Producto". | Debería estar deshabilitado el boton "Guardar producto. | Error
+| **PR-06** | Crear Producto | Se hizo click en "Crear Producto". | Debería estar deshabilitado el botón "Guardar producto" hasta completar los campos obligatorios. | Corregido / Validado |
 
 ## ✅ Correcciones validadas recientemente
 
 - **CR-01**: el flujo SALE quedó alineado al contrato actual (`unit_ids`, `down_payment`, sin `prepaid_installments` en alta).
 - **CL-02**: el detalle del cliente ya carga por `id` real y no depende de mocks locales.
 - **CL-03**: la edición de cliente persiste los campos soportados actualmente (`full_name`, `phone`) y se refleja tras recargar.
+- **PR-06**: el modal compartido de alta de producto ahora mantiene deshabilitado "Guardar Producto" mientras el formulario esté inválido.
 
 ## 🧪 Evidencia de regresión automatizada
 
 - `cypress/e2e/31-qa-regression-issues.cy.ts` → flujo SALE integrado: **passing**
 - `cypress/e2e/32-client-detail-regression.cy.ts` → CL-02 detalle cliente: **passing**
 - `cypress/e2e/04-clientes.cy.ts` → módulo clientes / CL-03 persistencia: **passing**
+- `cypress/e2e/33-product-create-modal-regression.cy.ts` → PR-06 modal crear producto: **passing**
 
 ## 🟢 
 
