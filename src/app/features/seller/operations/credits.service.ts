@@ -196,7 +196,7 @@ function toCreateBody(p: CreditCreatePayload): Record<string, unknown> {
   };
   if (p.notes) body['notes'] = p.notes;
   if (p.type === 'SALE') {
-    body['units'] = p.units.map((u) => ({ unit_id: u.unitId }));
+    body['unit_ids'] = p.units.map((u) => u.unitId);
     if (p.downPayment !== undefined && p.downPayment > 0) {
       body['down_payment'] = p.downPayment;
       if (p.downPaymentMethod)

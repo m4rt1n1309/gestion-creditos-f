@@ -1,6 +1,17 @@
 <div class="p-4">
   <div class="flex flex-wrap gap-3 mb-4 items-center justify-between">
     <div class="flex flex-wrap gap-3 items-center">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input
+          pInputText
+          type="text"
+          placeholder="Buscar por cliente o DNI"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+          class="w-64"
+        />
+      </span>
       <p-dropdown
         [options]="statusOptions"
         [(ngModel)]="selectedStatus"
@@ -33,11 +44,11 @@
     <app-loading-state />
   } @else if (error) {
     <app-error-state />
-  } @else if (credits.length === 0) {
+  } @else if (filteredCredits.length === 0) {
     <app-empty-state />
   } @else {
     <p-table
-      [value]="credits"
+      [value]="filteredCredits"
       [paginator]="true"
       [rows]="10"
       [rowsPerPageOptions]="[10, 25, 50]"

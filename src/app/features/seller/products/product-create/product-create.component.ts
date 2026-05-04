@@ -140,7 +140,7 @@ export class ProductCreateComponent implements OnInit {
           });
           setTimeout(
             () => this.router.navigate(['/seller/products', product.id]),
-            1000,
+            2000,
           );
         },
         error: (err: AppError) => {
