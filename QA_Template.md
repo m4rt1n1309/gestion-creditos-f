@@ -175,7 +175,7 @@ Módulo Producto
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Se realizó la creación de un nuevo producto.]
 * **Resultado Esperado:** [Los campos deberían ser obligatorios.]
-* **Resultado Obtenido (Error):** [Te deja cargar el producto por mas que no cargues ningun valor en los campos.]
+* **Resultado Obtenido (Actual):** [Validado. El formulario `seller/products/new` mantiene deshabilitado el botón "Registrar producto" mientras el formulario sea inválido. El falso negativo original venía de un spec Cypress desactualizado que buscaba el label viejo "Guardar". Validado con `30-producto-crear.cy.ts`.]
 
 ---
 

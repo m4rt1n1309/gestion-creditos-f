@@ -43,8 +43,8 @@ describe('Admin — Crear Producto', () => {
     cy.get('input[id="model"]').should('exist');
   });
 
-  it('botón Guardar deshabilitado con formulario vacío', () => {
-    cy.contains('button', 'Guardar').should('have.attr', 'disabled');
+  it('botón Registrar producto deshabilitado con formulario vacío', () => {
+    cy.contains('button', 'Registrar producto').should('be.disabled');
   });
 
   it('tocar campo título sin completar muestra error', () => {
@@ -58,8 +58,8 @@ describe('Admin — Crear Producto', () => {
     cy.url().should('not.include', '/new');
   });
 
-  it('completar el título habilita el botón Guardar', () => {
+  it('completar el título habilita el botón Registrar producto', () => {
     cy.get('input[id="title"]').type('Producto E2E Test');
-    cy.contains('button', 'Guardar').should('not.have.attr', 'disabled');
+    cy.contains('button', 'Registrar producto').should('not.be.disabled');
   });
 });
