@@ -134,4 +134,33 @@ export class OperationFormService {
   updateCheck(key: keyof ReturnType<typeof this.checks>, value: boolean) {
     this.checks.update((c) => ({ ...c, [key]: value }));
   }
+
+  /**
+   * Devuelve la fecha actual normalizada al inicio del día local.
+   * Se usa como referencia para validar que el primer pago no quede en el pasado.
+   * @returns {Date} Fecha de hoy a las 00:00 local.
+   */
+  getTodayStart(): Date {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+
+  /**
+   * Normaliza una fecha al inicio del día local para evitar errores por hora/zona.
+   * @param {Date} date - Fecha a normalizar.
+   * @returns {Date} Fecha truncada a las 00:00 local.
+   */
+  normalizeToLocalDayStart(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  /**
+   * Indica si la fecha de primer pago es válida (hoy o futura).
+   * @returns {boolean} true cuando hay fecha y no es anterior a hoy.
+   */
+  isFirstDueDateValid(): boolean {
+    const dueDate = this.firstDueDate();
+    if (!dueDate) return false;
+    return this.normalizeToLocalDayStart(dueDate) >= this.getTodayStart();
+  }
 }

@@ -71,6 +71,8 @@ describe('Wizard Nueva Operación — Unhappy Paths', () => {
     cy.get('[data-cy="btn-siguiente-wizard"]').click();
     cy.contains('Paso 3 de 4').scrollIntoView().should('be.visible');
 
+    cy.get('input#first-due-date').clear().type('31/12/2099').blur();
+
     cy.get('[data-cy="btn-siguiente-wizard"]').click();
     cy.contains('Paso 4 de 4').scrollIntoView().should('be.visible');
 
@@ -91,6 +93,8 @@ describe('Wizard Nueva Operación — Unhappy Paths', () => {
     cy.get('[data-cy="btn-siguiente-wizard"]').click();
     cy.contains('Paso 3 de 4').scrollIntoView().should('be.visible');
 
+    cy.get('input#first-due-date').clear().type('31/12/2099').blur();
+
     cy.get('[data-cy="btn-siguiente-wizard"]').click();
     cy.contains('Paso 4 de 4').scrollIntoView().should('be.visible');
 
@@ -100,5 +104,35 @@ describe('Wizard Nueva Operación — Unhappy Paths', () => {
     cy.get('[data-cy="chk-capacity"] .p-checkbox-box').click();
 
     cy.get('[data-cy="btn-enviar-aprobacion"]').parent().should('not.have.attr', 'disabled');
+  });
+
+  it('Step 3: sin fecha de primer pago el botón siguiente queda deshabilitado', () => {
+    cy.get('[data-cy^="cliente-item-"]').first().click();
+    cy.get('[data-cy="btn-siguiente-wizard"]').click();
+    cy.contains('Paso 2 de 4').scrollIntoView().should('be.visible');
+
+    cy.get('[data-cy="btn-siguiente-wizard"]').click();
+    cy.contains('Paso 3 de 4').scrollIntoView().should('be.visible');
+
+    cy.get('[data-cy="btn-siguiente-wizard"]').should('have.attr', 'ng-reflect-disabled', 'true');
+  });
+
+  it('Step 3: con fecha anterior a hoy mantiene botón siguiente deshabilitado', () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const dd = String(yesterday.getDate()).padStart(2, '0');
+    const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
+    const yyyy = yesterday.getFullYear();
+
+    cy.get('[data-cy^="cliente-item-"]').first().click();
+    cy.get('[data-cy="btn-siguiente-wizard"]').click();
+    cy.contains('Paso 2 de 4').scrollIntoView().should('be.visible');
+
+    cy.get('[data-cy="btn-siguiente-wizard"]').click();
+    cy.contains('Paso 3 de 4').scrollIntoView().should('be.visible');
+
+    cy.get('input#first-due-date').clear().type(`${dd}/${mm}/${yyyy}`).blur();
+
+    cy.get('[data-cy="btn-siguiente-wizard"]').should('have.attr', 'ng-reflect-disabled', 'true');
   });
 });

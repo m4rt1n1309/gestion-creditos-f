@@ -107,4 +107,31 @@ describe('NewOperationComponent', () => {
       expect(component.submitting).toBeFalse();
     });
   });
+
+  describe('canNext — validación fecha primer pago (CR-02)', () => {
+    it('en Paso 3 bloquea avanzar cuando no hay fecha de primer pago', () => {
+      component.activeIndex = 2;
+      formService.firstDueDate.set(undefined);
+
+      expect(component.canNext).toBeFalse();
+    });
+
+    it('en Paso 3 bloquea avanzar cuando la fecha es anterior a hoy', () => {
+      component.activeIndex = 2;
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      formService.firstDueDate.set(yesterday);
+
+      expect(component.canNext).toBeFalse();
+    });
+
+    it('en Paso 3 permite avanzar cuando la fecha es hoy o futura', () => {
+      component.activeIndex = 2;
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      formService.firstDueDate.set(tomorrow);
+
+      expect(component.canNext).toBeTrue();
+    });
+  });
 });

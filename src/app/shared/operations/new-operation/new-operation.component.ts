@@ -82,6 +82,7 @@ export class NewOperationComponent implements OnInit {
 
   get canNext(): boolean {
     if (this.activeIndex === 0) return !!this.form.selectedClient();
+    if (this.activeIndex === 2) return this.form.isFirstDueDateValid();
     return true;
   }
 
