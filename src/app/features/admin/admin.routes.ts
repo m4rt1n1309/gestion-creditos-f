@@ -38,10 +38,45 @@ export const ADMIN_ROUTES: Routes = [
       ),
   },
   {
+    path: AppRoutes.PRODUCTS_NEW,
+    loadComponent: () =>
+      import('../seller/products/product-create/product-create.component').then(
+        (c) => c.ProductCreateComponent,
+      ),
+  },
+  {
+    path: AppRoutes.PRODUCTS_EDIT,
+    loadComponent: () =>
+      import('../seller/products/product-edit/product-edit.component').then(
+        (c) => c.ProductEditComponent,
+      ),
+  },
+  {
+    path: 'products/:id/variants/:variantId/units',
+    loadComponent: () =>
+      import('../seller/products/product-units/product-units.component').then(
+        (c) => c.ProductUnitsComponent,
+      ),
+  },
+  {
+    path: 'products/:id/variants',
+    loadComponent: () =>
+      import('../seller/products/product-variants/product-variants.component').then(
+        (c) => c.ProductVariantsComponent,
+      ),
+  },
+  {
+    path: AppRoutes.PRODUCTS_DETAIL,
+    loadComponent: () =>
+      import('../seller/products/product-detail/product-detail.component').then(
+        (c) => c.ProductDetailComponent,
+      ),
+  },
+  {
     path: AppRoutes.PRODUCTS,
     loadComponent: () =>
-      import('../../shared/products/products.component').then(
-        (c) => c.ProductsComponent,
+      import('../seller/products/products-list/products-list.component').then(
+        (c) => c.ProductsListComponent,
       ),
   },
   {

@@ -56,6 +56,7 @@ import { ProductsService } from '../products.service';
 })
 export class ProductUnitsComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly location = inject(Location);
   private readonly fb = inject(FormBuilder);
   private readonly productsService = inject(ProductsService);
@@ -111,7 +112,7 @@ export class ProductUnitsComponent implements OnInit {
 
   ngOnInit(): void {
     this.header.set([
-      { label: 'Productos', route: '/seller/products' },
+      { label: 'Productos', route: `/${this.routePrefix}/products` },
       { label: 'Unidades' },
     ]);
     this.buildForms();
@@ -326,16 +327,20 @@ export class ProductUnitsComponent implements OnInit {
     });
   }
 
+  private get routePrefix(): string {
+    return this.router.url.startsWith('/admin') ? 'admin' : 'seller';
+  }
+
   private updateHeader(): void {
     this.header.set([
-      { label: 'Productos', route: '/seller/products' },
+      { label: 'Productos', route: `/${this.routePrefix}/products` },
       {
         label: this.productName || 'Producto',
-        route: `/seller/products/${this.productId}`,
+        route: `/${this.routePrefix}/products/${this.productId}`,
       },
       {
         label: 'Variantes',
-        route: `/seller/products/${this.productId}/variants`,
+        route: `/${this.routePrefix}/products/${this.productId}/variants`,
       },
       { label: this.variantLabel || 'Unidades' },
     ]);

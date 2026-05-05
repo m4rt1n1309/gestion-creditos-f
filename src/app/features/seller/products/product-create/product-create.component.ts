@@ -55,7 +55,7 @@ export class ProductCreateComponent implements OnInit {
 
   ngOnInit(): void {
     this.header.set([
-      { label: 'Productos', route: '/seller/products' },
+      { label: 'Productos', route: `/${this.routePrefix}/products` },
       { label: 'Nuevo producto' },
     ]);
 
@@ -165,7 +165,7 @@ export class ProductCreateComponent implements OnInit {
           });
           // Espera 1.5 s para que el usuario vea el toast antes de redirigir
           setTimeout(
-            () => this.router.navigate(['/seller/products', product.id]),
+            () => this.router.navigate([`/${this.routePrefix}/products`, product.id]),
             1500,
           );
         },
@@ -203,6 +203,10 @@ export class ProductCreateComponent implements OnInit {
    * Navega de regreso a la lista de productos sin guardar los cambios.
    */
   cancel(): void {
-    this.router.navigate(['/seller/products']);
+    this.router.navigate([`/${this.routePrefix}/products`]);
+  }
+
+  private get routePrefix(): string {
+    return this.router.url.startsWith('/admin') ? 'admin' : 'seller';
   }
 }
