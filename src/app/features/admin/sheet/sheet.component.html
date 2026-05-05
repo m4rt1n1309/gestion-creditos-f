@@ -52,7 +52,7 @@
           label="Generar planilla"
           icon="pi pi-file-export"
           [loading]="generating"
-          [disabled]="!selectedCollectorId || generatingAll"
+          [disabled]="!selectedCollectorId || generating || generatingAll"
           (onClick)="generatePlanilla()"
         />
         <p-button
@@ -61,7 +61,7 @@
           severity="secondary"
           [outlined]="true"
           [loading]="generatingAll"
-          [disabled]="generating"
+          [disabled]="generating || generatingAll"
           (onClick)="generateForAll()"
         />
       </div>
