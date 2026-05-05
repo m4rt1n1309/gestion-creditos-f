@@ -102,10 +102,17 @@
           <td class="ff-mono">{{ user.dni }}</td>
           <td>{{ user.email ?? "—" }}</td>
           <td>
-            <p-tag
-              [value]="roleLabel(user.role)"
-              [severity]="roleSeverity(user.role)"
-            />
+            <span
+              class="ff-role-chip"
+              [class.ff-role--admin]="user.role === 'ADMIN'"
+              [class.ff-role--seller]="user.role === 'SELLER'"
+              [class.ff-role--collector]="user.role === 'COLLECTOR'"
+              [class.ff-role--cashier]="user.role === 'CASHIER'"
+              [class.ff-role--seller-collector]="
+                user.role === 'SELLER_COLLECTOR'
+              "
+              >{{ roleLabel(user.role) }}</span
+            >
           </td>
           <td>
             <span

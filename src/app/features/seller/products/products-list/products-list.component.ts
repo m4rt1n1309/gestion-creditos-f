@@ -27,6 +27,8 @@ import {
   ProductStatus,
 } from '../../models/product.model';
 import { ProductsService } from '../products.service';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
 
 @Component({
   selector: 'app-products-list',
@@ -44,6 +46,8 @@ import { ProductsService } from '../products.service';
     LoadingStateComponent,
     ErrorStateComponent,
     EmptyStateComponent,
+    InputIconModule,
+    IconFieldModule,
   ],
   templateUrl: './products-list.component.html',
 })
