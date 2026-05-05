@@ -49,6 +49,33 @@ http://localhost:3000/api/credits - POST
     "message": "Pre-operación registrada. Pendiente de aprobación."
 }
 ```
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Hice click en "Enviar para Aprobación"]
+* **Resultado Esperado:** [Debería enviar la operación para ser aprobada.]
+* **Resultado Obtenido (Actual):** [Cuando eligo un producto que dice que posee 5 unidades sale error de no encontrado.]
+### 2. Evidencia Técnica
+
+**Payload Enviado (Request):**
+```json
+{
+{customer_id: "9da1f6c7-8297-44c9-858e-a5d3918deccf", type: "SALE", installments_count: 6,…}
+customer_id:"9da1f6c7-8297-44c9-858e-a5d3918deccf"
+installments_count:6
+payment_frequency:"MONTHLY"
+type:"SALE"
+unit_ids:["c8e8ef31-eec0-4e8f-a09c-d921a368d84d"]
+0:"c8e8ef31-eec0-4e8f-a09c-d921a368d84d"
+}
+
+```
+
+**Respuesta esperada actual:**
+```json
+{
+    "ok": false,
+    "message": "Unidad c8e8ef31-eec0-4e8f-a09c-d921a368d84d no encontrada."
+}
+```
 ---
 
 **Módulo:** [Crédito]
@@ -89,6 +116,10 @@ http://localhost:3000/api/credits - POST
 * **Acción Realizada:** [Hice click en "Siguiente" sin elegir "Fecha del primer pago".]
 * **Resultado Esperado:** [Debería estar deshabilitado el botón "Siguiente" hasta elegir la "Fecha del primer pago".]
 * **Resultado Obtenido (Actual):** [Corregido. En paso Condiciones, `canNext` bloquea avanzar cuando `firstDueDate` está vacío o es inválido. Validado con `new-operation.component.spec.ts` (caso CR-05) y `cypress/e2e/07-negative-nueva-operacion.cy.ts`.]
+* **Acción Realizada:** [Hice click para elegir la fecha con el mouse.]
+* **Resultado Esperado:** [Debería poder elegir la fecha con el click.]
+* **Resultado Obtenido (Actual):** [Al hacer click con el mouse sobre una fecha del calendario no hace nada, escribiendo la fecha me permite seguir.]
+
 
 ---
 
@@ -188,6 +219,10 @@ Módulo Producto
 * **Resultado Esperado:** [No se encuentra el botón para editar el producto.]
 * **Resultado Obtenido (Actual):** [Corregido. El listado compartido de `/admin/products` ahora muestra el botón "Editar" por fila y permite navegar al formulario `seller/products/:id/edit`. Validado con `36-product-edit-category-regression.cy.ts`.]
 
+* **Acción Realizada:** [Quisiera editar el producto para agregar mas unidades por ejemplo.]
+* **Resultado Esperado:** [Hice click en "Editar Producto".]
+* **Resultado Obtenido (Actual):** [El campo stock no se encuentra y los botones "Guardar Cambios" y "Cancelar" no estan alineados con los demas botones.]
+
 ---
 
 **Módulo:** [Producto]
@@ -286,3 +321,34 @@ variants:[]
 ## Evidencia automatizada
 
 - `cypress/e2e/33-product-create-modal-regression.cy.ts` → passing
+
+---
+
+Módulo Planilla
+
+**Módulo:** [Planilla]
+**ID de Prueba:** [PL-01]
+**Título / Descripción:** [Generar Planilla]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Se hizo click en "Generar Planilla para todos" y se seleccionó un cobrador y se hizo click en "Generar Planilla".]
+* **Resultado Esperado:** [Deberia aparecer las planillas generadas y deshabilitar el botón "Generar Planilla para todos" y dehabilitar el botón "Generar Planilla" cuando se selecciona un cobrador.]
+* **Resultado Obtenido (Actual):** [Permite apretar el boton las veces que uno quiera.]
+
+**Módulo:** [Planilla]
+**ID de Prueba:** [PL-02]
+**Título / Descripción:** [Botones]
+### 1. Contexto de la Prueba
+* **Resultado Obtenido (Actual):** [Botones no están alineados al resto de la página.]
+
+---
+
+
+Módulo Gastos
+
+**Módulo:** [Gastos]
+**ID de Prueba:** [GA-01]
+**Título / Descripción:** [Gastos]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Se hizo click en desactivar gasto "Alquiler".]
+* **Resultado Esperado:** [Deberia poder activarlo de nuevo si quisiera.]
+* **Resultado Obtenido (Actual):** [No existe el botón "Activar".]
