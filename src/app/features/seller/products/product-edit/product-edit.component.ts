@@ -65,8 +65,9 @@ export class ProductEditComponent implements OnInit {
 
   ngOnInit(): void {
     this.header.set([
-      { label: 'Productos', route: AppRoutes.SELLER_PRODUCTS },
-      { label: 'Editar producto' },
+      { label: 'Productos', route: `/${this.routePrefix}/products` },
+      { label: 'Producto', route: `/${this.routePrefix}/products/${this.productId}` },
+      { label: 'Editar' },
     ]);
 
     this.categoriesService.getAll().subscribe({
@@ -134,7 +135,7 @@ export class ProductEditComponent implements OnInit {
           });
           setTimeout(
             () =>
-              this.router.navigate([AppRoutes.SELLER_PRODUCTS, this.productId]),
+              this.router.navigate([`/${this.routePrefix}/products`, this.productId]),
             1000,
           );
         },
@@ -155,7 +156,11 @@ export class ProductEditComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate([AppRoutes.SELLER_PRODUCTS, this.productId]);
+    this.router.navigate([`/${this.routePrefix}/products`, this.productId]);
+  }
+
+  private get routePrefix(): string {
+    return this.router.url.startsWith('/admin') ? 'admin' : 'seller';
   }
 
   private load(): void {
@@ -179,8 +184,9 @@ export class ProductEditComponent implements OnInit {
           categoryId: [data.categoryId ?? null],
         });
         this.header.set([
-          { label: 'Productos', route: AppRoutes.SELLER_PRODUCTS },
-          { label: `Editar: ${data.title}` },
+          { label: 'Productos', route: `/${this.routePrefix}/products` },
+          { label: data.title, route: `/${this.routePrefix}/products/${this.productId}` },
+          { label: 'Editar' },
         ]);
         this.loading = false;
       },
