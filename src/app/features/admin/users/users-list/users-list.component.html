@@ -15,11 +15,14 @@
   }
 </p-dialog>
 
-<div class="p-4">
-  <div class="flex flex-wrap gap-3 mb-4 items-center justify-between">
-    <div class="flex flex-wrap gap-3 items-center">
+<div class="ff-panel" style="margin: 24px">
+  <div class="ff-list-header">
+    <div class="ff-list-header__actions" style="flex: 1">
       <p-iconField iconPosition="left">
-        <p-inputIcon styleClass="pi pi-search text-gray-400 z-10" />
+        <p-inputIcon
+          styleClass="pi pi-search z-10"
+          style="color: var(--ff-text-muted)"
+        />
         <input
           pInputText
           type="text"
@@ -89,13 +92,14 @@
               {{ user.fullName }}
               @if (user.lockedAt) {
                 <i
-                  class="pi pi-lock text-red-500 text-sm"
+                  class="pi pi-lock text-sm"
+                  style="color: var(--ff-danger)"
                   pTooltip="Usuario bloqueado"
                 ></i>
               }
             </div>
           </td>
-          <td>{{ user.dni }}</td>
+          <td class="ff-mono">{{ user.dni }}</td>
           <td>{{ user.email ?? "—" }}</td>
           <td>
             <p-tag
@@ -104,10 +108,12 @@
             />
           </td>
           <td>
-            <p-tag
-              [value]="user.status === 'ACTIVE' ? 'Activo' : 'Inactivo'"
-              [severity]="user.status === 'ACTIVE' ? 'success' : 'danger'"
-            />
+            <span
+              class="ff-badge"
+              [class.ff-badge--activo]="user.status === 'ACTIVE'"
+              [class.ff-badge--inactivo]="user.status !== 'ACTIVE'"
+              >{{ user.status === "ACTIVE" ? "Activo" : "Inactivo" }}</span
+            >
           </td>
           <td>
             {{

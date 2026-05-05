@@ -8,10 +8,17 @@
   } @else if (credit) {
     @if (credit.rejectionReason) {
       <div
-        class="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700"
+        class="auth-warning-banner mb-4"
+        style="
+          border-color: rgba(248, 113, 113, 0.3);
+          background: rgba(248, 113, 113, 0.08);
+          color: var(--ff-danger);
+        "
       >
-        <span class="font-semibold">Motivo de rechazo:</span>
-        {{ credit.rejectionReason }}
+        <i class="pi pi-times-circle shrink-0"></i>
+        <p class="text-sm">
+          <strong>Motivo de rechazo:</strong> {{ credit.rejectionReason }}
+        </p>
       </div>
     }
 
@@ -37,7 +44,11 @@
 
     @if (isAdmin) {
       <div
-        class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded flex flex-wrap gap-3"
+        class="mb-6 p-4 rounded flex flex-wrap gap-3"
+        style="
+          background: rgba(79, 110, 247, 0.08);
+          border: 1px solid rgba(79, 110, 247, 0.2);
+        "
       >
         @if (credit.status === "PENDING_APPROVAL") {
           <p-button
@@ -64,106 +75,115 @@
       </div>
     }
 
-    <div class="grid grid-cols-2 gap-4 mb-6 p-4 bg-white border rounded">
-      <div>
-        <div class="text-xs text-gray-500">Monto total</div>
-        <div class="font-semibold">
-          {{ credit.totalAmount | currencyArs: 2 }}
-        </div>
-      </div>
-      @if (credit.type === "SALE") {
-        <div>
-          <div class="text-xs text-gray-500">Monto financiado</div>
-          <div class="font-semibold">
-            {{ credit.financedAmount | currencyArs: 2 }}
-          </div>
-        </div>
-      }
-      <div>
-        <div class="text-xs text-gray-500">Cuotas</div>
-        <div class="font-semibold">
-          {{ credit.installmentsCount }} —
-          {{ frequencyLabel(credit.paymentFrequency) }}
-        </div>
-      </div>
-      @if (credit.interestRate !== null) {
-        <div>
-          <div class="text-xs text-gray-500">Tasa de interés</div>
-          <div class="font-semibold">{{ credit.interestRate }}%</div>
-        </div>
-      }
-      <div>
-        <div class="text-xs text-gray-500">Fecha de alta</div>
-        <div class="font-semibold">
-          {{ credit.createdAt | date: "dd/MM/yyyy" }}
-        </div>
-      </div>
-      @if (credit.approvedAt) {
-        <div>
-          <div class="text-xs text-gray-500">Fecha de aprobación</div>
-          <div class="font-semibold">
-            {{ credit.approvedAt | date: "dd/MM/yyyy" }}
-          </div>
-        </div>
-      }
-      @if (credit.approvedBy) {
-        <div>
-          <div class="text-xs text-gray-500">Aprobado por</div>
-          <div class="font-semibold">{{ credit.approvedBy }}</div>
-        </div>
-      }
-      @if (credit.createdByName) {
-        <div>
-          <div class="text-xs text-gray-500">Creado por</div>
-          <div class="font-semibold">{{ credit.createdByName }}</div>
-        </div>
-      }
-      @if (credit.notes) {
-        <div class="col-span-2">
-          <div class="text-xs text-gray-500">Notas</div>
-          <div>{{ credit.notes }}</div>
-        </div>
-      }
-    </div>
-
-    <div class="mb-6 p-4 bg-white border rounded">
-      <h3 class="font-semibold mb-3">Datos del cliente</h3>
+    <!-- Info crédito -->
+    <div class="ff-panel p-4 mb-6">
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <div class="text-xs text-gray-500">Nombre</div>
-          <div class="font-semibold">{{ credit.customerName }}</div>
+          <div class="ud-label">Monto total</div>
+          <div class="ud-value ff-mono">
+            {{ credit.totalAmount | currencyArs: 2 }}
+          </div>
         </div>
-        <div>
-          <div class="text-xs text-gray-500">DNI</div>
-          <div class="font-semibold">{{ credit.customerDni }}</div>
-        </div>
-        @if (credit.customerPhone) {
+        @if (credit.type === "SALE") {
           <div>
-            <div class="text-xs text-gray-500">Teléfono</div>
-            <div class="font-semibold">{{ credit.customerPhone }}</div>
+            <div class="ud-label">Monto financiado</div>
+            <div class="ud-value ff-mono">
+              {{ credit.financedAmount | currencyArs: 2 }}
+            </div>
+          </div>
+        }
+        <div>
+          <div class="ud-label">Cuotas</div>
+          <div class="ud-value">
+            {{ credit.installmentsCount }} —
+            {{ frequencyLabel(credit.paymentFrequency) }}
+          </div>
+        </div>
+        @if (credit.interestRate !== null) {
+          <div>
+            <div class="ud-label">Tasa de interés</div>
+            <div class="ud-value">{{ credit.interestRate }}%</div>
+          </div>
+        }
+        <div>
+          <div class="ud-label">Fecha de alta</div>
+          <div class="ud-value">
+            {{ credit.createdAt | date: "dd/MM/yyyy" }}
+          </div>
+        </div>
+        @if (credit.approvedAt) {
+          <div>
+            <div class="ud-label">Fecha de aprobación</div>
+            <div class="ud-value">
+              {{ credit.approvedAt | date: "dd/MM/yyyy" }}
+            </div>
+          </div>
+        }
+        @if (credit.approvedBy) {
+          <div>
+            <div class="ud-label">Aprobado por</div>
+            <div class="ud-value">{{ credit.approvedBy }}</div>
+          </div>
+        }
+        @if (credit.createdByName) {
+          <div>
+            <div class="ud-label">Creado por</div>
+            <div class="ud-value">{{ credit.createdByName }}</div>
+          </div>
+        }
+        @if (credit.notes) {
+          <div class="col-span-2">
+            <div class="ud-label">Notas</div>
+            <div class="ud-value">{{ credit.notes }}</div>
           </div>
         }
       </div>
     </div>
 
+    <!-- Datos del cliente -->
+    <div class="ff-panel p-4 mb-6">
+      <h3 class="font-semibold mb-3" style="color: var(--ff-text-primary)">
+        Datos del cliente
+      </h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <div class="ud-label">Nombre</div>
+          <div class="ud-value font-semibold">{{ credit.customerName }}</div>
+        </div>
+        <div>
+          <div class="ud-label">DNI</div>
+          <div class="ud-value ff-mono">{{ credit.customerDni }}</div>
+        </div>
+        @if (credit.customerPhone) {
+          <div>
+            <div class="ud-label">Teléfono</div>
+            <div class="ud-value">{{ credit.customerPhone }}</div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Condiciones iniciales (solo SALE) -->
     @if (credit.type === "SALE") {
-      <div class="mb-6 p-4 bg-white border rounded">
-        <h3 class="font-semibold mb-3">Condiciones iniciales</h3>
+      <div class="ff-panel p-4 mb-6">
+        <h3 class="font-semibold mb-3" style="color: var(--ff-text-primary)">
+          Condiciones iniciales
+        </h3>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <div class="text-xs text-gray-500">Monto financiado</div>
-            <div class="font-semibold">
+            <div class="ud-label">Monto financiado</div>
+            <div class="ud-value ff-mono">
               {{ credit.financedAmount | currencyArs: 2 }}
             </div>
           </div>
           @if (credit.downPayment > 0) {
             <div>
-              <div class="text-xs text-gray-500">Enganche</div>
-              <div class="font-semibold">
+              <div class="ud-label">Enganche</div>
+              <div class="ud-value ff-mono">
                 {{ credit.downPayment | currencyArs: 2 }}
               </div>
               @if (credit.downPaymentMethod) {
-                <div class="text-xs text-gray-400">
+                <div class="text-xs mt-0.5" style="color: var(--ff-text-muted)">
                   {{
                     credit.downPaymentMethod === "CASH"
                       ? "Efectivo"
@@ -172,7 +192,7 @@
                 </div>
               }
               @if (credit.downPaymentTransferReference) {
-                <div class="text-xs text-gray-400">
+                <div class="text-xs" style="color: var(--ff-text-muted)">
                   Ref: {{ credit.downPaymentTransferReference }}
                 </div>
               }
@@ -182,39 +202,49 @@
       </div>
     }
 
+    <!-- Cancelación anticipada registrada -->
     @if (credit.settledAt) {
-      <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded">
-        <h3 class="font-semibold mb-3 text-green-800">
+      <div
+        class="ff-panel p-4 mb-6"
+        style="
+          background: rgba(52, 211, 153, 0.06);
+          border-color: rgba(52, 211, 153, 0.2);
+        "
+      >
+        <h3 class="font-semibold mb-3" style="color: var(--ff-success)">
           Cancelación anticipada
         </h3>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <div class="text-xs text-green-700">Fecha</div>
-            <div class="font-semibold">
+            <div class="ud-label" style="color: var(--ff-success)">Fecha</div>
+            <div class="ud-value">
               {{ credit.settledAt | date: "dd/MM/yyyy" }}
             </div>
           </div>
           @if (credit.settlementAmount) {
             <div>
-              <div class="text-xs text-green-700">Monto</div>
-              <div class="font-semibold">
+              <div class="ud-label" style="color: var(--ff-success)">Monto</div>
+              <div class="ud-value ff-mono">
                 {{ credit.settlementAmount | currencyArs: 2 }}
               </div>
             </div>
           }
           @if (credit.settlementType) {
             <div>
-              <div class="text-xs text-green-700">Tipo</div>
-              <div class="font-semibold">{{ credit.settlementType }}</div>
+              <div class="ud-label" style="color: var(--ff-success)">Tipo</div>
+              <div class="ud-value">{{ credit.settlementType }}</div>
             </div>
           }
         </div>
       </div>
     }
 
+    <!-- Unidades (solo SALE) -->
     @if (credit.type === "SALE" && credit.units && credit.units.length > 0) {
-      <div class="mb-6 p-4 bg-white border rounded">
-        <h3 class="font-semibold mb-3">Unidades</h3>
+      <div class="ff-panel mb-6">
+        <div class="ff-list-header">
+          <span class="ff-list-header__title">Unidades</span>
+        </div>
         <p-table [value]="credit.units" styleClass="p-datatable-sm">
           <ng-template pTemplate="header">
             <tr>
@@ -228,18 +258,20 @@
           <ng-template pTemplate="body" let-u>
             <tr>
               <td>{{ u.productName }}</td>
-              <td class="text-sm text-gray-600">
+              <td style="color: var(--ff-text-secondary)">
                 {{ variantLabel(u) }}
               </td>
-              <td class="font-mono font-semibold">{{ u.unitCode }}</td>
-              <td class="text-right">
+              <td class="ff-mono font-semibold">{{ u.unitCode }}</td>
+              <td class="text-right ff-mono">
                 {{ u.historicalPrice | currencyArs: 2 }}
               </td>
-              <td class="text-right">
+              <td class="text-right ff-mono">
                 @if (u.historicalRate !== null) {
                   {{ (u.historicalRate * 100).toFixed(2) }}%
                 } @else {
-                  <span class="text-gray-400 text-xs">Pendiente</span>
+                  <span style="color: var(--ff-text-muted); font-size: 11px"
+                    >Pendiente</span
+                  >
                 }
               </td>
             </tr>
@@ -248,8 +280,11 @@
       </div>
     }
 
-    <div class="mb-6 p-4 bg-white border rounded">
-      <h3 class="font-semibold mb-3">Cuotas</h3>
+    <!-- Cuotas / cronograma -->
+    <div class="ff-panel mb-6">
+      <div class="ff-list-header">
+        <span class="ff-list-header__title">Cuotas</span>
+      </div>
       <p-table [value]="credit.installments" styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
           <tr>
@@ -265,26 +300,37 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-inst>
-          <tr [class.bg-red-50]="inst.status === 'OVERDUE'">
-            <td>{{ inst.installmentNumber }}</td>
-            <td>{{ inst.dueDate | date: "dd/MM/yyyy" }}</td>
-            <td class="text-right">
+          <tr
+            [class.inst-overdue]="inst.status === 'OVERDUE'"
+            [class.inst-paid]="inst.status === 'PAID'"
+          >
+            <td class="ff-mono">{{ inst.installmentNumber }}</td>
+            <td class="ff-mono">{{ inst.dueDate | date: "dd/MM/yyyy" }}</td>
+            <td class="text-right ff-mono">
               {{ inst.amountDue | currencyArs: 2 }}
             </td>
-            <td class="text-right">
+            <td class="text-right ff-mono">
               {{ inst.amountPaid | currencyArs: 2 }}
             </td>
             <td
-              class="text-right"
-              [class.text-red-600]="inst.penaltyAmount > 0"
+              class="text-right ff-mono"
+              [style.color]="inst.penaltyAmount > 0 ? 'var(--ff-danger)' : ''"
             >
               {{ inst.penaltyAmount | currencyArs: 2 }}
             </td>
             <td>
-              <p-tag
-                [value]="installmentLabel(inst.status)"
-                [severity]="installmentSeverity(inst.status)"
-              />
+              <span
+                class="ff-badge"
+                [class.ff-badge--pendiente]="
+                  inst.status === 'PENDING' || inst.status === 'PARTIAL'
+                "
+                [class.ff-badge--pagado]="inst.status === 'PAID'"
+                [class.ff-badge--vencido]="inst.status === 'OVERDUE'"
+                [class.ff-badge--liquidado]="
+                  inst.status === 'WAIVED' || inst.status === 'SETTLED'
+                "
+                >{{ installmentLabel(inst.status) }}</span
+              >
             </td>
             @if (isAdmin) {
               <td class="text-center">
@@ -329,6 +375,7 @@
   }
 </div>
 
+<!-- Dialog: Aprobar crédito -->
 <p-dialog
   [(visible)]="showApproveDialog"
   header="Aprobar Crédito"
@@ -339,15 +386,18 @@
 >
   <div class="flex flex-col gap-4 py-2">
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">
-        Cantidad de cuotas (puede ajustarse)
-      </label>
+      <label class="auth-label">Cantidad de cuotas (puede ajustarse)</label>
       <input
         type="number"
         [(ngModel)]="approveInstallmentsCount"
         min="1"
         max="120"
-        class="w-full rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm text-gray-700 outline-none focus:border-blue-500"
+        class="w-full rounded-xl p-3 text-sm outline-none"
+        style="
+          border: 1px solid var(--ff-border);
+          background: var(--ff-secondary);
+          color: var(--ff-text-primary);
+        "
       />
     </div>
   </div>
@@ -371,6 +421,7 @@
   </ng-template>
 </p-dialog>
 
+<!-- Dialog: Rechazar crédito -->
 <p-dialog
   [(visible)]="showRejectDialog"
   header="Rechazar Crédito"
@@ -381,28 +432,43 @@
 >
   <div class="flex flex-col gap-4 py-2">
     <div
-      class="flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 p-3"
+      class="auth-warning-banner"
+      style="
+        border-color: rgba(248, 113, 113, 0.3);
+        background: rgba(248, 113, 113, 0.08);
+        color: var(--ff-danger);
+      "
     >
-      <i class="pi pi-exclamation-triangle text-red-500 mt-0.5"></i>
-      <p class="text-sm font-semibold text-red-700">
-        Esta acción es irreversible.
-      </p>
+      <i class="pi pi-exclamation-triangle shrink-0"></i>
+      <p class="text-sm font-semibold">Esta acción es irreversible.</p>
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">
-        Motivo de rechazo (mín. 5, máx. 500 caracteres)
-      </label>
+      <label class="auth-label"
+        >Motivo de rechazo (mín. 5, máx. 500 caracteres)</label
+      >
       <textarea
         pTextarea
         [(ngModel)]="rejectReason"
         rows="4"
         maxlength="500"
-        class="w-full resize-none rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm text-gray-700 outline-none focus:border-blue-500"
+        class="w-full resize-none rounded-xl p-3 text-sm outline-none"
+        style="
+          border: 1px solid var(--ff-border);
+          background: var(--ff-secondary);
+          color: var(--ff-text-primary);
+        "
         placeholder="Describe el motivo..."
       ></textarea>
-      <div class="flex justify-between text-xs text-gray-400 mt-1">
+      <div
+        class="flex justify-between text-xs mt-1"
+        style="color: var(--ff-text-muted)"
+      >
         <span
-          [class.text-red-500]="rejectCharCount() > 0 && rejectCharCount() < 5"
+          [style.color]="
+            rejectCharCount() > 0 && rejectCharCount() < 5
+              ? 'var(--ff-danger)'
+              : ''
+          "
         >
           Mínimo 5 caracteres
         </span>
@@ -431,6 +497,7 @@
   </ng-template>
 </p-dialog>
 
+<!-- Dialog: Cancelación anticipada -->
 <p-dialog
   [(visible)]="showSettlementDialog"
   header="Cancelación Anticipada"
@@ -440,14 +507,15 @@
   [resizable]="false"
 >
   <div class="flex flex-col gap-4 py-2">
-    <div
-      class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800"
-    >
-      El monto de cancelación incluye todas las cuotas pendientes y moras
-      acumuladas. Se calculará al confirmar.
+    <div class="auth-warning-banner">
+      <i class="pi pi-info-circle shrink-0"></i>
+      <p class="text-sm">
+        El monto de cancelación incluye todas las cuotas pendientes y moras
+        acumuladas. Se calculará al confirmar.
+      </p>
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Método de pago</label>
+      <label class="auth-label">Método de pago</label>
       <p-dropdown
         [options]="PAYMENT_METHOD_OPTIONS"
         [(ngModel)]="settlementPaymentMethod"
@@ -459,9 +527,7 @@
     </div>
     @if (settlementPaymentMethod === "TRANSFER") {
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-gray-700"
-          >Referencia de transferencia</label
-        >
+        <label class="auth-label">Referencia de transferencia</label>
         <input
           type="text"
           pInputText
@@ -493,6 +559,7 @@
   </ng-template>
 </p-dialog>
 
+<!-- Dialog: Aplicar mora -->
 <p-dialog
   [(visible)]="showPenaltyDialog"
   header="Aplicar Mora"
@@ -503,23 +570,33 @@
 >
   <div class="flex flex-col gap-4 py-2">
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Monto de mora</label>
+      <label class="auth-label">Monto de mora</label>
       <input
         type="number"
         [(ngModel)]="penaltyAmount"
         min="0.01"
         step="0.01"
-        class="w-full rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm text-gray-700 outline-none focus:border-blue-500"
+        class="w-full rounded-xl p-3 text-sm outline-none"
+        style="
+          border: 1px solid var(--ff-border);
+          background: var(--ff-secondary);
+          color: var(--ff-text-primary);
+        "
         placeholder="0.00"
       />
     </div>
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Motivo (opcional)</label>
+      <label class="auth-label">Motivo (opcional)</label>
       <input
         type="text"
         [(ngModel)]="penaltyReason"
         maxlength="255"
-        class="w-full rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm text-gray-700 outline-none focus:border-blue-500"
+        class="w-full rounded-xl p-3 text-sm outline-none"
+        style="
+          border: 1px solid var(--ff-border);
+          background: var(--ff-secondary);
+          color: var(--ff-text-primary);
+        "
         placeholder="Motivo..."
       />
     </div>
@@ -545,6 +622,7 @@
   </ng-template>
 </p-dialog>
 
+<!-- Dialog: Condonar mora -->
 <p-dialog
   [(visible)]="showWaiveDialog"
   header="Condonar Mora"
@@ -554,7 +632,7 @@
   [resizable]="false"
 >
   <div class="py-2">
-    <p class="text-sm text-gray-700">
+    <p class="text-sm" style="color: var(--ff-text-primary)">
       ¿Confirmar condonación de mora para la cuota #{{
         waiveInstallment?.installmentNumber
       }}?
@@ -580,6 +658,7 @@
   </ng-template>
 </p-dialog>
 
+<!-- Dialog: Pago anticipado -->
 <p-dialog
   [(visible)]="showEarlyPayDialog"
   header="Pago Anticipado"
@@ -589,12 +668,12 @@
   [resizable]="false"
 >
   <div class="flex flex-col gap-4 py-2">
-    <p class="text-sm text-gray-700">
+    <p class="text-sm ff-mono" style="color: var(--ff-text-primary)">
       Cuota #{{ earlyPayInstallment?.installmentNumber }} —
       {{ earlyPayInstallment?.amountDue | currencyArs: 2 }}
     </p>
     <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-gray-700">Método de pago</label>
+      <label class="auth-label">Método de pago</label>
       <p-dropdown
         [options]="PAYMENT_METHOD_OPTIONS"
         [(ngModel)]="earlyPayMethod"
@@ -606,14 +685,17 @@
     </div>
     @if (earlyPayMethod === "TRANSFER") {
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-gray-700"
-          >Referencia (opcional)</label
-        >
+        <label class="auth-label">Referencia (opcional)</label>
         <input
           type="text"
           [(ngModel)]="earlyPayTransferRef"
           maxlength="100"
-          class="w-full rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm text-gray-700 outline-none focus:border-blue-500"
+          class="w-full rounded-xl p-3 text-sm outline-none"
+          style="
+            border: 1px solid var(--ff-border);
+            background: var(--ff-secondary);
+            color: var(--ff-text-primary);
+          "
           placeholder="Número de operación..."
         />
       </div>
