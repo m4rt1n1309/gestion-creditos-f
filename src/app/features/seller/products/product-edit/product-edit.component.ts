@@ -66,7 +66,8 @@ export class ProductEditComponent implements OnInit {
   ngOnInit(): void {
     this.header.set([
       { label: 'Productos', route: AppRoutes.SELLER_PRODUCTS },
-      { label: 'Editar producto' },
+      { label: 'Producto', route: `/seller/products/${this.productId}` },
+      { label: 'Editar' },
     ]);
 
     this.categoriesService.getAll().subscribe({
@@ -180,7 +181,8 @@ export class ProductEditComponent implements OnInit {
         });
         this.header.set([
           { label: 'Productos', route: AppRoutes.SELLER_PRODUCTS },
-          { label: `Editar: ${data.title}` },
+          { label: data.title, route: `/seller/products/${this.productId}` },
+          { label: 'Editar' },
         ]);
         this.loading = false;
       },

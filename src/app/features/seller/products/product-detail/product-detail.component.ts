@@ -81,6 +81,16 @@ export class ProductDetailComponent implements OnInit {
     this.router.navigate(['/seller/products', this.productId, 'variants']);
   }
 
+  navigateToUnits(variantId: string): void {
+    this.router.navigate([
+      '/seller/products',
+      this.productId,
+      'variants',
+      variantId,
+      'units',
+    ]);
+  }
+
   confirmDeactivate(): void {
     this.confirmationService.confirm({
       header: 'Desactivar producto',
