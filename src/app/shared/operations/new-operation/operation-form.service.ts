@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, forkJoin, map } from 'rxjs';
 import { CustomersService } from '../../../features/seller/clients/customers.service';
-import { ProductsService } from '../../../features/seller/products/products.service';
+import { ProductUnitsService } from '../../../features/seller/products/product-units.service';
 import { ClientOperation } from '../../models/interface/client';
 import { PaymentFrequencyOperation } from '../../models/interface/payment';
 import { ProductOperation } from '../../models/interface/product';
@@ -9,7 +9,7 @@ import { ProductOperation } from '../../models/interface/product';
 @Injectable()
 export class OperationFormService {
   private readonly customersService = inject(CustomersService);
-  private readonly productsService = inject(ProductsService);
+  private readonly productUnitsService = inject(ProductUnitsService);
 
   searchClient = signal('');
   selectedClient = signal<ClientOperation | null>(null);
@@ -21,8 +21,8 @@ export class OperationFormService {
   availableProducts: ProductOperation[] = [];
 
   /**
-   * Lista de productos filtrada por nombre según el texto del buscador.
-   * @returns {ProductOperation[]} Productos cuyo nombre contiene el término buscado.
+   * Lista de unidades disponibles filtrada por nombre o código según el texto del buscador.
+   * @returns {ProductOperation[]} Unidades cuya etiqueta contiene el término buscado.
    */
   filteredAvailableProducts = computed(() => {
     const searchTerm = this.searchProduct().trim().toLowerCase();
@@ -30,21 +30,25 @@ export class OperationFormService {
       return this.availableProducts;
     }
 
-    return this.availableProducts.filter((product) =>
-      product.name.toLowerCase().includes(searchTerm),
-    );
+    return this.availableProducts.filter((product) => {
+      const byName = product.name.toLowerCase().includes(searchTerm);
+      const byUnitCode =
+        product.unitCode?.toLowerCase().includes(searchTerm) ?? false;
+      return byName || byUnitCode;
+    });
   });
 
   /**
-   *
-   * @returns
+   * Carga clientes activos y unidades disponibles para el wizard de nueva operación.
+   * Para ventas, el contrato exige enviar IDs reales de `product_units`.
+   * @returns {Observable<void>} Flujo completado cuando ambas fuentes están cargadas.
    */
   loadData(): Observable<void> {
     return forkJoin({
       customers: this.customersService.list({ status: 'ACTIVE' }),
-      products: this.productsService.list({ status: 'ACTIVE' }),
+      units: this.productUnitsService.getAll({ status: 'AVAILABLE' }),
     }).pipe(
-      map(({ customers, products }) => {
+      map(({ customers, units }) => {
         this.clients = customers.map((c) => ({
           id: c.id,
           name: c.fullName,
@@ -55,11 +59,12 @@ export class OperationFormService {
           delinquency: 'sin mora',
           paymentCapacity: 0,
         }));
-        this.availableProducts = products.map((p) => ({
-          id: p.id,
-          name: p.title,
-          price: p.variants[0]?.currentPrice ?? 0,
-          stock: p.availableCount,
+        this.availableProducts = units.map((u) => ({
+          id: u.id,
+          name: u.productName,
+          price: u.currentPrice,
+          stock: 1,
+          unitCode: u.unitCode,
         }));
       }),
     );
@@ -149,16 +154,33 @@ export class OperationFormService {
   });
 
   /**
-   * Agrega un producto.
-   * @param product
+   * Indica si una unidad ya fue seleccionada en el flujo de venta.
+   * Evita duplicar la misma `product_unit` dentro del payload final.
+   * @param {string} productId - ID real de la unidad (`product_unit.id`).
+   * @returns {boolean} true cuando la unidad ya está en la selección actual.
    */
-  addProduct(product: ProductOperation) {
-    this.selectedProducts.update((list) => [...list, { ...product }]);
+  isProductSelected(productId: string): boolean {
+    return this.selectedProducts().some((product) => product.id === productId);
   }
 
   /**
-   * Remueve un producto.
-   * @param product
+   * Agrega una unidad disponible al listado seleccionado del flujo de venta.
+   * Ignora intentos duplicados para no enviar el mismo `product_unit.id` dos veces.
+   * @param {ProductOperation} product - Unidad elegida por el usuario.
+   */
+  addProduct(product: ProductOperation) {
+    this.selectedProducts.update((list) => {
+      if (list.some((item) => item.id === product.id)) {
+        return list;
+      }
+
+      return [...list, { ...product }];
+    });
+  }
+
+  /**
+   * Remueve una unidad seleccionada del flujo de venta.
+   * @param {ProductOperation} product - Unidad a quitar de la selección.
    */
   removeProduct(product: ProductOperation) {
     this.selectedProducts.update((list) => list.filter((p) => p !== product));

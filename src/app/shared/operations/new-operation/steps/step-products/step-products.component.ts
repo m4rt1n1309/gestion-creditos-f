@@ -47,16 +47,25 @@ export class StepProductsComponent {
   }
 
   /**
-   * Agrega un producto al listado seleccionado del flujo de venta.
-   * @param {ProductOperation} prod - Producto elegido.
+   * Indica si la unidad ya está seleccionada para evitar duplicados en la venta.
+   * @param {string} productId - ID real de la unidad seleccionable.
+   * @returns {boolean} true cuando la unidad ya fue agregada.
+   */
+  isProductSelected(productId: string): boolean {
+    return this.form.isProductSelected(productId);
+  }
+
+  /**
+   * Agrega una unidad al listado seleccionado del flujo de venta.
+   * @param {ProductOperation} prod - Unidad elegida.
    */
   addProduct(prod: ProductOperation) {
     this.form.addProduct(prod);
   }
 
   /**
-   * Quita un producto del listado seleccionado del flujo de venta.
-   * @param {ProductOperation} prod - Producto a remover.
+   * Quita una unidad del listado seleccionado del flujo de venta.
+   * @param {ProductOperation} prod - Unidad a remover.
    */
   removeProduct(prod: ProductOperation) {
     this.form.removeProduct(prod);
