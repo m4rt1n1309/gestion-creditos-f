@@ -1,10 +1,11 @@
-<div class="p-4">
+<div class="p-4" data-cy="seller-clients-page">
   <div class="ff-panel">
     <div class="ff-list-header">
       <div class="ff-list-header__actions" style="flex: 1; flex-wrap: wrap">
         <span class="p-input-icon-left">
           <i class="pi pi-search" style="color: var(--ff-text-muted)"></i>
           <input
+            data-cy="seller-clients-search-input"
             pInputText
             type="text"
             placeholder="Buscar por nombre, DNI o teléfono"
@@ -14,6 +15,7 @@
           />
         </span>
         <p-dropdown
+          data-cy="seller-clients-status-filter"
           [options]="statusOptions"
           [(ngModel)]="selectedStatus"
           (onChange)="applyFilters()"
@@ -36,6 +38,7 @@
       </div>
       @if (canCreate) {
         <p-button
+          data-cy="seller-clients-create-cta"
           label="Nuevo cliente"
           icon="pi pi-plus"
           severity="primary"
@@ -50,9 +53,12 @@
     } @else if (error) {
       <app-error-state />
     } @else if (customers.length === 0) {
-      <app-empty-state />
+      <div data-cy="seller-clients-empty-state">
+        <app-empty-state />
+      </div>
     } @else {
       <p-table
+        data-cy="seller-clients-table"
         [value]="customers"
         [paginator]="true"
         [rows]="10"
@@ -95,6 +101,7 @@
             </td>
             <td>
               <p-button
+                data-cy="seller-clients-view-detail-action"
                 label="Ver"
                 icon="pi pi-eye"
                 severity="secondary"
