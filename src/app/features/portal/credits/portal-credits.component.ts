@@ -59,6 +59,6 @@ export class PortalCreditsComponent implements OnInit {
    * @param id
    */
   goToDetail(id: string): void {
-    this.router.navigate([AppRoutes.PORTAL_CREDIT_DETAIL, id]);
+    this.router.navigate(['/portal/credits', id]);
   }
 }

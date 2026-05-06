@@ -1,13 +1,19 @@
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-6" data-cy="portal-credit-detail-page">
   <div class="flex items-center gap-3">
     <button
+      data-cy="portal-credit-detail-back-action"
       pButton
       type="button"
       icon="pi pi-arrow-left"
       class="p-button-text p-button-secondary p-button-sm"
       (click)="back()"
     ></button>
-    <h2 class="text-xl font-bold text-gray-800">Detalle del crédito</h2>
+    <h2
+      class="text-xl font-bold text-gray-800"
+      data-cy="portal-credit-detail-title"
+    >
+      Detalle del crédito
+    </h2>
   </div>
 
   @if (loading) {
@@ -15,7 +21,10 @@
     <p-skeleton height="20rem" borderRadius="0.75rem" />
   } @else if (credit) {
     <!-- Credit header -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div
+      class="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
+      data-cy="portal-credit-detail-summary-card"
+    >
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
           <p class="text-xs text-gray-400">Tipo</p>
@@ -45,13 +54,22 @@
 
     <!-- Installments table -->
     <div
+      data-cy="portal-credit-detail-installments-section"
       class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
     >
       <div class="px-4 py-3 border-b border-gray-100">
-        <h3 class="font-semibold text-gray-700">Cronograma de cuotas</h3>
+        <h3
+          class="font-semibold text-gray-700"
+          data-cy="portal-credit-detail-installments-title"
+        >
+          Cronograma de cuotas
+        </h3>
       </div>
       <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table
+          class="w-full text-sm"
+          data-cy="portal-credit-detail-installments-table"
+        >
           <thead class="bg-gray-50">
             <tr>
               <th class="text-center px-3 py-2 text-gray-500 font-medium">
@@ -77,6 +95,7 @@
           <tbody>
             @for (inst of credit.installments; track inst.id) {
               <tr
+                data-cy="portal-credit-detail-installment-row"
                 class="border-t border-gray-50"
                 [class.bg-red-50]="inst.status === 'OVERDUE'"
                 [class.bg-green-50]="inst.status === 'PAID'"
