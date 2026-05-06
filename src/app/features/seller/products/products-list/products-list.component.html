@@ -1,38 +1,51 @@
 <div class="p-4">
   <div class="ff-panel">
-    <div class="ff-list-header">
+    <!-- Header -->
+    <div
+      class="ff-list-header"
+      style="align-items: flex-start; flex-wrap: wrap; gap: 12px"
+    >
+      <div>
+        <h1 class="text-base font-bold" style="color: var(--ff-text-primary)">
+          Productos
+        </h1>
+      </div>
       <div class="ff-list-header__actions" style="flex: 1; flex-wrap: wrap">
-        <p-iconField iconPosition="left">
-          <p-inputIcon
-            styleClass="pi pi-search z-10"
-            style="color: var(--ff-text-muted)"
-          />
+        <span class="p-input-icon-left">
+          <i class="pi pi-search" style="color: var(--ff-text-muted)"></i>
           <input
             pInputText
             type="text"
-            placeholder="Buscar por descripción"
+            placeholder="Buscar por título o descripción..."
             [(ngModel)]="searchTerm"
             (ngModelChange)="onSearchChange($event)"
-            class="h-11 pl-10 w-72"
+            class="h-11 w-72 pl-10"
+            style="
+              background: var(--ff-secondary);
+              border-color: var(--ff-border);
+              color: var(--ff-text-primary);
+            "
           />
-        </p-iconField>
+        </span>
         <p-dropdown
           [options]="statusOptions"
           [(ngModel)]="selectedStatus"
           (onChange)="applyFilters()"
-          placeholder="Estado"
+          placeholder="Todas"
           [showClear]="true"
           optionLabel="label"
           optionValue="value"
+          styleClass="h-11"
         />
         <p-dropdown
           [options]="categoryOptions"
           [(ngModel)]="selectedCategoryId"
           (onChange)="applyFilters()"
-          placeholder="Categoría"
+          placeholder="Todos"
           [showClear]="true"
           optionLabel="label"
           optionValue="value"
+          styleClass="h-11"
         />
       </div>
       @if (canCreate) {
@@ -62,65 +75,131 @@
       >
         <ng-template pTemplate="header">
           <tr>
-            <th>Título</th>
-            <th>Descripción</th>
-            <th>Marca</th>
-            <th>Categoría</th>
-            <th class="text-center">Variantes</th>
-            <th>Precio</th>
-            <th class="text-center">Disponibles</th>
-            <th>Estado</th>
-            <th></th>
+            <th>PRODUCTO</th>
+            <th>MARCA / CAT.</th>
+            <th class="text-center">VARIANTES</th>
+            <th class="text-center">DISPONIBLES</th>
+            <th class="text-center">RESERVADAS</th>
+            <th class="text-center">VENDIDAS</th>
+            <th>ESTADO</th>
+            <th>ACCIONES</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-product>
           <tr>
-            <td class="font-medium">{{ product.title }}</td>
-            <td style="color: var(--ff-text-muted)">
-              {{ product.description || "—" }}
-            </td>
-            <td style="color: var(--ff-text-secondary)">
-              {{ product.brandName ?? "—" }}
-            </td>
-            <td style="color: var(--ff-text-secondary)">
-              {{ product.categoryName ?? "—" }}
-            </td>
-            <td class="text-center">{{ product.variants.length }}</td>
-            <td class="ff-mono">{{ variantPriceLabel(product) }}</td>
-            <td class="text-center">
-              @if (product.availableCount === 0) {
-                <span class="ff-badge ff-badge--vencido">Sin stock</span>
-              } @else {
-                {{ product.availableCount }}
+            <!-- PRODUCTO -->
+            <td style="min-width: 200px">
+              <span
+                class="font-bold text-sm"
+                style="color: var(--ff-text-primary)"
+                >{{ product.title }}</span
+              >
+              @if (product.description) {
+                <br />
+                <span class="text-xs" style="color: var(--ff-text-muted)">{{
+                  product.description
+                }}</span>
               }
             </td>
+
+            <!-- MARCA / CAT. -->
+            <td style="min-width: 130px">
+              <span
+                class="text-sm font-medium"
+                style="color: var(--ff-text-secondary)"
+                >{{ product.brandName ?? "—" }}</span
+              >
+              @if (product.categoryName) {
+                <br />
+                <span class="text-xs" style="color: var(--ff-text-muted)">{{
+                  product.categoryName
+                }}</span>
+              }
+            </td>
+
+            <!-- VARIANTES -->
+            <td class="text-center">
+              @if (product.variants.length > 1) {
+                <span
+                  class="ff-badge"
+                  style="
+                    background: rgba(79, 110, 247, 0.18);
+                    color: var(--ff-accent);
+                  "
+                >
+                  {{ product.variants.length }} VARIANTES
+                </span>
+              } @else {
+                <span class="text-xs" style="color: var(--ff-text-muted)"
+                  >{{ product.variants.length }} variante</span
+                >
+              }
+            </td>
+
+            <!-- DISPONIBLES -->
+            <td class="text-center">
+              @if (product.availableCount === 0) {
+                <span class="ff-badge ff-badge--vencido">SIN STOCK</span>
+              } @else if (product.availableCount <= 3) {
+                <span
+                  class="font-bold ff-mono"
+                  style="color: var(--ff-warning)"
+                >
+                  {{ product.availableCount }}
+                  <i class="pi pi-arrow-down text-xs ml-1"></i>
+                </span>
+              } @else {
+                <span
+                  class="font-bold ff-mono"
+                  style="color: var(--ff-success)"
+                  >{{ product.availableCount }}</span
+                >
+              }
+            </td>
+
+            <!-- RESERVADAS -->
+            <td
+              class="text-center ff-mono"
+              style="color: var(--ff-text-secondary)"
+            >
+              {{ product.reservedCount ?? "—" }}
+            </td>
+
+            <!-- VENDIDAS -->
+            <td class="text-center ff-mono" style="color: var(--ff-text-muted)">
+              {{ product.soldCount ?? "—" }}
+            </td>
+
+            <!-- ESTADO -->
             <td>
               <span
                 class="ff-badge"
                 [class.ff-badge--activo]="product.status === 'ACTIVE'"
                 [class.ff-badge--inactivo]="product.status !== 'ACTIVE'"
-                >{{ product.status === "ACTIVE" ? "Activo" : "Inactivo" }}</span
+                >{{ product.status === "ACTIVE" ? "ACTIVO" : "INACTIVO" }}</span
               >
             </td>
-            <td class="flex gap-2">
-              <p-button
-                label="Ver"
-                icon="pi pi-eye"
-                severity="secondary"
-                [outlined]="true"
-                size="small"
-                (onClick)="navigateToDetail(product.id)"
-              />
-              @if (canCreate) {
-                <p-button
-                  label="Editar"
-                  icon="pi pi-pencil"
-                  severity="secondary"
-                  [outlined]="true"
-                  size="small"
-                  (onClick)="navigateToEdit(product.id)"
-                />
-              }
+
+            <!-- ACCIONES -->
+            <td>
+              <div class="flex items-center gap-3">
+                <a
+                  class="prod-action-link"
+                  (click)="navigateToDetail(product.id)"
+                  title="Ver detalle"
+                >
+                  <i class="pi pi-eye text-sm"></i> Ver
+                </a>
+                @if (canCreate) {
+                  <a
+                    class="prod-action-link"
+                    (click)="navigateToEdit(product.id)"
+                    title="Editar producto"
+                  >
+                    <i class="pi pi-pencil text-sm"></i> Editar
+                  </a>
+                }
+              </div>
             </td>
           </tr>
         </ng-template>

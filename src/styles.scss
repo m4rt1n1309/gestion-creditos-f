@@ -1016,6 +1016,89 @@ table.ff-table {
   }
 }
 
+// ─── Products section — action links + action buttons + filter tabs ──────────
+.prod-action-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ff-accent);
+  text-decoration: none;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 0.75;
+  }
+}
+
+.prod-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--ff-border);
+  background: transparent;
+  color: var(--ff-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    background: var(--ff-secondary);
+    color: var(--ff-text-primary);
+  }
+
+  &--accent {
+    border-color: rgba(79, 110, 247, 0.3);
+    color: var(--ff-accent);
+
+    &:hover {
+      background: rgba(79, 110, 247, 0.08);
+    }
+  }
+
+  &--danger {
+    border-color: rgba(248, 113, 113, 0.3);
+    color: var(--ff-danger);
+
+    &:hover {
+      background: rgba(248, 113, 113, 0.08);
+    }
+  }
+}
+
+.units-filter-tab {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--ff-border);
+  background: transparent;
+  color: var(--ff-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    color: var(--ff-text-primary);
+    border-color: var(--ff-text-muted);
+  }
+
+  &--active {
+    background: rgba(79, 110, 247, 0.15);
+    border-color: rgba(79, 110, 247, 0.4);
+    color: var(--ff-accent);
+  }
+}
+
 // ─── cash-register KPI mini-card ─────────────────────────────────────────────
 .cr-kpi {
   background: var(--ff-panel);
