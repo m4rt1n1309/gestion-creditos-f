@@ -6,9 +6,10 @@
   (closed)="onTempPasswordClosed()"
 />
 
-<div class="p-6">
+<div class="p-6" data-cy="admin-user-detail-page">
   <div class="mb-4">
     <p-button
+      data-cy="admin-user-detail-back-action"
       label="Volver"
       icon="pi pi-arrow-left"
       severity="secondary"
@@ -29,6 +30,7 @@
         <div class="flex items-center justify-between flex-wrap gap-3">
           <div class="flex items-center gap-3 flex-wrap">
             <h2
+              data-cy="admin-user-detail-title"
               class="text-xl font-semibold"
               style="color: var(--ff-text-primary)"
             >
@@ -47,6 +49,7 @@
           </div>
           <div class="flex gap-2 flex-wrap">
             <p-button
+              data-cy="admin-user-detail-edit-action"
               label="Editar"
               icon="pi pi-pencil"
               severity="secondary"
@@ -55,6 +58,7 @@
             />
             @if (user.status === "ACTIVE") {
               <p-button
+                data-cy="admin-user-detail-status-action"
                 label="Desactivar"
                 icon="pi pi-ban"
                 severity="danger"
@@ -63,6 +67,7 @@
               />
             } @else {
               <p-button
+                data-cy="admin-user-detail-status-action"
                 label="Activar"
                 icon="pi pi-check-circle"
                 severity="secondary"
@@ -71,6 +76,7 @@
               />
             }
             <p-button
+              data-cy="admin-user-detail-reset-password-action"
               label="Resetear contraseña"
               icon="pi pi-refresh"
               severity="secondary"
@@ -172,6 +178,7 @@
         }
 
         <form
+          data-cy="admin-user-detail-edit-form"
           [formGroup]="editForm"
           (ngSubmit)="onEditSubmit()"
           class="space-y-4"
@@ -181,6 +188,7 @@
               >Nombre completo *</label
             >
             <input
+              data-cy="admin-user-detail-edit-fullname-input"
               id="editFullName"
               pInputText
               formControlName="fullName"
@@ -215,6 +223,7 @@
           <div class="flex flex-col gap-1">
             <label for="editEmail" class="auth-label">Email</label>
             <input
+              data-cy="admin-user-detail-edit-email-input"
               id="editEmail"
               pInputText
               formControlName="email"
@@ -259,6 +268,7 @@
 
           <div class="flex gap-3 pt-2">
             <p-button
+              data-cy="admin-user-detail-save-action"
               type="submit"
               label="Guardar cambios"
               icon="pi pi-check"
@@ -266,6 +276,7 @@
               [disabled]="editForm.invalid || saving"
             />
             <p-button
+              data-cy="admin-user-detail-cancel-edit-action"
               type="button"
               label="Cancelar"
               severity="secondary"

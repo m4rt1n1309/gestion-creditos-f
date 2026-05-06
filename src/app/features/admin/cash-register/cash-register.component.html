@@ -1,10 +1,14 @@
 <p-toast />
 
-<div class="p-6 space-y-6">
+<div class="p-6 space-y-6" data-cy="admin-cash-register-page">
   <!-- Page header -->
   <div class="flex items-center justify-between">
     <div>
-      <h1 class="text-xl font-bold" style="color: var(--ff-text-primary)">
+      <h1
+        class="text-xl font-bold"
+        style="color: var(--ff-text-primary)"
+        data-cy="admin-cash-register-title"
+      >
         Caja del día
       </h1>
       @if (closedToday) {
@@ -18,6 +22,7 @@
     </div>
     <div class="flex gap-2">
       <p-button
+        data-cy="admin-cash-register-refresh-action"
         icon="pi pi-refresh"
         severity="secondary"
         [outlined]="true"
@@ -26,6 +31,7 @@
       />
       @if (!closedToday) {
         <p-button
+          data-cy="admin-cash-register-close-day-cta"
           label="Cerrar caja del día"
           icon="pi pi-lock"
           severity="danger"
@@ -42,7 +48,10 @@
   } @else if (errorDashboard && !dashboard) {
     <app-error-state />
   } @else if (dashboard) {
-    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+    <div
+      class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4"
+      data-cy="admin-cash-register-kpis"
+    >
       <div class="cr-kpi">
         <p class="cr-kpi__label">Efectivo</p>
         <p class="cr-kpi__value ff-mono">
@@ -153,9 +162,13 @@
   }
 
   <!-- Historial de cierres -->
-  <div class="ff-panel">
+  <div class="ff-panel" data-cy="admin-cash-register-history-section">
     <div class="ff-list-header">
-      <span class="ff-list-header__title">Historial de cierres</span>
+      <span
+        class="ff-list-header__title"
+        data-cy="admin-cash-register-history-title"
+        >Historial de cierres</span
+      >
     </div>
 
     <div
@@ -165,6 +178,7 @@
       <div class="flex flex-col gap-1">
         <label class="auth-label">Desde</label>
         <input
+          data-cy="admin-cash-register-filter-from"
           type="date"
           [(ngModel)]="filterDateFrom"
           class="native-date-input h-10"
@@ -173,6 +187,7 @@
       <div class="flex flex-col gap-1">
         <label class="auth-label">Hasta</label>
         <input
+          data-cy="admin-cash-register-filter-to"
           type="date"
           [(ngModel)]="filterDateTo"
           class="native-date-input h-10"
@@ -181,6 +196,7 @@
       <div class="flex flex-col gap-1">
         <label class="auth-label">Estado</label>
         <p-dropdown
+          data-cy="admin-cash-register-filter-status"
           [options]="differenceStatusOptions"
           [(ngModel)]="filterDifferenceStatus"
           optionLabel="label"
@@ -189,6 +205,7 @@
         />
       </div>
       <p-button
+        data-cy="admin-cash-register-filter-apply"
         label="Filtrar"
         icon="pi pi-search"
         severity="secondary"
@@ -197,6 +214,7 @@
       />
       @if (filterDateFrom || filterDateTo || filterDifferenceStatus) {
         <p-button
+          data-cy="admin-cash-register-filter-clear"
           label="Limpiar"
           icon="pi pi-times"
           severity="secondary"
@@ -211,12 +229,16 @@
     } @else if (errorHistory) {
       <app-error-state />
     } @else if (history.length === 0) {
-      <div class="ff-empty-state">
+      <div
+        class="ff-empty-state"
+        data-cy="admin-cash-register-history-empty-state"
+      >
         <i class="pi pi-inbox"></i>
         Sin cierres registrados.
       </div>
     } @else {
       <p-table
+        data-cy="admin-cash-register-history-table"
         [value]="history"
         [paginator]="true"
         [rows]="15"
@@ -236,7 +258,11 @@
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-reg>
-          <tr class="cursor-pointer" (click)="openDetail(reg)">
+          <tr
+            class="cursor-pointer"
+            (click)="openDetail(reg)"
+            data-cy="admin-cash-register-history-row"
+          >
             <td class="font-medium">{{ formatDate(reg.registerDate) }}</td>
             <td
               class="text-right ff-mono font-semibold"
@@ -279,6 +305,7 @@
 
 <!-- Dialog: Cerrar caja -->
 <p-dialog
+  data-cy="admin-cash-register-close-modal"
   [(visible)]="showCloseDialog"
   [modal]="true"
   [style]="{ width: '460px' }"
@@ -309,6 +336,7 @@
           <div class="space-y-2">
             <p>{{ closePendingError }}</p>
             <p-button
+              data-cy="admin-cash-register-close-force-action"
               label="Cerrar igualmente (force)"
               icon="pi pi-lock"
               severity="warning"
@@ -324,6 +352,7 @@
       <div class="flex flex-col gap-1.5">
         <label class="auth-label">Efectivo físico contado (ARS)</label>
         <p-inputNumber
+          data-cy="admin-cash-register-declared-cash-input"
           [(ngModel)]="declaredCash"
           mode="currency"
           currency="ARS"
@@ -337,6 +366,7 @@
       <div class="flex flex-col gap-1.5">
         <label class="auth-label">Observaciones (opcional)</label>
         <textarea
+          data-cy="admin-cash-register-observations-input"
           pInputTextarea
           [(ngModel)]="observations"
           rows="3"
@@ -352,6 +382,7 @@
   }
   <ng-template pTemplate="footer">
     <p-button
+      data-cy="admin-cash-register-close-cancel-action"
       label="Cancelar"
       severity="secondary"
       [outlined]="true"
@@ -359,6 +390,7 @@
       (onClick)="showCloseDialog = false"
     />
     <p-button
+      data-cy="admin-cash-register-close-confirm-action"
       label="Cerrar caja"
       icon="pi pi-lock"
       severity="danger"
@@ -371,6 +403,7 @@
 
 <!-- Dialog: Detalle de cierre -->
 <p-dialog
+  data-cy="admin-cash-register-detail-modal"
   [(visible)]="showDetailDialog"
   [modal]="true"
   [style]="{ width: '500px' }"
@@ -488,6 +521,7 @@
   }
   <ng-template pTemplate="footer">
     <p-button
+      data-cy="admin-cash-register-detail-close-action"
       label="Cerrar"
       severity="secondary"
       [outlined]="true"

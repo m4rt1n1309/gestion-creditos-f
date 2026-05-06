@@ -38,46 +38,69 @@ export const ADMIN_ROUTES: Routes = [
       ),
   },
   {
-    path: AppRoutes.PRODUCTS_NEW,
-    loadComponent: () =>
-      import('../seller/products/product-create/product-create.component').then(
-        (c) => c.ProductCreateComponent,
-      ),
-  },
-  {
-    path: AppRoutes.PRODUCTS_EDIT,
-    loadComponent: () =>
-      import('../seller/products/product-edit/product-edit.component').then(
-        (c) => c.ProductEditComponent,
-      ),
-  },
-  {
-    path: 'products/:id/variants/:variantId/units',
-    loadComponent: () =>
-      import('../seller/products/product-units/product-units.component').then(
-        (c) => c.ProductUnitsComponent,
-      ),
-  },
-  {
-    path: 'products/:id/variants',
-    loadComponent: () =>
-      import('../seller/products/product-variants/product-variants.component').then(
-        (c) => c.ProductVariantsComponent,
-      ),
-  },
-  {
-    path: AppRoutes.PRODUCTS_DETAIL,
-    loadComponent: () =>
-      import('../seller/products/product-detail/product-detail.component').then(
-        (c) => c.ProductDetailComponent,
-      ),
-  },
-  {
     path: AppRoutes.PRODUCTS,
     loadComponent: () =>
-      import('../seller/products/products-list/products-list.component').then(
-        (c) => c.ProductsListComponent,
+      import('../seller/products/products-shell/products-shell.component').then(
+        (c) => c.ProductsShellComponent,
       ),
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('../seller/products/products-list/products-list.component').then(
+            (c) => c.ProductsListComponent,
+          ),
+      },
+      {
+        path: 'new',
+        loadComponent: () =>
+          import('../seller/products/product-create/product-create.component').then(
+            (c) => c.ProductCreateComponent,
+          ),
+      },
+      {
+        path: ':id/variants/:variantId/units',
+        loadComponent: () =>
+          import('../seller/products/product-units/product-units.component').then(
+            (c) => c.ProductUnitsComponent,
+          ),
+      },
+      {
+        path: ':id/variants',
+        loadComponent: () =>
+          import('../seller/products/product-variants/product-variants.component').then(
+            (c) => c.ProductVariantsComponent,
+          ),
+      },
+      {
+        path: ':id/edit',
+        loadComponent: () =>
+          import('../seller/products/product-edit/product-edit.component').then(
+            (c) => c.ProductEditComponent,
+          ),
+      },
+      {
+        path: ':id',
+        loadComponent: () =>
+          import('../seller/products/product-detail/product-detail.component').then(
+            (c) => c.ProductDetailComponent,
+          ),
+      },
+      {
+        path: 'config/categories',
+        loadComponent: () =>
+          import('./config/product-categories/product-categories-config.component').then(
+            (c) => c.ProductCategoriesConfigComponent,
+          ),
+      },
+      {
+        path: 'config/brands',
+        loadComponent: () =>
+          import('./config/product-brands/product-brands-config.component').then(
+            (c) => c.ProductBrandsConfigComponent,
+          ),
+      },
+    ],
   },
   {
     path: AppRoutes.USERS_NEW,
@@ -174,9 +197,7 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: AppRoutes.ADMIN_EXPENSES,
     loadComponent: () =>
-      import('./expenses/expenses.component').then(
-        (c) => c.ExpensesComponent,
-      ),
+      import('./expenses/expenses.component').then((c) => c.ExpensesComponent),
   },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 ];
