@@ -1,11 +1,6 @@
-import {
-  CommonModule,
-  CurrencyPipe,
-  DatePipe,
-  Location,
-} from '@angular/common';
+import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
 import { TagModule } from 'primeng/tag';
@@ -14,6 +9,7 @@ import {
   PortalInstallment,
 } from '../../models/portal.models';
 import { PortalService } from '../../portal.service';
+import { AppRoutes } from '../../../../shared/models/enums/routes.enum';
 
 @Component({
   selector: 'app-portal-credit-detail',
@@ -31,7 +27,7 @@ import { PortalService } from '../../portal.service';
 export class PortalCreditDetailComponent implements OnInit {
   private readonly portalService = inject(PortalService);
   private readonly route = inject(ActivatedRoute);
-  private readonly location = inject(Location);
+  private readonly router = inject(Router);
 
   credit: PortalCreditDetail | null = null;
   loading = true;
@@ -52,7 +48,7 @@ export class PortalCreditDetailComponent implements OnInit {
   }
 
   back(): void {
-    this.location.back();
+    this.router.navigate([AppRoutes.PORTAL_CREDITS]);
   }
 
   /**

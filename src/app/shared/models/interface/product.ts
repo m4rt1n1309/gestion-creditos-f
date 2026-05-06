@@ -3,6 +3,7 @@ export interface ProductOperation {
   name: string;
   price: number;
   stock: number;
+  unitCode?: string;
 }
 
 export interface Product {

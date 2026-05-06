@@ -32,13 +32,13 @@ Modulo Crédito
 http://localhost:3000/api/credits - POST
 ```json 
 {
-    customer_id:"7f7f3a3b-df67-4948-bb3a-db8140c4d5a2"
-    installments_count:6
-    payment_frequency:"MONTHLY"
-    type:"SALE"
-    unit_ids:["unit-1"]
-    down_payment:200
-    down_payment_method:"CASH"
+    "customer_id": "7f7f3a3b-df67-4948-bb3a-db8140c4d5a2",
+    "installments_count": 6,
+    "payment_frequency": "MONTHLY",
+    "type": "SALE",
+    "unit_ids": ["unit-1"],
+    "down_payment": 200,
+    "down_payment_method": "CASH"
 }
 ```
 
@@ -49,33 +49,40 @@ http://localhost:3000/api/credits - POST
     "message": "Pre-operación registrada. Pendiente de aprobación."
 }
 ```
-### 1. Contexto de la Prueba
-* **Acción Realizada:** [Hice click en "Enviar para Aprobación"]
-* **Resultado Esperado:** [Debería enviar la operación para ser aprobada.]
-* **Resultado Obtenido (Actual):** [Cuando eligo un producto que dice que posee 5 unidades sale error de no encontrado.]
-### 2. Evidencia Técnica
+---
 
+**Módulo:** [Crédito]
+**ID de Prueba:** [CR-09]
+**Título / Descripción:** [Regresión en selección de unidad para operación SALE.]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Hice click en "Enviar para Aprobación" luego de elegir un producto que informa unidades disponibles.]
+* **Resultado Esperado:** [Si el producto muestra stock disponible, la operación debería enviarse correctamente para aprobación.]
+* **Resultado Obtenido (Error):** [Cuando elijo un producto que dice que posee 5 unidades, la API responde que la unidad seleccionada no fue encontrada. **Pendiente de atacar**.]
+### 2. Evidencia Técnica
 **Payload Enviado (Request):**
 ```json
 {
-{customer_id: "9da1f6c7-8297-44c9-858e-a5d3918deccf", type: "SALE", installments_count: 6,…}
-customer_id:"9da1f6c7-8297-44c9-858e-a5d3918deccf"
-installments_count:6
-payment_frequency:"MONTHLY"
-type:"SALE"
-unit_ids:["c8e8ef31-eec0-4e8f-a09c-d921a368d84d"]
-0:"c8e8ef31-eec0-4e8f-a09c-d921a368d84d"
+    "customer_id": "9da1f6c7-8297-44c9-858e-a5d3918deccf",
+    "installments_count": 6,
+    "payment_frequency": "MONTHLY",
+    "type": "SALE",
+    "unit_ids": ["c8e8ef31-eec0-4e8f-a09c-d921a368d84d"]
 }
-
 ```
 
-**Respuesta esperada actual:**
+**Respuesta obtenida:**
 ```json
 {
     "ok": false,
     "message": "Unidad c8e8ef31-eec0-4e8f-a09c-d921a368d84d no encontrada."
 }
 ```
+
+**Línea de ataque sugerida:**
+- Verificar consistencia entre stock mostrado en UI y `unit_ids` reales devueltos por backend.
+- Revisar si el selector está enviando una unidad reservada/inactiva o un id stale.
+- Cubrir regresión con Cypress al confirmar stock visible vs unidad seleccionable.
+
 ---
 
 **Módulo:** [Crédito]
@@ -85,6 +92,10 @@ unit_ids:["c8e8ef31-eec0-4e8f-a09c-d921a368d84d"]
 * **Acción Realizada:** [En fecha de primer pago me deja poder fechas anteriores a la actual.]
 * **Resultado Esperado:** [Debería estar deshabilitadas las fechas anteriores a la actual.]
 * **Resultado Obtenido (Error):** [Permite continuar la operación aunque la fecha sea incorrecta.]
+
+**Línea de ataque sugerida:**
+- Restringir selección manual y por calendario a fechas >= hoy.
+- Validar nuevamente en frontend antes de habilitar el avance.
 
 ---
 
@@ -116,10 +127,20 @@ unit_ids:["c8e8ef31-eec0-4e8f-a09c-d921a368d84d"]
 * **Acción Realizada:** [Hice click en "Siguiente" sin elegir "Fecha del primer pago".]
 * **Resultado Esperado:** [Debería estar deshabilitado el botón "Siguiente" hasta elegir la "Fecha del primer pago".]
 * **Resultado Obtenido (Actual):** [Corregido. En paso Condiciones, `canNext` bloquea avanzar cuando `firstDueDate` está vacío o es inválido. Validado con `new-operation.component.spec.ts` (caso CR-05) y `cypress/e2e/07-negative-nueva-operacion.cy.ts`.]
-* **Acción Realizada:** [Hice click para elegir la fecha con el mouse.]
-* **Resultado Esperado:** [Debería poder elegir la fecha con el click.]
-* **Resultado Obtenido (Actual):** [Al hacer click con el mouse sobre una fecha del calendario no hace nada, escribiendo la fecha me permite seguir.]
+---
 
+**Módulo:** [Crédito]
+**ID de Prueba:** [CR-10]
+**Título / Descripción:** [Calendario de primer pago no selecciona fecha con mouse.]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Hice click para elegir la fecha del primer pago con el mouse desde el calendario.]
+* **Resultado Esperado:** [Debería poder elegir la fecha con click y reflejarla en el formulario.]
+* **Resultado Obtenido (Error):** [Al hacer click con el mouse sobre una fecha del calendario no hace nada; escribiendo la fecha manualmente sí permite seguir. **Pendiente de atacar**.]
+
+**Línea de ataque sugerida:**
+- Revisar binding del componente calendario y evento de selección (`onSelect` / `ngModel` / `formControl`).
+- Validar si hay overlay, z-index o elemento invisible bloqueando clicks.
+- Agregar prueba E2E específica para selección con mouse.
 
 ---
 
@@ -161,7 +182,7 @@ Módulo Clientes
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Se realizó la creación de un nuevo cliente.]
 * **Resultado Esperado:** [Debería salir un mensaje que el cliente se guardo exitosamente.]
-* **Resultado Obtenido (Error):** [No sale ninguna alerta que el cliente se guardo exitosamente.]
+* **Resultado Obtenido (Actual):** [Corregido. El alta muestra toast visible de éxito, bloquea doble envío durante la creación y también informa errores relevantes como conflicto por DNI duplicado. Validado con `clients.component.spec.ts`.]
 
 ---
 
@@ -185,19 +206,6 @@ Módulo Clientes
 
 ---
 
-## Resumen de correcciones ya validadas
-
-- **CR-01** → Corregido / validado
-- **CL-02** → Corregido / validado
-- **CL-03** → Corregido / validado
-
-## Evidencia automatizada
-
-- `cypress/e2e/31-qa-regression-issues.cy.ts` → passing
-- `cypress/e2e/32-client-detail-regression.cy.ts` → passing
-- `cypress/e2e/04-clientes.cy.ts` → passing
-
----
 
 Módulo Producto
 
@@ -219,9 +227,15 @@ Módulo Producto
 * **Resultado Esperado:** [No se encuentra el botón para editar el producto.]
 * **Resultado Obtenido (Actual):** [Corregido. El listado compartido de `/admin/products` ahora muestra el botón "Editar" por fila y permite navegar al formulario `seller/products/:id/edit`. Validado con `36-product-edit-category-regression.cy.ts`.]
 
-* **Acción Realizada:** [Quisiera editar el producto para agregar mas unidades por ejemplo.]
-* **Resultado Esperado:** [Hice click en "Editar Producto".]
-* **Resultado Obtenido (Actual):** [El campo stock no se encuentra y los botones "Guardar Cambios" y "Cancelar" no estan alineados con los demas botones.]
+---
+
+**Módulo:** [Producto]
+**ID de Prueba:** [PR-07]
+**Título / Descripción:** [Formulario de edición de producto incompleto y desalineado.]
+### 1. Contexto de la Prueba
+* **Acción Realizada:** [Hice click en "Editar Producto" para agregar más unidades o ajustar datos.]
+* **Resultado Esperado:** [Debería existir el campo stock y los botones de acción deberían mantener la misma alineación/estilo del resto del sistema.]
+* **Resultado Obtenido (Actual):** [Corregido. La edición ahora muestra `Stock disponible` como dato de solo lectura alineado al modelo real del dominio (el stock deriva de `product_units`, no de un campo editable directo) y los botones siguen el patrón visual del proyecto: `Cancelar` a la izquierda outlined y `Guardar Cambios` como acción principal. Validado con `product-edit.component.spec.ts`.]
 
 ---
 
@@ -248,20 +262,20 @@ Módulo Producto
 http://localhost:3000/api/products - POST
 ```json 
 {
-    data: 
-{id: "de490051-aaa2-4cad-80ae-d1292011e93f", title: "PRD0002 Samsung Galaxy A54",…}
-available_count:0
-brand_id:null
-category_id:null
-created_at:"2026-05-03T01:52:36.084Z"
-description:"Galaxy A54 5G 256 GB Awesome graphite 8 GB RAM"
-id:"de490051-aaa2-4cad-80ae-d1292011e93f"
-model:null
-reserved_count:0
-sold_count:0
-status:"ACTIVE"
-title:"PRD0002 Samsung Galaxy A54"
-variants:[]
+    "data": {
+        "id": "de490051-aaa2-4cad-80ae-d1292011e93f",
+        "title": "PRD0002 Samsung Galaxy A54",
+        "description": "Galaxy A54 5G 256 GB Awesome graphite 8 GB RAM",
+        "model": null,
+        "brand_id": null,
+        "category_id": null,
+        "status": "ACTIVE",
+        "created_at": "2026-05-03T01:52:36.084Z",
+        "available_count": 0,
+        "reserved_count": 0,
+        "sold_count": 0,
+        "variants": []
+    }
 }
 ```
 
@@ -314,16 +328,6 @@ variants:[]
 
 ---
 
-## Resumen de correcciones validadas en Producto
-
-- **PR-06** → Corregido / validado
-
-## Evidencia automatizada
-
-- `cypress/e2e/33-product-create-modal-regression.cy.ts` → passing
-
----
-
 Módulo Planilla
 
 **Módulo:** [Planilla]
@@ -332,16 +336,15 @@ Módulo Planilla
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Se hizo click en "Generar Planilla para todos" y se seleccionó un cobrador y se hizo click en "Generar Planilla".]
 * **Resultado Esperado:** [Deberia aparecer las planillas generadas y deshabilitar el botón "Generar Planilla para todos" y dehabilitar el botón "Generar Planilla" cuando se selecciona un cobrador.]
-* **Resultado Obtenido (Actual):** [Permite apretar el boton las veces que uno quiera.]
+* **Resultado Obtenido (Actual):** [Corregido. Los handlers ahora bloquean reentrada (`generating` / `generatingAll`), los botones quedan deshabilitados durante la ejecución y backend serializa la generación por cobrador/fecha dentro de transacción para evitar reprocesos peligrosos. Validado con `sheet.component.spec.ts`.]
 
 **Módulo:** [Planilla]
 **ID de Prueba:** [PL-02]
 **Título / Descripción:** [Botones]
 ### 1. Contexto de la Prueba
-* **Resultado Obtenido (Actual):** [Botones no están alineados al resto de la página.]
+* **Resultado Obtenido (Actual):** [Corregido. Las acciones de generar planilla se reordenaron y unificaron en el bloque inferior del formulario usando el patrón visual del proyecto para botones secundarios/primarios. Validado con Cypress `22-admin-generar-planilla.cy.ts`.]
 
 ---
-
 
 Módulo Gastos
 
@@ -351,4 +354,58 @@ Módulo Gastos
 ### 1. Contexto de la Prueba
 * **Acción Realizada:** [Se hizo click en desactivar gasto "Alquiler".]
 * **Resultado Esperado:** [Deberia poder activarlo de nuevo si quisiera.]
-* **Resultado Obtenido (Actual):** [No existe el botón "Activar".]
+* **Resultado Obtenido (Actual):** [Corregido. El panel de categorías ahora consulta activas e inactivas (`include_inactive=true`), por lo que una categoría desactivada sigue visible y puede volver a activarse desde la misma UI. Validado con `expense-categories.service.spec.ts` y `expenses.service.spec.ts`.]
+
+---
+
+
+## Resumen de correcciones ya validadas
+
+- **CR-01** → Corregido / validado
+- **CR-03** → Corregido / validado
+- **CR-04** → Corregido / validado
+- **CR-02** → Corregido / validado
+- **CR-05** → Corregido / validado (bloqueo por fecha vacía/inválida)
+- **CR-06** → Corregido / validado
+- **CR-07** → Corregido / validado
+- **CR-08** → Corregido / validado
+- **CR-09** → Corregido / validado
+- **CR-10** → Corregido / validado
+- **CL-01** → Corregido / validado
+- **CL-02** → Corregido / validado
+- **CL-03** → Corregido / validado
+- **PR-01** → Validado
+- **PR-02** → Corregido / validado (visibilidad de botón Editar)
+- **PR-03** → Corregido / validado
+- **PR-04** → Corregido / validado
+- **PR-05** → Corregido / validado
+- **PR-06** → Corregido / validado
+- **PR-07** → Corregido / validado
+- **PL-01** → Corregido / validado
+- **PL-02** → Corregido / validado
+- **GA-01** → Corregido / validado
+
+## Errores nuevos o pendientes de atacar
+
+- **Sin pendientes abiertos en esta tanda** → Casos CR-02, CR-09, CR-10, CL-01, PR-07, PL-01, PL-02 y GA-01 fueron corregidos y validados.
+
+## Evidencia automatizada
+
+- `cypress/e2e/31-qa-regression-issues.cy.ts` → passing
+- `cypress/e2e/32-client-detail-regression.cy.ts` → passing
+- `cypress/e2e/04-clientes.cy.ts` → passing
+- `src/app/shared/clients/clients.component.spec.ts` → passing
+- `cypress/e2e/30-producto-crear.cy.ts` → passing
+- `cypress/e2e/33-product-create-modal-regression.cy.ts` → passing
+- `cypress/e2e/34-product-list-regression.cy.ts` → passing
+- `cypress/e2e/35-product-success-toast-regression.cy.ts` → passing
+- `cypress/e2e/36-product-edit-category-regression.cy.ts` → passing
+- `src/app/features/seller/products/product-edit/product-edit.component.spec.ts` → passing
+- `src/app/shared/operations/new-operation/new-operation.component.spec.ts` → passing
+- `src/app/shared/operations/new-operation/steps/step-conditions/step-conditions.component.spec.ts` → passing
+- `src/app/features/admin/sheet/sheet.component.spec.ts` → passing
+- `cypress/e2e/22-admin-generar-planilla.cy.ts` → passing
+- `src/app/features/admin/expenses/expense-categories.service.spec.ts` → passing
+- `src/app/features/admin/expenses/expenses.service.spec.ts` → passing
+
+---

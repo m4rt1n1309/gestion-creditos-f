@@ -1,5 +1,7 @@
-<div class="flex flex-col gap-6">
-  <h2 class="text-xl font-bold text-gray-800">Mis créditos</h2>
+<div class="flex flex-col gap-6" data-cy="portal-credits-page">
+  <h2 class="text-xl font-bold text-gray-800" data-cy="portal-credits-title">
+    Mis créditos
+  </h2>
 
   @if (loading) {
     <div class="flex flex-col gap-4">
@@ -8,14 +10,18 @@
       }
     </div>
   } @else if (credits.length === 0) {
-    <div class="text-center py-12 text-gray-400">
+    <div
+      class="text-center py-12 text-gray-400"
+      data-cy="portal-credits-empty-state"
+    >
       <i class="pi pi-inbox text-4xl mb-3 block"></i>
       No tenés créditos registrados.
     </div>
   } @else {
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-4" data-cy="portal-credits-list">
       @for (credit of credits; track credit.id) {
         <div
+          data-cy="portal-credits-card"
           class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 cursor-pointer hover:shadow-md transition-shadow"
           (click)="goToDetail(credit.id)"
         >
@@ -93,6 +99,11 @@
   }
 
   @if (error) {
-    <div class="text-center py-8 text-red-500 text-sm">{{ error }}</div>
+    <div
+      class="text-center py-8 text-red-500 text-sm"
+      data-cy="portal-credits-error-state"
+    >
+      {{ error }}
+    </div>
   }
 </div>

@@ -18,10 +18,14 @@
   </div>
 } @else if (summary) {
   <div
+    data-cy="portal-dashboard-summary-card"
     class="rounded-2xl bg-gradient-to-r from-blue-700 to-blue-500 text-white p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6"
   >
     <div>
-      <p class="text-base font-medium opacity-90 mb-1">
+      <p
+        class="text-base font-medium opacity-90 mb-1"
+        data-cy="portal-dashboard-greeting"
+      >
         Hola, {{ firstName }} 👋
       </p>
       <p class="text-4xl font-bold tracking-tight">
@@ -46,7 +50,10 @@
     }
   </div>
 
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div
+    class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+    data-cy="portal-dashboard-kpis"
+  >
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
       <p class="text-2xl font-bold text-gray-800">{{ activeCredits.length }}</p>
       <p class="text-xs text-gray-500 mt-1">Créditos activos</p>
@@ -84,9 +91,13 @@
   </div>
 
   @if (credits.length > 0) {
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div
+      class="grid grid-cols-1 md:grid-cols-2 gap-4"
+      data-cy="portal-dashboard-credits-list"
+    >
       @for (credit of credits; track credit.id) {
         <div
+          data-cy="portal-dashboard-credit-card"
           class="bg-white rounded-xl border shadow-sm p-5 flex flex-col gap-3"
           [class.border-yellow-200]="credit.hasOverdue"
           [class.bg-yellow-50]="credit.hasOverdue"
@@ -174,6 +185,7 @@
 
           <!-- CTA -->
           <a
+            data-cy="portal-dashboard-credit-detail-cta"
             [routerLink]="['/portal/credits', credit.id]"
             class="flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium py-1"
           >
@@ -184,7 +196,10 @@
       }
     </div>
   } @else {
-    <div class="text-center py-12 text-gray-400 text-sm">
+    <div
+      class="text-center py-12 text-gray-400 text-sm"
+      data-cy="portal-dashboard-empty-state"
+    >
       <i class="pi pi-credit-card text-3xl mb-2 block"></i>
       No tenés créditos registrados.
     </div>

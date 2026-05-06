@@ -7,6 +7,7 @@ import { CreditsService } from '../../../features/seller/operations/credits.serv
 import { OperationFormService } from './operation-form.service';
 import { CustomersService } from '../../../features/seller/clients/customers.service';
 import { ProductsService } from '../../../features/seller/products/products.service';
+import { ProductUnitsService } from '../../../features/seller/products/product-units.service';
 import { MessageService } from 'primeng/api';
 import { ProductOperation } from '../../models/interface/product';
 import { ClientOperation } from '../../models/interface/client';
@@ -47,6 +48,9 @@ describe('NewOperationComponent', () => {
     const productsServiceStub = {
       list: () => of([]),
     };
+    const productUnitsServiceStub = {
+      getAll: () => of([]),
+    };
 
     await TestBed.configureTestingModule({
       imports: [NewOperationComponent],
@@ -55,6 +59,7 @@ describe('NewOperationComponent', () => {
         { provide: CreditsService, useValue: creditsServiceSpy },
         { provide: CustomersService, useValue: customersServiceStub },
         { provide: ProductsService, useValue: productsServiceStub },
+        { provide: ProductUnitsService, useValue: productUnitsServiceStub },
       ],
     }).compileComponents();
 

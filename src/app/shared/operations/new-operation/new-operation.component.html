@@ -1,9 +1,17 @@
 <p-toast position="top-right" />
-<div class="flex flex-col h-full bg-gray-50/50">
+<div class="flex flex-col h-full" style="background: var(--ff-bg)">
+  <!-- Header / step bar -->
   <div
-    class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-4 shrink-0 shadow-sm"
+    class="shrink-0 px-6 py-3 flex items-center gap-4"
+    style="
+      background: var(--ff-panel);
+      border-bottom: 1px solid var(--ff-border);
+    "
   >
-    <h1 class="text-xl font-bold text-gray-900 shrink-0">
+    <h1
+      class="text-xl font-bold shrink-0"
+      style="color: var(--ff-text-primary)"
+    >
       Nueva Operación de Crédito
     </h1>
 
@@ -26,11 +34,10 @@
     />
   </div>
 
+  <!-- Step content -->
   <div class="flex-1 overflow-y-auto p-6 md:p-8">
     <div class="max-w-5xl mx-auto space-y-6">
-      <div
-        class="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 shadow-sm min-h-[450px] flex flex-col"
-      >
+      <div class="ff-panel p-6 md:p-8 min-h-[450px] flex flex-col">
         <div class="flex-1">
           @switch (activeIndex) {
             @case (0) {
@@ -48,10 +55,12 @@
           }
         </div>
 
+        <!-- Navigation bar -->
         <div
-          class="flex justify-between items-center mt-8 pt-6 border-t border-gray-100"
+          class="flex justify-between items-center mt-8 pt-6"
+          style="border-top: 1px solid var(--ff-border)"
         >
-          <div class="text-sm text-gray-500 font-medium">
+          <div class="text-sm font-medium" style="color: var(--ff-text-muted)">
             Paso {{ activeIndex + 1 }} de 4 · {{ steps?.[activeIndex]?.label }}
           </div>
 
@@ -59,20 +68,20 @@
             @if (activeIndex === 0) {
               <p-button
                 label="Cancelar"
+                severity="danger"
                 [text]="true"
-                severity="secondary"
                 routerLink="../"
-                styleClass="font-bold bg-gray-50 px-5 h-11 hover:bg-gray-100 transition-colors"
+                styleClass="h-11 px-5"
                 data-cy="btn-cancelar-wizard"
               />
             } @else {
               <p-button
                 label="Anterior"
                 icon="pi pi-arrow-left"
-                [text]="true"
                 severity="secondary"
+                [outlined]="true"
                 (onClick)="prevStep()"
-                styleClass="font-bold bg-gray-50 px-5 h-11 hover:bg-gray-100 transition-colors"
+                styleClass="h-11 px-5"
                 data-cy="btn-anterior-wizard"
               />
             }
@@ -83,7 +92,7 @@
                 icon="pi pi-arrow-right"
                 iconPos="right"
                 severity="primary"
-                styleClass="rounded-xl px-6 h-11 shadow-sm"
+                styleClass="h-11 px-6 rounded-xl"
                 [disabled]="!canNext"
                 (onClick)="nextStep()"
                 data-cy="btn-siguiente-wizard"
@@ -93,7 +102,7 @@
                 label="Enviar para Aprobación"
                 icon="pi pi-check"
                 severity="success"
-                styleClass="rounded-xl px-6 h-11 shadow-md bg-green-500 border-green-500 hover:bg-green-600"
+                styleClass="h-11 px-6 rounded-xl"
                 [disabled]="!isConfirmed || submitting"
                 [loading]="submitting"
                 (onClick)="finish()"
